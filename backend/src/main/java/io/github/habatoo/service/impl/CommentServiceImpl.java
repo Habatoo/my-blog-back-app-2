@@ -5,6 +5,7 @@ import io.github.habatoo.dto.response.CommentResponse;
 import io.github.habatoo.repository.CommentRepository;
 import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @see CommentRepository
  * @see PostServiceImpl
  */
+@Slf4j
 @Service
 @Transactional
 public class CommentServiceImpl implements CommentService {
@@ -43,9 +45,13 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public List<CommentResponse> getCommentsByPostId(Long postId) {
+        log.debug("Получение комментариев для поста id={}", postId);
         checkPostIsExist(postId);
+
         return commentsCache.computeIfAbsent(postId, id -> {
-            return new CopyOnWriteArrayList<>(commentRepository.findByPostId(id));
+            List<CommentResponse> loaded = commentRepository.findByPostId(id);
+            log.debug("Комментарии кэшированы для поста id={}, количество: {}", postId, loaded.size());
+            return new CopyOnWriteArrayList<>(loaded);
         });
     }
 
@@ -54,7 +60,9 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public Optional<CommentResponse> getCommentByPostIdAndId(Long postId, Long commentId) {
+        log.debug("Получение комментария id={} для поста id={}", commentId, postId);
         CopyOnWriteArrayList<CommentResponse> comments = commentsCache.get(postId);
+
         if (comments != null) {
             return comments.stream()
                     .filter(c -> c.id().equals(commentId))
@@ -68,6 +76,7 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public CommentResponse createComment(CommentCreateRequest request) {
+        log.info("Создание комментария для поста id={}", request.postId());
         checkPostIsExist(request.postId());
         CommentResponse newComment = commentRepository.save(request);
         postService.incrementCommentsCount(request.postId());
@@ -79,6 +88,8 @@ public class CommentServiceImpl implements CommentService {
             comments.add(newComment);
             return comments;
         });
+        log.info("Комментарий создан: id={}, postId={}", newComment.id(), request.postId());
+
         return newComment;
     }
 
@@ -86,12 +97,14 @@ public class CommentServiceImpl implements CommentService {
      * {@inheritDoc}
      */
     @Override
-    public CommentResponse updateComment(Long postId, Long commentId, String text) { //TODO not update
+    public CommentResponse updateComment(Long postId, Long commentId, String text) {
+        log.info("Обновление комментария id={} для поста id={}", commentId, postId);
         checkPostIsExist(postId);
         CommentResponse updatedComment;
         try {
             updatedComment = commentRepository.updateText(commentId, text);
         } catch (EmptyResultDataAccessException e) {
+            log.warn("Комментарий id={} не найден для обновления", commentId);
             throw new IllegalStateException("Comment not found for update with id " + commentId, e);
         }
 
@@ -100,6 +113,8 @@ public class CommentServiceImpl implements CommentService {
             comments.add(updatedComment);
             return comments;
         });
+        log.info("Комментарий обновлен: id={}, postId={}", updatedComment.id(), postId);
+
         return updatedComment;
     }
 
@@ -108,6 +123,7 @@ public class CommentServiceImpl implements CommentService {
      */
     @Override
     public void deleteComment(Long postId, Long commentId) {
+        log.info("Удаление комментария id={} у поста id={}", commentId, postId);
         checkPostIsExist(postId);
         int deleted = commentRepository.deleteById(commentId);
         if (deleted > 0) {
@@ -116,15 +132,17 @@ public class CommentServiceImpl implements CommentService {
                 comments.removeIf(c -> c.id().equals(commentId));
                 return comments;
             });
+            log.info("Комментарий удалён: id={}, postId={}", commentId, postId);
         } else {
+            log.warn("Комментарий не найден для удаления: id={}, postId={}", commentId, postId);
             throw new EmptyResultDataAccessException("Comment not found", 1);
         }
     }
 
     private void checkPostIsExist(Long postId) {
         if (!postService.postExists(postId)) {
+            log.warn("Пост postId={} не найден", postId);
             throw new IllegalStateException("Post not found with id " + postId);
         }
     }
 }
-

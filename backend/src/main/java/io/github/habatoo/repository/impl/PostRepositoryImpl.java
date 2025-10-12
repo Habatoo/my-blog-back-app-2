@@ -8,6 +8,7 @@ import io.github.habatoo.repository.mapper.PostListRowMapper;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -23,6 +24,7 @@ import static io.github.habatoo.repository.sql.PostSqlQueries.*;
  * @see PostListRowMapper
  * @see JdbcTemplate
  */
+@Slf4j
 @Repository
 public class PostRepositoryImpl implements PostRepository {
 
@@ -40,7 +42,9 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public List<PostResponse> findAllPosts() {
+        log.debug("Получение всех постов");
         List<PostResponse> posts = jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper);
+
         return posts.stream()
                 .map(this::enrichWithTags)
                 .toList();
@@ -51,6 +55,7 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public PostResponse createPost(PostCreateRequest postCreateRequest) {
+        log.info("Создание нового поста с title='{}'", postCreateRequest.title());
         LocalDateTime now = LocalDateTime.now();
         PostResponse post = jdbcTemplate.queryForObject(
                 CREATE_POST,
@@ -64,6 +69,7 @@ public class PostRepositoryImpl implements PostRepository {
         long postId = post.id();
         List<String> tags = postCreateRequest.tags();
         if (!tags.isEmpty()) {
+            log.debug("Добавление тегов {} к посту id={}", tags, postId);
             jdbcTemplate.batchUpdate(
                     INSERT_INTO_TAG,
                     tags,
@@ -93,6 +99,8 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public PostResponse updatePost(PostRequest postRequest) {
+        log.info("Обновление поста id={}", postRequest.id());
+
         return jdbcTemplate.queryForObject(
                 UPDATE_POST,
                 postListRowMapper,
@@ -108,8 +116,10 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void deletePost(Long id) {
+        log.info("Удаление поста id={}", id);
         int deletedRows = jdbcTemplate.update(DELETE_POST, id);
         if (deletedRows == 0) {
+            log.warn("Пост не найден для удаления id={}", id);
             throw new IllegalStateException("Post to delete not found with id " + id);
         }
     }
@@ -119,12 +129,14 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public List<String> getTagsForPost(Long postId) {
+        log.debug("Запрос тегов для поста id={}", postId);
         try {
             return jdbcTemplate.query(GET_TAGS_FOR_POST,
                     (rs, rowNum) -> rs.getString("name"),
                     postId
             );
         } catch (Exception e) {
+            log.warn("Ошибка при получении тегов для поста id={}: {}", postId, e.getMessage());
             return List.of();
         }
     }
@@ -134,8 +146,10 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void incrementLikes(Long postId) {
+        log.info("Увеличение лайков для поста id={}", postId);
         int updatedRows = jdbcTemplate.update(INCREMENT_LIKES, postId);
         if (updatedRows == 0) {
+            log.warn("Пост не найден при увеличении лайков id={}", postId);
             throw new EmptyResultDataAccessException("Post with id " + postId + " not found", 1);
         }
     }
@@ -145,6 +159,7 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void incrementCommentsCount(Long postId) {
+        log.debug("Увеличение счётчика комментариев для поста id={}", postId);
         jdbcTemplate.update(INCREMENT_COMMENTS_COUNT, postId);
     }
 
@@ -153,6 +168,7 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void decrementCommentsCount(Long postId) {
+        log.debug("Уменьшение счётчика комментариев для поста id={}", postId);
         jdbcTemplate.update(DECREMENT_COMMENTS_COUNT, postId);
     }
 
@@ -167,5 +183,4 @@ public class PostRepositoryImpl implements PostRepository {
                 post.commentsCount()
         );
     }
-
 }

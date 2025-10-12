@@ -1,6 +1,7 @@
 package io.github.habatoo.service.impl;
 
 import io.github.habatoo.service.ImageContentTypeDetector;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Component;
  * Детектор типа контента изображения на основе анализа содержимого файла.
  * Выполняет  проверку формата изображения.
  */
+@Slf4j
 @Component
 public class ImageContentTypeDetectorImpl implements ImageContentTypeDetector {
 
@@ -17,11 +19,20 @@ public class ImageContentTypeDetectorImpl implements ImageContentTypeDetector {
     @Override
     public MediaType detect(byte[] imageData) {
         if (imageData == null || imageData.length == 0) {
+            log.warn("Попытка определить тип изображения для пустых данных");
             throw new IllegalStateException("Image data cannot be null");
         }
 
-        if (isJpeg(imageData)) return MediaType.IMAGE_JPEG;
-        if (isPng(imageData)) return MediaType.IMAGE_PNG;
+        if (isJpeg(imageData)) {
+            log.debug("Изображение определено как JPEG ({} байт)", imageData.length);
+            return MediaType.IMAGE_JPEG;
+        }
+        if (isPng(imageData)) {
+            log.debug("Изображение определено как PNG ({} байт)", imageData.length);
+            return MediaType.IMAGE_PNG;
+        }
+
+        log.info("Тип изображения не определён, возвращён octet-stream ({} байт)", imageData.length);
 
         return MediaType.APPLICATION_OCTET_STREAM;
     }

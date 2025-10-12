@@ -5,6 +5,7 @@ import io.github.habatoo.dto.request.CommentRequest;
 import io.github.habatoo.dto.response.CommentResponse;
 import io.github.habatoo.handler.GlobalExceptionHandler;
 import io.github.habatoo.service.CommentService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import java.util.List;
  * @see CommentCreateRequest
  * @see GlobalExceptionHandler
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/posts")
 public class CommentController {
@@ -54,6 +56,8 @@ public class CommentController {
      */
     @GetMapping("/{postId}/comments")
     public List<CommentResponse> getCommentsByPostId(@PathVariable("postId") Long postId) {
+        log.info("Запрос на получение комментариев для поста id={}", postId);
+
         return commentService.getCommentsByPostId(postId);
     }
 
@@ -74,6 +78,7 @@ public class CommentController {
     public ResponseEntity<CommentResponse> getCommentByPostIdAndId(
             @PathVariable("postId") Long postId,
             @PathVariable("commentId") Long commentId) {
+        log.info("Запрос на получение комментария id={} для поста id={}", commentId, postId);
 
         return commentService.getCommentByPostIdAndId(postId, commentId)
                 .map(ResponseEntity::ok)
@@ -98,8 +103,9 @@ public class CommentController {
     public ResponseEntity<CommentResponse> createComment(
             @PathVariable("postId") Long postId,
             @RequestBody CommentCreateRequest commentCreateRequest) {
-
+        log.info("Запрос на создание комментария к посту id={}", postId);
         CommentResponse result = commentService.createComment(commentCreateRequest);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
@@ -122,8 +128,9 @@ public class CommentController {
             @PathVariable("postId") Long postId,
             @PathVariable("commentId") Long commentId,
             @RequestBody CommentRequest commentRequest) {
-
+        log.info("Запрос на обновление комментария id={} для поста id={}", commentId, postId);
         CommentResponse result = commentService.updateComment(postId, commentId, commentRequest.text());
+
         return ResponseEntity.ok(result);
     }
 
@@ -145,8 +152,9 @@ public class CommentController {
     public ResponseEntity<Void> deleteComment(
             @PathVariable("postId") Long postId,
             @PathVariable("commentId") Long commentId) {
-
+        log.info("Запрос на удаление комментария id={} у поста id={}", commentId, postId);
         commentService.deleteComment(postId, commentId);
+
         return ResponseEntity.ok().build();
     }
 }

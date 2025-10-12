@@ -5,6 +5,7 @@ import io.github.habatoo.dto.request.PostRequest;
 import io.github.habatoo.dto.response.PostListResponse;
 import io.github.habatoo.dto.response.PostResponse;
 import io.github.habatoo.service.PostService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
  * Поддерживает создание, чтение, обновление и удаление постов, а также управление лайками.
  * Все endpoints возвращают данные в формате JSON.</p>
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/posts")
 public class PostController {
@@ -50,7 +52,7 @@ public class PostController {
             @RequestParam("search") String search,
             @RequestParam("pageNumber") int pageNumber,
             @RequestParam("pageSize") int pageSize) {
-
+        log.info("Запрос на получение списка постов: search='{}', pageNumber={}, pageSize={}", search, pageNumber, pageSize);
         PostListResponse result = postService.getPosts(search, pageNumber, pageSize);
         return ResponseEntity.ok(result);
     }
@@ -67,6 +69,7 @@ public class PostController {
      */
     @GetMapping("/{id}")
     public ResponseEntity<PostResponse> getPostById(@PathVariable("id") Long id) {
+        log.info("Запрос на получение поста по id={}", id);
         return postService.getPostById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -85,6 +88,7 @@ public class PostController {
      */
     @PostMapping
     public ResponseEntity<PostResponse> createPost(@RequestBody PostCreateRequest postCreateRequest) {
+        log.info("Запрос на создание нового поста");
         PostResponse result = postService.createPost(postCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -105,7 +109,7 @@ public class PostController {
     public ResponseEntity<PostResponse> updatePost(
             @PathVariable("id") Long id,
             @RequestBody PostRequest postRequest) {
-
+        log.info("Запрос на обновление поста id={}", id);
         PostResponse result = postService.updatePost(postRequest);
         return ResponseEntity.ok(result);
     }
@@ -123,6 +127,7 @@ public class PostController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePost(@PathVariable("id") Long id) {
+        log.info("Запрос на удаление поста id={}", id);
         postService.deletePost(id);
         return ResponseEntity.ok().build();
     }
@@ -140,6 +145,7 @@ public class PostController {
      */
     @PostMapping("/{id}/likes")
     public ResponseEntity<Integer> incrementLikes(@PathVariable("id") Long id) {
+        log.info("Запрос на увеличение лайков для поста id={}", id);
         int likesCount = postService.incrementLikes(id);
         return ResponseEntity.ok(likesCount);
     }

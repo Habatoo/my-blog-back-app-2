@@ -3,6 +3,7 @@ package io.github.habatoo.controller;
 import io.github.habatoo.handler.GlobalExceptionHandler;
 import io.github.habatoo.service.ImageService;
 import io.github.habatoo.service.dto.ImageResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
  * @see ImageService
  * @see GlobalExceptionHandler
  */
+@Slf4j
 @RestController
 @RequestMapping("/api/posts")
 public class ImageController {
@@ -49,7 +51,7 @@ public class ImageController {
     public ResponseEntity<Void> updatePostImage(
             @PathVariable("postId") Long postId,
             @RequestParam("image") MultipartFile image) {
-
+        log.info("Запрос на обновление изображения для поста id={}", postId);
         imageService.updatePostImage(postId, image);
         return ResponseEntity.ok().build();
     }
@@ -71,8 +73,8 @@ public class ImageController {
      */
     @GetMapping("/{postId}/image")
     public ResponseEntity<byte[]> getPostImage(@PathVariable("postId") Long postId) {
+        log.info("Запрос на получение изображения для поста id={}", postId);
         ImageResponse imageResponse = imageService.getPostImage(postId);
-
         return ResponseEntity.ok()
                 .contentType(imageResponse.mediaType())
                 .body(imageResponse.data());

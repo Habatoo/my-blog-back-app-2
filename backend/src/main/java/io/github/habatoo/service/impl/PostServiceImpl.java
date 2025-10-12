@@ -7,6 +7,7 @@ import io.github.habatoo.dto.response.PostResponse;
 import io.github.habatoo.repository.PostRepository;
 import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.PostService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
  * @see PostResponse
  * @see FileStorageService
  */
+@Slf4j
 @Service
 public class PostServiceImpl implements PostService {
 
@@ -41,9 +43,11 @@ public class PostServiceImpl implements PostService {
 
     @PostConstruct
     public void initCache() {
+        log.info("Инициализация кеша постов из репозитория");
         List<PostResponse> allPosts = postRepository.findAllPosts();
         postCache.clear();
         allPosts.forEach(post -> postCache.put(post.id(), post));
+        log.info("Кеш загружен, постов: {}", allPosts.size());
     }
 
     /**
@@ -51,6 +55,7 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public PostListResponse getPosts(String search, int pageNumber, int pageSize) {
+        log.debug("Запрошен список постов: search='{}', pageNumber={}, pageSize={}", search, pageNumber, pageSize);
         List<String> words = Arrays.stream(search.split("\\s+"))
                 .filter(w -> !w.isBlank())
                 .toList();
@@ -80,6 +85,8 @@ public class PostServiceImpl implements PostService {
         int toIndex = Math.min(fromIndex + pageSize, totalCount);
         List<PostResponse> page = filtered.subList(fromIndex, toIndex);
 
+        log.debug("Фильтровано {} постов, от {} до {}", totalCount, fromIndex, toIndex);
+
         return new PostListResponse(page, fromIndex > 0, toIndex < totalCount, totalCount);
     }
 
@@ -88,6 +95,8 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public Optional<PostResponse> getPostById(Long id) {
+        log.debug("Получение поста по id={}", id);
+
         return Optional.ofNullable(postCache.get(id));
     }
 
@@ -96,11 +105,15 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public PostResponse createPost(PostCreateRequest postCreateRequest) {
+        log.info("Создание нового поста: title='{}'", postCreateRequest.title());
+
         try {
             PostResponse createdPost = postRepository.createPost(postCreateRequest);
             postCache.put(createdPost.id(), createdPost);
+            log.info("Пост создан: id={}", createdPost.id());
             return createdPost;
         } catch (Exception e) {
+            log.error("Не удалось создать пост: {}", e.getMessage(), e);
             throw new IllegalStateException("Failed to create post", e);
         }
     }
@@ -109,12 +122,16 @@ public class PostServiceImpl implements PostService {
      * {@inheritDoc}
      */
     @Override
-    public PostResponse updatePost(PostRequest postRequest) { // TODO Ошибка: Failed to execute 'append' on 'FormData': parameter 2 is not of type 'Blob'.
+    public PostResponse updatePost(PostRequest postRequest) {
+        log.info("Обновление поста: id={}", postRequest.id());
+
         try {
             PostResponse updatedPost = postRepository.updatePost(postRequest);
             postCache.put(updatedPost.id(), updatedPost);
+            log.info("Пост обновлён: id={}", updatedPost.id());
             return updatedPost;
         } catch (Exception e) {
+            log.error("Ошибка при обновлении поста id={}: {}", postRequest.id(), e.getMessage(), e);
             throw new IllegalStateException("Post not found or concurrently modified with id " + postRequest.id(), e);
         }
     }
@@ -124,9 +141,11 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public void deletePost(Long id) {
+        log.info("Удаление поста id={}", id);
         postRepository.deletePost(id);
         postCache.remove(id);
         fileStorageService.deletePostDirectory(id);
+        log.info("Пост и директория файлов удалены: id={}", id);
     }
 
     /**
@@ -134,6 +153,7 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public int incrementLikes(Long id) {
+        log.debug("Инкремент лайков для поста id={}", id);
         postRepository.incrementLikes(id);
         PostResponse post = postCache.get(id);
         if (post != null) {
@@ -147,8 +167,10 @@ public class PostServiceImpl implements PostService {
                     post.commentsCount()
             );
             postCache.put(id, updatedPost);
+            log.info("Лайки увеличены для поста id={}, всего лайков={}", id, updatedLikes);
             return updatedLikes;
         } else {
+            log.warn("Пост не найден при увеличении лайков: id={}", id);
             throw new IllegalStateException("Post not found with id " + id);
         }
     }
@@ -158,6 +180,7 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public void incrementCommentsCount(Long id) {
+        log.debug("Инкремент комментариев для поста id={}", id);
         try {
             postRepository.incrementCommentsCount(id);
             PostResponse post = postCache.get(id);
@@ -172,8 +195,12 @@ public class PostServiceImpl implements PostService {
                         updatedCount
                 );
                 postCache.put(id, updatedPost);
+                log.info("Комментарии увеличены для поста id={}, всего комментариев={}", id, updatedCount);
+            } else {
+                log.warn("Пост не найден при увеличении комментариев: id={}", id);
             }
         } catch (Exception e) {
+            log.error("Ошибка при увеличении комментариев для id={}: {}", id, e.getMessage(), e);
             throw new IllegalStateException("Failed to increment comments count for post id " + id, e);
         }
     }
@@ -183,6 +210,7 @@ public class PostServiceImpl implements PostService {
      */
     @Override
     public void decrementCommentsCount(Long id) {
+        log.debug("Декремент комментариев для поста id={}", id);
         try {
             postRepository.decrementCommentsCount(id);
             PostResponse post = postCache.get(id);
@@ -197,8 +225,12 @@ public class PostServiceImpl implements PostService {
                         updatedCount
                 );
                 postCache.put(id, updatedPost);
+                log.info("Комментарии уменьшены для поста id={}, теперь={}", id, updatedCount);
+            } else {
+                log.warn("Пост не найден при уменьшении комментариев: id={}", id);
             }
         } catch (Exception e) {
+            log.error("Ошибка при уменьшении комментариев для id={}: {}", id, e.getMessage(), e);
             throw new IllegalStateException("Failed to decrement comments count for post id " + id, e);
         }
     }
