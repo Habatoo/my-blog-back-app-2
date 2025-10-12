@@ -24,6 +24,7 @@ public class WebConfiguration implements WebMvcConfigurer {
                 .allowedOrigins("http://localhost")  // фронтенд на порту 80
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
+                .allowedOrigins("*")
                 .allowCredentials(true)
                 .maxAge(3600);
     }

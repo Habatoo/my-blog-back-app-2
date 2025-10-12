@@ -1,38 +1,57 @@
 # my-blog-back-app
+![Java](https://img.shields.io/badge/Java-17-informational?logo=java)
+![Postgres](https://img.shields.io/badge/PostgreSQL-17-informational?logo=postgresql)
+![Docker](https://img.shields.io/badge/Docker-compose-blue?logo=docker)
 
-`mvn clean compile`
-`mvn package`
+## О проекте
 
--- 1. Выгнать все активные сессии из blog_db
-DO
-$$
-DECLARE
-r RECORD;
-BEGIN
-FOR r IN (SELECT pid FROM pg_stat_activity WHERE datname = 'blog_db' AND pid <> pg_backend_pid())
-LOOP
-EXECUTE 'SELECT pg_terminate_backend(' || r.pid || ');';
-END LOOP;
-END
-$$;
+**my-blog-back-app** — это учебный блоговый проект, реализованный на базе Java (Spring), PostgreSQL, Docker, Tomcat и современных frontend-технологий. Цель — продемонстрировать микросервисное развёртывание с помощью Docker, централизованные миграции Flyway и модульное покрытие unit-тестами с Jacoco.
 
--- 2. Удалить базу (если существует)
-DROP DATABASE IF EXISTS blog_db;
+---
 
--- 3. Удалить пользователя (роль), если нет других зависимостей
-DROP ROLE IF EXISTS blog_admin;
+## Структура проекта
+```declarative;
+├── backend/ # Исходный код и ресурсы backend (Java, Spring)
+├── frontend/ # Исходный код frontend, конечное приложение - сюда копируется build фронта
+├── target/ROOT.war # Сборка backend для деплоя в Tomcat
+├── documentation/ # Документация, инструкции, примеры миграций и тестирования
+│ ├── database.md
+│ ├── flyway-migrations.md
+│ ├── deploy.md
+│ ├── jacoco.md
+│ └── faq.md
+├── docker-compose.yml # Главный файл оркестрации Docker сервисов
+├── .env # Переменные среды (НЕ храните в репозитории)
+├── README.md
+```
+---
+## Применяемые технологии
 
--- 4. (дополнительно) Если существует flyway-таблица в других базах - удалить вручную
--- (например, если flyway_schema_history есть в другой схеме или базе)
--- Подключиться к нужной базе и выполнить:
-DROP TABLE IF EXISTS flyway_schema_history CASCADE;
+- **Java 17** (Spring MVC, Spring Data JPA)
+- **PostgreSQL 17** (alpine образ)
+- **Flyway** — миграции БД (описано в [documentation/flyway-migrations.md](./documentation/flyway-migrations.md))
+- **Docker/Docker Compose** — весь стек развертывается одной командой
+- **Tomcat 9** — контейнер для деплоя .war backend
+- **Nginx** — для фронтенда, проксирования статических файлов
+- **Jacoco** — для сбора unit/integration coverage ([как смотреть отчёты](./documentation/jacoco.md))
+- **Maven** — сборка проекта, выполнение тестов
 
--- 5. (опционально) Полная очистка публичной схемы — если надо не удалять базу:
--- Подключиться к базе: \c blog_db
-DROP SCHEMA public CASCADE;
-CREATE SCHEMA public;
+## Доступы и взаимодействие сервисов
 
--- 6. Если нужно пересоздать пользователя и базу:
-CREATE ROLE blog_admin WITH LOGIN PASSWORD 'blog_password';
-CREATE DATABASE blog_db OWNER blog_admin;
-GRANT ALL PRIVILEGES ON DATABASE blog_db TO blog_admin;
+- **Frontend:**  
+  http://localhost/  
+  (отправляет запросы на API по http://localhost:8080/)
+- **Backend:**  
+  http://localhost:8080/  
+  (автоматически подключается к сервису db и применяет миграции при первом запуске через Flyway)
+- **База данных:**  
+  `blog_db_con` (Postgres)  
+  — видна внутри клстера по имени, снаружи доступен порт 5432
+---
+
+## Более расширенные инструкции
+
+- [Работа с БД и миграциями Flyway](./documentation/flyway-migrations.md)
+- [Руководство по деплою и настройкам](./documentation/deploy.md)
+- [Удаление базы, пользователя, схемы вручную (Postgres)](./documentation/database.md)
+---

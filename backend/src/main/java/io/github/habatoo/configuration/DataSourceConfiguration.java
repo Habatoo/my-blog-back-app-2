@@ -47,8 +47,8 @@ public class DataSourceConfiguration {
             @Value("${spring.datasource.username}") String username,
             @Value("${spring.datasource.password}") String password,
             @Value("${spring.datasource.driver-class-name}") String driverClassName,
-            @Value("${spring.datasource.maximum-pool-size}") int maximumPoolSize,
-            @Value("${spring.datasource.connection-timeout}") int connectionTimeout
+            @Value("${spring.datasource.hikari.maximum-pool-size}") int maximumPoolSize,
+            @Value("${spring.datasource.hikari.connection-timeout}") int connectionTimeout
     ) {
         HikariDataSource dataSource = new HikariDataSource();
         dataSource.setJdbcUrl(url);

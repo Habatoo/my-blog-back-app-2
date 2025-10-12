@@ -84,7 +84,7 @@ public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {
         ArgumentCaptor<RowMapper<String>> rowMapperCaptor = ArgumentCaptor.forClass(RowMapper.class);
         verify(jdbcTemplate).query(eq(GET_TAGS_FOR_POST), rowMapperCaptor.capture(), eq(123L));
 
-        ResultSet rs = mock(java.sql.ResultSet.class);
+        ResultSet rs = mock(ResultSet.class);
         when(rs.getString("name")).thenReturn("java");
 
         String tag = rowMapperCaptor.getValue().mapRow(rs, 0);

@@ -27,7 +27,7 @@ import static org.assertj.core.api.Assertions.assertThat;
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
-        "spring.datasource.maximum-pool-size=2",
+        "spring.datasource.maximum-pool-size=10",
         "spring.datasource.connection-timeout=30000",
         "spring.flyway.locations=classpath:db/migration",
         "spring.flyway.encoding=UTF-8",
@@ -65,7 +65,7 @@ class DataSourceConfigurationTest {
         assertThat(dataSource).isInstanceOf(HikariDataSource.class);
 
         HikariDataSource hds = (HikariDataSource) dataSource;
-        assertThat(hds.getMaximumPoolSize()).isEqualTo(2);
+        assertThat(hds.getMaximumPoolSize()).isEqualTo(10);
         assertThat(hds.getConnectionTimeout()).isEqualTo(30000);
     }
 }

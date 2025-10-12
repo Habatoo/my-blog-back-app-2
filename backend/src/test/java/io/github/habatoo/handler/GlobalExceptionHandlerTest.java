@@ -37,7 +37,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * </p>
  *
  * @see GlobalExceptionHandler
- * @see org.springframework.test.web.servlet.MockMvc
+ * @see MockMvc
  */
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Import(TestConfig.class)

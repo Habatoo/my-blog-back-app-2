@@ -44,12 +44,12 @@ abstract class PostRepositoryTestBase {
 
     protected static Stream<Arguments> posts() {
         return Stream.of(
-                org.junit.jupiter.params.provider.Arguments.of(
+                Arguments.of(
                         new PostCreateRequest("title1", "text1", List.of("t1", "t2")),
                         new PostResponse(POST_ID, "title1", "text1", List.of("t1", "t2"), 0, 0),
                         true
                 ),
-                org.junit.jupiter.params.provider.Arguments.of(
+                Arguments.of(
                         new PostCreateRequest("title2", "text2", List.of()),
                         new PostResponse(POST_ID, "title2", "text2", List.of(), 0, 0),
                         false
