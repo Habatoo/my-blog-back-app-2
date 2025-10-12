@@ -10,6 +10,8 @@
     </parent>
 
     <artifactId>report</artifactId>
+    <packaging>pom</packaging>
+    <name>report</name>
 
     <properties>
         <code.coverage.project.folder>${basedir}/../</code.coverage.project.folder>

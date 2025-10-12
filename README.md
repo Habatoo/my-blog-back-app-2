@@ -12,8 +12,10 @@
 ## Структура проекта
 ```declarative;
 ├── backend/ # Исходный код и ресурсы backend (Java, Spring)
+│ ├── target/ROOT.war # Сборка backend для деплоя в Tomcat
 ├── frontend/ # Исходный код frontend, конечное приложение - сюда копируется build фронта
-├── target/ROOT.war # Сборка backend для деплоя в Tomcat
+├── integrationtests / интеграционные тесты по проекту
+├── report / # pom для генерации отчетеа jacoco в многомодульном проекте
 ├── documentation/ # Документация, инструкции, примеры миграций и тестирования
 │ ├── database.md
 │ ├── flyway-migrations.md
