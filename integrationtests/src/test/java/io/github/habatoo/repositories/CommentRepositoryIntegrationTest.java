@@ -1,19 +1,17 @@
 package io.github.habatoo.repositories;
 
-import io.github.habatoo.configurations.CommentRepositoryConfiguration;
-import io.github.habatoo.configurations.TestDataSourceConfig;
+import io.github.habatoo.configurations.TestDataSourceConfiguration;
+import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
 import io.github.habatoo.dto.request.CommentCreateRequest;
 import io.github.habatoo.dto.response.CommentResponse;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,8 +26,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
  * Также учитываются варианты с несуществующими данными и проверяется корректность обработки ошибок.
  * </p>
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {TestDataSourceConfig.class, CommentRepositoryConfiguration.class})
+@SpringJUnitConfig(classes = {TestDataSourceConfiguration.class, CommentRepositoryConfiguration.class})
 @DisplayName("Интеграционные тесты CommentRepository")
 public class CommentRepositoryIntegrationTest {
 

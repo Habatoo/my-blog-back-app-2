@@ -13,6 +13,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -97,6 +98,11 @@ public class PostRepositoryImpl implements PostRepository {
 
         if (rowsUpdated == 0) {
             throw new IllegalStateException("Пост с id=" + postId + " не найден для обновления");
+        }
+
+        List<String> tags = postRequest.tags();
+        if (tags != null) {
+            updatePostTags(postId, tags);
         }
 
         return selectPostById(postId);
@@ -234,5 +240,43 @@ public class PostRepositoryImpl implements PostRepository {
                 post.likesCount(),
                 post.commentsCount()
         );
+    }
+
+    private void updatePostTags(Long postId, List<String> tags) {
+        jdbcTemplate.update("DELETE FROM post_tag WHERE post_id = ?", postId);
+
+        for (String tag : tags) {
+            Long tagId = getOrCreateTagId(tag);
+
+            jdbcTemplate.update(
+                    "INSERT INTO post_tag (post_id, tag_id, created_at) VALUES (?, ?, ?)",
+                    postId, tagId, Timestamp.valueOf(LocalDateTime.now())
+            );
+        }
+    }
+
+    private Long getOrCreateTagId(String tagName) {
+        Long tagId = null;
+        try {
+            tagId = jdbcTemplate.queryForObject(
+                    "SELECT id FROM tag WHERE name = ?",
+                    Long.class,
+                    tagName
+            );
+        } catch (EmptyResultDataAccessException e) {
+            KeyHolder keyHolder = new GeneratedKeyHolder();
+            jdbcTemplate.update(connection -> {
+                PreparedStatement ps = connection.prepareStatement(
+                        "INSERT INTO tag (name, created_at) VALUES (?, ?)",
+                        Statement.RETURN_GENERATED_KEYS
+                );
+                ps.setString(1, tagName);
+                ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+                return ps;
+            }, keyHolder);
+
+            tagId = keyHolder.getKey().longValue();
+        }
+        return tagId;
     }
 }

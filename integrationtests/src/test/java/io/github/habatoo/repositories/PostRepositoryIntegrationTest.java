@@ -1,7 +1,7 @@
 package io.github.habatoo.repositories;
 
-import io.github.habatoo.configurations.PostRepositoryConfiguration;
-import io.github.habatoo.configurations.TestDataSourceConfig;
+import io.github.habatoo.configurations.TestDataSourceConfiguration;
+import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
 import io.github.habatoo.dto.request.PostCreateRequest;
 import io.github.habatoo.dto.request.PostRequest;
 import io.github.habatoo.dto.response.PostResponse;
@@ -10,12 +10,10 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.List;
 
@@ -30,8 +28,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
  * и работу с тегами. Также проверяются граничные случаи и ошибки.
  * </p>
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {TestDataSourceConfig.class, PostRepositoryConfiguration.class})
+@SpringJUnitConfig(classes = {TestDataSourceConfiguration.class, PostRepositoryConfiguration.class})
 @DisplayName("Интеграционные тесты PostRepository")
 public class PostRepositoryIntegrationTest {
 

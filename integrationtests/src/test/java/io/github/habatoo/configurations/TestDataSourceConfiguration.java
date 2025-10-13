@@ -3,12 +3,10 @@ package io.github.habatoo.configurations;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.*;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
@@ -24,7 +22,7 @@ import javax.sql.DataSource;
 @Slf4j
 @Configuration
 @PropertySource("classpath:application-${spring.profiles.active:test}.properties")
-public class TestDataSourceConfig {
+public class TestDataSourceConfiguration {
 
     /**
      * Конфигуратор для пробрасывания значений из property-файлов
@@ -35,6 +33,11 @@ public class TestDataSourceConfig {
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
+    }
+
+    @Bean
+    public DataSourceTransactionManager transactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
     }
 
     /**
@@ -106,6 +109,7 @@ public class TestDataSourceConfig {
      * @param dataSource источник данных
      * @return бин JdbcTemplate
      */
+    @Primary
     @Bean
     @DependsOn("flyway")
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {

@@ -1,4 +1,4 @@
-package io.github.habatoo.configurations;
+package io.github.habatoo.configurations.repositories;
 
 import io.github.habatoo.repositories.ImageRepository;
 import io.github.habatoo.repositories.impl.ImageRepositoryImpl;

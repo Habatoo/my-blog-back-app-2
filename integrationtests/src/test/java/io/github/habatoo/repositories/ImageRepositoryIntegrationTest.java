@@ -1,17 +1,15 @@
 package io.github.habatoo.repositories;
 
-import io.github.habatoo.configurations.ImageRepositoryConfiguration;
-import io.github.habatoo.configurations.TestDataSourceConfig;
+import io.github.habatoo.configurations.TestDataSourceConfiguration;
+import io.github.habatoo.configurations.repositories.ImageRepositoryConfiguration;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.Optional;
 
@@ -25,8 +23,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
  * а также проверки существования постов. Все операции тестируются с учётом различных сценариев и граничных случаев.
  * </p>
  */
-@ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {TestDataSourceConfig.class, ImageRepositoryConfiguration.class})
+@SpringJUnitConfig(classes = {TestDataSourceConfiguration.class, ImageRepositoryConfiguration.class})
 @DisplayName("Интеграционные тесты ImageRepository")
 public class ImageRepositoryIntegrationTest {
 
