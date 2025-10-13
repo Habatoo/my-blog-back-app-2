@@ -70,6 +70,13 @@ public class PostRepositoryIntegrationTest {
         jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)", 2L, 1L);
     }
 
+    /**
+     * Получает список всех постов с их тегами.
+     * <p>
+     * Проверяет, что полученный список не пустой и что у постов
+     * корректно загружаются связанные теги.
+     * </p>
+     */
     @Test
     @DisplayName("Получение всех постов с тегами")
     void testFindAllPosts() {
@@ -80,10 +87,21 @@ public class PostRepositoryIntegrationTest {
         assertThat(posts).anyMatch(p -> p.tags().contains("Tag2"));
     }
 
+    /**
+     * Создаёт новый пост с тегами через репозиторий и проверяет:
+     * <ul>
+     *     <li>Корректность созданного объекта (id, title, text, tags)</li>
+     *     <li>Создание нового тега, если такого ещё не было</li>
+     *     <li>Связь поста и тегов через таблицу пост_тег</li>
+     * </ul>
+     */
     @Test
     @DisplayName("Создание нового поста с тегами")
     void testCreatePost() {
+        flyway.clean();
+        flyway.migrate();
         PostCreateRequest request = new PostCreateRequest("Новый пост", "Текст нового поста", List.of("Tag1", "Tag3"));
+
 
         PostResponse created = postRepository.createPost(request);
 
@@ -101,6 +119,10 @@ public class PostRepositoryIntegrationTest {
         assertThat(countPostTags).isEqualTo(2);
     }
 
+    /**
+     * Обновляет существующий пост через репозиторий и
+     * проверяет корректность обновлённого заголовка и текста.
+     */
     @Test
     @DisplayName("Обновление существующего поста")
     void testUpdatePost() {
@@ -113,6 +135,10 @@ public class PostRepositoryIntegrationTest {
         assertThat(updated.text()).isEqualTo("Обновлённый текст");
     }
 
+    /**
+     * Удаляет существующий пост через репозиторий и проверяет,
+     * что запись удалена из базы данных.
+     */
     @Test
     @DisplayName("Удаление существующего поста")
     void testDeletePost_existing() {
@@ -123,6 +149,10 @@ public class PostRepositoryIntegrationTest {
         assertThat(count).isZero();
     }
 
+    /**
+     * Пытается удалить несуществующий пост и проверяет,
+     * что выбрасывается исключение с правильным сообщением.
+     */
     @Test
     @DisplayName("Удаление несуществующего поста вызывает исключение")
     void testDeletePost_nonExisting() {
@@ -131,6 +161,10 @@ public class PostRepositoryIntegrationTest {
                 .hasMessageContaining("Post to delete not found");
     }
 
+    /**
+     * Получает список тегов для существующего поста и
+     * проверяет корректность связки через таблицу пост_тег.
+     */
     @Test
     @DisplayName("Получение тегов для существующего поста")
     void testGetTagsForPost_existing() {
@@ -138,6 +172,10 @@ public class PostRepositoryIntegrationTest {
         assertThat(tags).containsExactlyInAnyOrder("Tag1", "Tag2");
     }
 
+    /**
+     * Получает список тегов для несуществующего поста и
+     * проверяет, что вернулся пустой список.
+     */
     @Test
     @DisplayName("Получение тегов для несуществующего поста возвращает пустой список")
     void testGetTagsForPost_nonExisting() {
@@ -145,6 +183,10 @@ public class PostRepositoryIntegrationTest {
         assertThat(tags).isEmpty();
     }
 
+    /**
+     * Увеличивает количество лайков для существующего поста и
+     * проверяет, что значение в базе увеличилось.
+     */
     @Test
     @DisplayName("Увеличение количества лайков существующего поста")
     void testIncrementLikes_existing() {
@@ -155,6 +197,10 @@ public class PostRepositoryIntegrationTest {
         assertThat(likesCount).isEqualTo(1);
     }
 
+    /**
+     * Пытается увеличить количество лайков для несуществующего поста
+     * и проверяет, что выбрасывается соответствующее исключение.
+     */
     @Test
     @DisplayName("Увеличение количества лайков несуществующего поста вызывает исключение")
     void testIncrementLikes_nonExisting() {
@@ -163,6 +209,10 @@ public class PostRepositoryIntegrationTest {
                 .hasMessageContaining("not found");
     }
 
+    /**
+     * Увеличивает счётчик комментариев существующего поста и
+     * проверяет, что значение увеличилось на 1.
+     */
     @Test
     @DisplayName("Увеличение счётчика комментариев существующего поста")
     void testIncrementCommentsCount() {
@@ -175,6 +225,10 @@ public class PostRepositoryIntegrationTest {
         assertThat(after).isEqualTo(before + 1);
     }
 
+    /**
+     * Уменьшает счётчик комментариев существующего поста и
+     * проверяет, что значение уменьшилось на 1.
+     */
     @Test
     @DisplayName("Уменьшение счётчика комментариев существующего поста")
     void testDecrementCommentsCount() {

@@ -13,49 +13,70 @@ import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
 
+/**
+ * Тестовая конфигурация источника данных, миграций и JdbcTemplate для интеграционных тестов.
+ * <p>
+ * Поддерживает настройку профиля, работу с DataSource (обычно H2),
+ * автоматическую миграцию схемы Flyway и инициализацию шаблона JDBC.
+ * Использует параметры из application-*.properties для гибкой настройки окружения.
+ * </p>
+ */
 @Slf4j
 @Configuration
 @PropertySource("classpath:application-${spring.profiles.active:test}.properties")
 public class TestDataSourceConfig {
 
     /**
-     * Позволяет использовать @Value с параметрами из properties.
+     * Конфигуратор для пробрасывания значений из property-файлов
+     * в параметры через аннотацию @Value.
+     *
+     * @return конфигуратор подстановки параметров
      */
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer() {
         return new PropertySourcesPlaceholderConfigurer();
     }
 
+    /**
+     * Создаёт бин источника данных по параметрам из properties.
+     * В тестах обычно используется H2 или другой embedded-движок.
+     *
+     * @param driver   драйвер JDBC
+     * @param url      JDBC URL подключения
+     * @param username имя пользователя БД
+     * @param password пароль пользователя БД
+     * @return источник данных JDBC
+     */
     @Bean
-    public DataSource dataSource() {
+    public DataSource dataSource(
+            @Value("${spring.datasource.driver-class-name}") String driver,
+            @Value("${spring.datasource.url}") String url,
+            @Value("${spring.datasource.username}") String username,
+            @Value("${spring.datasource.password}") String password
+    ) {
         log.info("Создаём DataSource для H2");
         DriverManagerDataSource ds = new DriverManagerDataSource();
-        ds.setDriverClassName("org.h2.Driver");
-        ds.setUrl("jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DEFAULT_NULL_ORDERING=HIGH;NON_KEYWORDS=VALUE");
-        // jdbc:h2:mem:testdb;MODE=PostgreSQL;DEFAULT_NULL_ORDERING=HIGH;NON_KEYWORDS=VALUE
-        ds.setUsername("sa");
-        ds.setPassword("");
+        ds.setDriverClassName(driver);
+        ds.setUrl(url);
+        ds.setUsername(username);
+        ds.setPassword(password);
         return ds;
     }
 
-//    @Bean
-//    public DataSource dataSource() {
-//        return new EmbeddedDatabaseBuilder()
-//                .setType(EmbeddedDatabaseType.H2)
-//                .build();
-//    }
-
-//    @Bean(initMethod = "migrate")
-//    public Flyway flyway(DataSource dataSource) {
-//        log.info("Настраиваем Flyway миграции");
-//        return Flyway.configure()
-//                .dataSource(dataSource)
-//                .encoding("UTF-8")
-//                .locations("classpath:db/migrations")
-//                .baselineOnMigrate(true)
-//                .load();
-//    }
-
+    /**
+     * Конфигурирует и создаёт бин Flyway для миграции схемы БД
+     * на основании property-настроек.
+     * Автоматически выполняет миграции при инициализации.
+     *
+     * @param dataSource источник данных для миграций
+     * @param locations  локализация скриптов миграций
+     * @param encoding   кодировка скриптов
+     * @param version    начальная версия схемы
+     * @param baseline   режим baselineOnMigrate
+     * @param validate   включение валидации на миграциях
+     * @param clean      запрет или разрешение чистки схемы
+     * @return сконфигурированный бин Flyway
+     */
     @Bean(initMethod = "migrate")
     public Flyway flyway(
             DataSource dataSource,
@@ -78,10 +99,16 @@ public class TestDataSourceConfig {
                 .load();
     }
 
+    /**
+     * Создаёт бин JdbcTemplate для выполнения SQL-запросов.
+     * Гарантирует, что миграции будут применены до инициализации шаблона.
+     *
+     * @param dataSource источник данных
+     * @return бин JdbcTemplate
+     */
     @Bean
     @DependsOn("flyway")
     public JdbcTemplate jdbcTemplate(DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 }
-
