@@ -41,7 +41,7 @@ public abstract class CommentControllerTestBase {
     }
 
     protected CommentCreateRequest createCommentCreateRequest(String text, Long postId) {
-        return new CommentCreateRequest(text, postId);
+        return new CommentCreateRequest(postId, text);
     }
 
     protected CommentRequest createCommentRequest(Long id, String text, Long postId) {

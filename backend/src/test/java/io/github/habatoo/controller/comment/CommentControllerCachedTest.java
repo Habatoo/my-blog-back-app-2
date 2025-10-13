@@ -63,7 +63,7 @@ class CommentControllerCachedTest {
         mockComment1 = new CommentResponse(1L, "Первый комментарий", 1L);
         mockComment2 = new CommentResponse(2L, "Второй комментарий", 1L);
 
-        mockCreateRequest = new CommentCreateRequest("Новый комментарий", 1L);
+        mockCreateRequest = new CommentCreateRequest( 1L,"Новый комментарий");
         mockUpdateRequest = new CommentRequest(1L, "Обновленный комментарий", 1L);
     }
 

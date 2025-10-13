@@ -259,7 +259,7 @@ class ImageControllerCachedTest {
                 "image",
                 "empty.jpg",
                 MediaType.IMAGE_JPEG_VALUE,
-                new byte[0] // Пустой файл
+                new byte[0]
         );
         doThrow(new IllegalArgumentException("Image file cannot be empty"))
                 .when(imageService).updatePostImage(anyLong(), any());
