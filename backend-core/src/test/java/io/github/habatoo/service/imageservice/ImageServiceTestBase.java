@@ -1,6 +1,6 @@
 package io.github.habatoo.service.imageservice;
 
-import io.github.habatoo.repository.ImageRepository;
+import io.github.habatoo.repositories.ImageRepository;
 import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.ImageContentTypeDetector;
 import io.github.habatoo.service.ImageValidator;

@@ -2,7 +2,7 @@ package io.github.habatoo.service.impl;
 
 import io.github.habatoo.dto.request.CommentCreateRequest;
 import io.github.habatoo.dto.response.CommentResponse;
-import io.github.habatoo.repository.CommentRepository;
+import io.github.habatoo.repositories.CommentRepository;
 import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
 import lombok.extern.slf4j.Slf4j;

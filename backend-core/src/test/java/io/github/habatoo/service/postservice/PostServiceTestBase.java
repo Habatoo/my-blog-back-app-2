@@ -1,7 +1,7 @@
 package io.github.habatoo.service.postservice;
 
 import io.github.habatoo.dto.response.PostResponse;
-import io.github.habatoo.repository.PostRepository;
+import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.PostService;
 import io.github.habatoo.service.impl.PostServiceImpl;

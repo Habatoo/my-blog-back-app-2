@@ -1,3 +1,4 @@
 # Расположение файлов миграции
 
-`backend/src/main/resources/db/migrations/V1__init_schema.sql`
+Зависимости необходимые для Flyway подключены в модуле backend.
+`backend/src/main/resources/db/migrations/`

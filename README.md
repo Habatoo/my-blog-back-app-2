@@ -11,8 +11,9 @@
 
 ## Структура проекта
 ```declarative;
-├── backend/ # Исходный код и ресурсы backend (Java, Spring)
-│ ├── target/ROOT.war # Сборка backend для деплоя в Tomcat
+├── backend/ # контроллеры и конфигурация приложения
+│ ├── target/backend.war # сборка backend для деплоя в Tomcat
+├── backend-core/ # core блок с основной бизнес логикой.
 ├── frontend/ # Исходный код frontend, конечное приложение - сюда копируется build фронта
 ├── integrationtests / интеграционные тесты по проекту
 ├── report / # pom для генерации отчетеа jacoco в многомодульном проекте

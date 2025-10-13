@@ -17,7 +17,7 @@
     </init-param>
     <init-param>
       <param-name>contextConfigLocation</param-name>
-      <param-value>io.github.habatoo.configuration.WebConfiguration</param-value>
+      <param-value>io.github.habatoo.configurations.WebConfiguration</param-value>
     </init-param>
     <load-on-startup>1</load-on-startup>
 

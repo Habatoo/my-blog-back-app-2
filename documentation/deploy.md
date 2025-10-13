@@ -4,15 +4,18 @@
     - Соберите клиентское приложение обычным способом; положите production-билд в папку `./frontend`.
 
 2. **Собрать backend**
-    - В корне проекта выполните:
+    - В root проекта выполните:
       ```
-      mvn clean package
+      mvn clean install
       ```
-    - После сборки гарантируется появление файла `./target/ROOT.war`.
+   После сборки гарантируется появление файлов
+    - `./bacend/target/backend-1.0-SNAPSHOT.war`.
+    - `./backend-core/target/backend-core-1.0-SNAPSHOT.jar`.
+   Файл backend-1.0-SNAPSHOT.war содержит все нужные зависимости из модуля backend-core
 
-3. **Подготовить миграции Flyway и настроить переменные**
-    - Миграции должны лежать в `./src/main/resources/db/migrations`
-    - .env файл — убедитесь, что в нем заданы параметры БД.
+3. **Подготовить миграции Flyway и настроить переменные БД**
+    - Миграции должны лежать в `./backend/src/main/resources/db/migrations/`
+    - .env файл — в нем заданы параметры БД.
 
 4. **Собрать и запустить Docker-кластер**
     - Собрать образы:

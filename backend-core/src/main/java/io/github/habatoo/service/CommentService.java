@@ -2,7 +2,7 @@ package io.github.habatoo.service;
 
 import io.github.habatoo.dto.request.CommentCreateRequest;
 import io.github.habatoo.dto.response.CommentResponse;
-import io.github.habatoo.repository.CommentRepository;
+import io.github.habatoo.repositories.CommentRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

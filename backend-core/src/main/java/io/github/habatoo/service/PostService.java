@@ -4,7 +4,7 @@ import io.github.habatoo.dto.request.PostCreateRequest;
 import io.github.habatoo.dto.request.PostRequest;
 import io.github.habatoo.dto.response.PostListResponse;
 import io.github.habatoo.dto.response.PostResponse;
-import io.github.habatoo.repository.PostRepository;
+import io.github.habatoo.repositories.PostRepository;
 
 import java.util.Optional;
 

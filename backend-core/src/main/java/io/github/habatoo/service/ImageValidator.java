@@ -1,6 +1,6 @@
 package io.github.habatoo.service;
 
-import io.github.habatoo.repository.CommentRepository;
+import io.github.habatoo.repositories.CommentRepository;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
