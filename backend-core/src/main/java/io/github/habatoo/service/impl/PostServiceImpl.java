@@ -110,11 +110,11 @@ public class PostServiceImpl implements PostService {
         try {
             PostResponse createdPost = postRepository.createPost(postCreateRequest);
             postCache.put(createdPost.id(), createdPost);
-            log.info("Пост создан: id={}", createdPost.id());
+
             return createdPost;
         } catch (Exception e) {
             log.error("Не удалось создать пост: {}", e.getMessage(), e);
-            throw new IllegalStateException("Failed to create post", e);
+            throw new IllegalStateException("Не удалось создать пост", e);
         }
     }
 
@@ -132,7 +132,7 @@ public class PostServiceImpl implements PostService {
             return updatedPost;
         } catch (Exception e) {
             log.error("Ошибка при обновлении поста id={}: {}", postRequest.id(), e.getMessage(), e);
-            throw new IllegalStateException("Post not found or concurrently modified with id " + postRequest.id(), e);
+            throw new IllegalStateException("Пост не найден или уже изменен с id " + postRequest.id(), e);
         }
     }
 
@@ -171,7 +171,7 @@ public class PostServiceImpl implements PostService {
             return updatedLikes;
         } else {
             log.warn("Пост не найден при увеличении лайков: id={}", id);
-            throw new IllegalStateException("Post not found with id " + id);
+            throw new IllegalStateException("Пост не найден with id " + id);
         }
     }
 
@@ -201,7 +201,7 @@ public class PostServiceImpl implements PostService {
             }
         } catch (Exception e) {
             log.error("Ошибка при увеличении комментариев для id={}: {}", id, e.getMessage(), e);
-            throw new IllegalStateException("Failed to increment comments count for post id " + id, e);
+            throw new IllegalStateException("Ошибка при увеличении комментариев для поста id " + id, e);
         }
     }
 
@@ -231,7 +231,7 @@ public class PostServiceImpl implements PostService {
             }
         } catch (Exception e) {
             log.error("Ошибка при уменьшении комментариев для id={}: {}", id, e.getMessage(), e);
-            throw new IllegalStateException("Failed to decrement comments count for post id " + id, e);
+            throw new IllegalStateException("Ошибка при уменьшении комментариев для поста id " + id, e);
         }
     }
 

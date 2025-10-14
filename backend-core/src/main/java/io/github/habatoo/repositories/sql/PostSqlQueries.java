@@ -42,6 +42,10 @@ public final class PostSqlQueries {
             DELETE FROM post WHERE id = ?
             """;
 
+    public static final String DELETE_POST_TAGS = """
+            DELETE FROM post_tag WHERE post_id = ?
+            """;
+
     public static final String GET_TAGS_FOR_POST = """
             SELECT t.name FROM tag t
             JOIN post_tag pt ON t.id = pt.tag_id

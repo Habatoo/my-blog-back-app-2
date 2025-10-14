@@ -2,7 +2,6 @@ package io.github.habatoo.repositories.post;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.dao.EmptyResultDataAccessException;
 
 import static io.github.habatoo.repositories.sql.PostSqlQueries.INCREMENT_LIKES;
 import static org.junit.jupiter.api.Assertions.*;
@@ -41,16 +40,16 @@ public class PostRepositoryIncrementLikesTest extends PostRepositoryTestBase {
 
     /**
      * Проверяет, что если при попытке увеличить лайки не найден ни один пост (update=0),
-     * метод выбрасывает EmptyResultDataAccessException с ожидаемым сообщением.
+     * метод выбрасывает IllegalStateException с ожидаемым сообщением.
      */
     @Test
     @DisplayName("Должен выбросить EmptyResultDataAccessException если пост не найден при увеличении лайков")
     void shouldThrowWhenIncrementLikesNoPostTest() {
         when(jdbcTemplate.update(INCREMENT_LIKES, POST_ID)).thenReturn(0);
 
-        EmptyResultDataAccessException ex = assertThrows(EmptyResultDataAccessException.class,
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> postRepository.incrementLikes(POST_ID));
-        assertTrue(ex.getMessage().contains("not found"));
+        assertTrue(ex.getMessage().contains("Пост не найден при увеличении лайков"));
 
         verify(jdbcTemplate).update(INCREMENT_LIKES, POST_ID);
     }

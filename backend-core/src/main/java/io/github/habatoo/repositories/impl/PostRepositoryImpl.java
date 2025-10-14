@@ -6,14 +6,12 @@ import io.github.habatoo.dto.response.PostResponse;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.repositories.mapper.PostListRowMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
 import java.sql.PreparedStatement;
-import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,7 +44,6 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public List<PostResponse> findAllPosts() {
-        log.debug("Получение всех постов");
         List<PostResponse> posts = jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper);
 
         return posts.stream()
@@ -59,51 +56,12 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public PostResponse createPost(PostCreateRequest postCreateRequest) {
-        log.info("Создание нового поста с title='{}'", postCreateRequest.title());
         LocalDateTime now = LocalDateTime.now();
-        Long postId = insertPost(postCreateRequest.title(), postCreateRequest.text(), now);
+        Long postId = createPost(postCreateRequest.title(), postCreateRequest.text(), now);
+        log.info("Пост успешно создан с id='{}'", postId);
+
         List<String> tags = postCreateRequest.tags();
-        if (!tags.isEmpty()) {
-            insertTags(tags);
-            insertPostTags(postId, tags);
-        }
-
-        PostResponse post = selectPostById(postId);
-        List<String> tagsForPost = getTagsForPost(postId);
-
-        return new PostResponse(
-                post.id(),
-                post.title(),
-                post.text(),
-                tagsForPost,
-                post.likesCount(),
-                post.commentsCount()
-        );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public PostResponse updatePost(PostRequest postRequest) {
-        Long postId = postRequest.id();
-        log.info("Обновление поста id={}", postId);
-        int rowsUpdated = jdbcTemplate.update(
-                UPDATE_POST,
-                postRequest.title(),
-                postRequest.text(),
-                Timestamp.valueOf(LocalDateTime.now()),
-                postId
-        );
-
-        if (rowsUpdated == 0) {
-            throw new IllegalStateException("Пост с id=" + postId + " не найден для обновления");
-        }
-
-        List<String> tags = postRequest.tags();
-        if (tags != null) {
-            updatePostTags(postId, tags);
-        }
+        updatePostTagsInternal(postId, tags);
 
         return selectPostById(postId);
     }
@@ -112,30 +70,27 @@ public class PostRepositoryImpl implements PostRepository {
      * {@inheritDoc}
      */
     @Override
-    public void deletePost(Long id) {
-        log.info("Удаление поста id={}", id);
-        int deletedRows = jdbcTemplate.update(DELETE_POST, id);
-        if (deletedRows == 0) {
-            log.warn("Пост не найден для удаления id={}", id);
-            throw new IllegalStateException("Post to delete not found with id " + id);
-        }
+    public PostResponse updatePost(PostRequest postRequest) {
+        Long postId = postRequest.id();
+        updatePost(postRequest.title(),
+                postRequest.text(),
+                LocalDateTime.now(),
+                postId);
+        List<String> tags = postRequest.tags();
+        updatePostTagsInternal(postId, tags);
+        log.info("Пост id={} успешно обновлен", postId);
+
+        return selectPostById(postId);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public List<String> getTagsForPost(Long postId) {
-        log.debug("Запрос тегов для поста id={}", postId);
-        try {
-            return jdbcTemplate.query(GET_TAGS_FOR_POST,
-                    (rs, rowNum) -> rs.getString("name"),
-                    postId
-            );
-        } catch (Exception e) {
-            log.warn("Ошибка при получении тегов для поста id={}: {}", postId, e.getMessage());
-            return List.of();
-        }
+    public void deletePost(Long postId) {
+        int deletedRows = jdbcTemplate.update(DELETE_POST, postId);
+        String msg = String.format("Пост не найден для удаления id==%d", postId);
+        checkIfThrow(deletedRows, msg);
     }
 
     /**
@@ -143,12 +98,9 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void incrementLikes(Long postId) {
-        log.info("Увеличение лайков для поста id={}", postId);
         int updatedRows = jdbcTemplate.update(INCREMENT_LIKES, postId);
-        if (updatedRows == 0) {
-            log.warn("Пост не найден при увеличении лайков id={}", postId);
-            throw new EmptyResultDataAccessException("Post with id " + postId + " not found", 1);
-        }
+        String msg = String.format("Пост не найден при увеличении лайков id=%d", postId);
+        checkIfThrow(updatedRows, msg);
     }
 
     /**
@@ -156,8 +108,9 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void incrementCommentsCount(Long postId) {
-        log.debug("Увеличение счётчика комментариев для поста id={}", postId);
-        jdbcTemplate.update(INCREMENT_COMMENTS_COUNT, postId);
+        int updatedRows = jdbcTemplate.update(INCREMENT_COMMENTS_COUNT, postId);
+        String msg = String.format("Пост не найден при увеличении лайков id=%d", postId);
+        checkIfThrow(updatedRows, msg);
     }
 
     /**
@@ -165,14 +118,44 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void decrementCommentsCount(Long postId) {
-        log.debug("Уменьшение счётчика комментариев для поста id={}", postId);
-        jdbcTemplate.update(DECREMENT_COMMENTS_COUNT, postId);
+        int updatedRows = jdbcTemplate.update(DECREMENT_COMMENTS_COUNT, postId);
+        String msg = String.format("Пост не найден при уменьшении лайков id=%d", postId);
+        checkIfThrow(updatedRows, msg);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<String> getTagsForPost(Long postId) {
+        try {
+            return jdbcTemplate.queryForList(GET_TAGS_FOR_POST, String.class, postId);
+        } catch (Exception e) {
+            final String msg = String.format("Ошибка при получении тегов для поста id=%d", postId);
+            log.warn(msg, e);
+            return List.of();
+        }
+    }
+
+    /**
+     * Обогащает ответ.
+     */
+    private PostResponse enrichWithTags(PostResponse post) {
+        List<String> tags = getTagsForPost(post.id());
+        return new PostResponse(
+                post.id(),
+                post.title(),
+                post.text(),
+                tags,
+                post.likesCount(),
+                post.commentsCount()
+        );
     }
 
     /**
      * Вставляет новый пост в таблицу и возвращает сгенерированный id.
      */
-    private Long insertPost(String title, String text, LocalDateTime now) {
+    private Long createPost(String title, String text, LocalDateTime now) {
         KeyHolder keyHolder = new GeneratedKeyHolder();
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
@@ -186,7 +169,50 @@ public class PostRepositoryImpl implements PostRepository {
             return ps;
         }, keyHolder);
 
+        if (keyHolder.getKey() == null) {
+            String msg = "Пост не создан";
+            log.warn(msg);
+            throw new IllegalStateException(msg);
+        }
+
         return keyHolder.getKey().longValue();
+    }
+
+    /**
+     * Редактирует существующий пост новый пост в таблице.
+     */
+    private void updatePost(String title,
+                            String text,
+                            LocalDateTime now,
+                            Long postId) {
+        int rowsUpdated = jdbcTemplate.update(
+                UPDATE_POST,
+                title,
+                text,
+                now,
+                postId);
+        final String msg = String.format("Пост с id=%d не найден для обновления", postId);
+        checkIfThrow(rowsUpdated, msg);
+    }
+
+    /**
+     * Общий метод для создания / обновления тегов поста.
+     */
+    private void updatePostTagsInternal(Long postId, List<String> tags) {
+        if (tags != null && !tags.isEmpty()) {
+            deleteTags(postId);
+            insertTags(tags);
+            insertPostTags(postId, tags);
+        }
+    }
+
+    /**
+     * Выполняет удаление тэгов.
+     */
+    private void deleteTags(Long postId) {
+        int rowsUpdated = jdbcTemplate.update(DELETE_POST_TAGS, postId);
+        final String msg = String.format("Тэги для поста id=%d не обновлены", postId);
+        checkIfThrow(rowsUpdated, msg);
     }
 
     /**
@@ -228,55 +254,12 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     /**
-     * Обогащает ответ.
+     * Проверяет ответ после обновления на не нулевое изменение в БД.
      */
-    private PostResponse enrichWithTags(PostResponse post) {
-        List<String> tags = getTagsForPost(post.id());
-        return new PostResponse(
-                post.id(),
-                post.title(),
-                post.text(),
-                tags,
-                post.likesCount(),
-                post.commentsCount()
-        );
-    }
-
-    private void updatePostTags(Long postId, List<String> tags) {
-        jdbcTemplate.update("DELETE FROM post_tag WHERE post_id = ?", postId);
-
-        for (String tag : tags) {
-            Long tagId = getOrCreateTagId(tag);
-
-            jdbcTemplate.update(
-                    "INSERT INTO post_tag (post_id, tag_id, created_at) VALUES (?, ?, ?)",
-                    postId, tagId, Timestamp.valueOf(LocalDateTime.now())
-            );
+    private void checkIfThrow(int parameter, String msg) {
+        if (parameter == 0) {
+            log.warn(msg);
+            throw new IllegalStateException(msg);
         }
-    }
-
-    private Long getOrCreateTagId(String tagName) {
-        Long tagId = null;
-        try {
-            tagId = jdbcTemplate.queryForObject(
-                    "SELECT id FROM tag WHERE name = ?",
-                    Long.class,
-                    tagName
-            );
-        } catch (EmptyResultDataAccessException e) {
-            KeyHolder keyHolder = new GeneratedKeyHolder();
-            jdbcTemplate.update(connection -> {
-                PreparedStatement ps = connection.prepareStatement(
-                        "INSERT INTO tag (name, created_at) VALUES (?, ?)",
-                        Statement.RETURN_GENERATED_KEYS
-                );
-                ps.setString(1, tagName);
-                ps.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
-                return ps;
-            }, keyHolder);
-
-            tagId = keyHolder.getKey().longValue();
-        }
-        return tagId;
     }
 }

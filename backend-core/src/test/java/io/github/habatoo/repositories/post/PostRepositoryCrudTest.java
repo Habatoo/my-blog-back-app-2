@@ -18,6 +18,7 @@ import org.springframework.jdbc.support.KeyHolder;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -56,9 +57,10 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
                 new PostResponse(1L, "Title1", "Text1", List.of(), 0, 0),
                 new PostResponse(2L, "Title2", "Text2", List.of(), 0, 0)
         );
+        List<String> tags = List.of("tagA", "tagB");
         when(jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper)).thenReturn(postsWithoutTags);
-        when(jdbcTemplate.query(eq(GET_TAGS_FOR_POST),
-                any(RowMapper.class), anyLong())).thenReturn(List.of("tagA", "tagB"));
+        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), any()))
+                .thenReturn(tags);
 
         List<PostResponse> result = postRepository.findAllPosts();
 
@@ -68,6 +70,8 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
         }
 
         verify(jdbcTemplate).query(FIND_ALL_POSTS, postListRowMapper);
+        verify(jdbcTemplate).queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(1L));
+        verify(jdbcTemplate).queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(2L));
     }
 
     /**
@@ -93,6 +97,7 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
                 .thenReturn(createdPost);
 
         if (hasTags) {
+            when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID))).thenReturn(1);
             doReturn(new int[][]{new int[createRequest.tags().size()]})
                     .when(jdbcTemplate).batchUpdate(eq(INSERT_INTO_TAG),
                             eq(createRequest.tags()),
@@ -105,8 +110,7 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
                             any(ParameterizedPreparedStatementSetter.class));
         }
 
-        when(postRepository.getTagsForPost(POST_ID)).thenReturn(createRequest.tags());
-
+        postRepository = Mockito.spy(new PostRepositoryImpl(jdbcTemplate, postListRowMapper));
         PostResponse result = postRepository.createPost(createRequest);
 
         assertEquals(POST_ID, result.id());
@@ -117,9 +121,13 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
         verify(jdbcTemplate).queryForObject(eq(SELECT_POST_BY_ID), any(RowMapper.class), eq(POST_ID));
 
         if (hasTags) {
-            verify(jdbcTemplate, times(1)).batchUpdate(eq(INSERT_INTO_TAG), eq(createRequest.tags()), eq(createRequest.tags().size()), any());
-            verify(jdbcTemplate, times(1)).batchUpdate(eq(INSERT_INTO_POST_TAG), eq(createRequest.tags()), eq(createRequest.tags().size()), any());
+            verify(jdbcTemplate, times(1)).update(eq(DELETE_POST_TAGS), eq(POST_ID));
+            verify(jdbcTemplate, times(1))
+                    .batchUpdate(eq(INSERT_INTO_TAG), eq(createRequest.tags()), eq(createRequest.tags().size()), any());
+            verify(jdbcTemplate, times(1))
+                    .batchUpdate(eq(INSERT_INTO_POST_TAG), eq(createRequest.tags()), eq(createRequest.tags().size()), any());
         } else {
+            verify(jdbcTemplate, never()).update(eq(DELETE_POST_TAGS), anyLong());
             verify(jdbcTemplate, never()).batchUpdate(eq(INSERT_INTO_TAG), anyList(), anyInt(), any());
             verify(jdbcTemplate, never()).batchUpdate(eq(INSERT_INTO_POST_TAG), anyList(), anyInt(), any());
         }
@@ -150,52 +158,53 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
             kh.getKeyList().add(keys);
             return 1;
         }).when(jdbcTemplate).update(any(PreparedStatementCreator.class), any(KeyHolder.class));
-
         when(jdbcTemplate.queryForObject(
                 eq(SELECT_POST_BY_ID),
                 any(RowMapper.class),
                 eq(1L)
         )).thenReturn(new PostResponse(1L, createRequest.title(), createRequest.text(), List.of(), 0, 0));
-
-        doReturn(new int[][]{new int[createRequest.tags().size()]}).when(jdbcTemplate).batchUpdate(
-                eq(INSERT_INTO_TAG),
-                eq(createRequest.tags()),
-                eq(createRequest.tags().size()),
-                any(ParameterizedPreparedStatementSetter.class)
-        );
-        doReturn(new int[][]{new int[createRequest.tags().size()]}).when(jdbcTemplate).batchUpdate(
-                eq(INSERT_INTO_POST_TAG),
-                eq(createRequest.tags()),
-                eq(createRequest.tags().size()),
-                any(ParameterizedPreparedStatementSetter.class)
-        );
+        when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID)))
+                .thenReturn(1);
+        doReturn(new int[][] {new int[createRequest.tags().size()]})
+                .when(jdbcTemplate).batchUpdate(
+                        eq(INSERT_INTO_TAG),
+                        eq(createRequest.tags()),
+                        eq(createRequest.tags().size()),
+                        any(ParameterizedPreparedStatementSetter.class)
+                );
+        doReturn(new int[][] {new int[createRequest.tags().size()]})
+                .when(jdbcTemplate).batchUpdate(
+                        eq(INSERT_INTO_POST_TAG),
+                        eq(createRequest.tags()),
+                        eq(createRequest.tags().size()),
+                        any(ParameterizedPreparedStatementSetter.class)
+                );
 
         postRepository = Mockito.spy(new PostRepositoryImpl(jdbcTemplate, postListRowMapper));
-        doReturn(createRequest.tags()).when(postRepository).getTagsForPost(1L);
-
         postRepository.createPost(createRequest);
-        ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> tagCaptor =
+
+        ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> tagSetterCaptor =
                 ArgumentCaptor.forClass(ParameterizedPreparedStatementSetter.class);
         verify(jdbcTemplate).batchUpdate(
                 eq(INSERT_INTO_TAG),
                 eq(createRequest.tags()),
                 eq(createRequest.tags().size()),
-                tagCaptor.capture());
+                tagSetterCaptor.capture());
 
         PreparedStatement psTag = mock(PreparedStatement.class);
-        tagCaptor.getValue().setValues(psTag, "tag1");
+        tagSetterCaptor.getValue().setValues(psTag, "tag1");
         verify(psTag).setString(1, "tag1");
 
-        ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> postTagCaptor =
+        ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> postTagSetterCaptor =
                 ArgumentCaptor.forClass(ParameterizedPreparedStatementSetter.class);
         verify(jdbcTemplate).batchUpdate(
                 eq(INSERT_INTO_POST_TAG),
                 eq(createRequest.tags()),
                 eq(createRequest.tags().size()),
-                postTagCaptor.capture());
+                postTagSetterCaptor.capture());
 
         PreparedStatement psPostTag = mock(PreparedStatement.class);
-        postTagCaptor.getValue().setValues(psPostTag, "tag1");
+        postTagSetterCaptor.getValue().setValues(psPostTag, "tag1");
         verify(psPostTag).setLong(1, 1L);
         verify(psPostTag).setString(2, "tag1");
     }
@@ -213,7 +222,7 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
                 eq(UPDATE_POST),
                 eq(updateRequest.title()),
                 eq(updateRequest.text()),
-                any(Timestamp.class),
+                any(LocalDateTime.class),
                 eq(updateRequest.id())
         )).thenReturn(1);
 
@@ -259,7 +268,7 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
                 IllegalStateException.class,
                 () -> postRepository.deletePost(NON_EXISTING_POST_ID));
 
-        assertTrue(ex.getMessage().contains("Post to delete not found"));
+        assertTrue(ex.getMessage().contains("Пост не найден для удаления"));
 
         verify(jdbcTemplate).update(DELETE_POST, NON_EXISTING_POST_ID);
     }

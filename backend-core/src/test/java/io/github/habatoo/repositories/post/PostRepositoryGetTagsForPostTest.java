@@ -38,7 +38,7 @@ public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть список тегов для поста")
     void shouldReturnTagsForPostTest() {
-        when(jdbcTemplate.query(eq(GET_TAGS_FOR_POST), (RowMapper<String>) any(), eq(POST_ID)))
+        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID)))
                 .thenReturn(List.of("tagX", "tagY"));
 
         List<String> tags = postRepository.getTagsForPost(POST_ID);
@@ -46,7 +46,7 @@ public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {
         assertEquals(2, tags.size());
         assertTrue(tags.containsAll(List.of("tagX", "tagY")));
 
-        verify(jdbcTemplate).query(eq(GET_TAGS_FOR_POST), any(RowMapper.class), eq(POST_ID));
+        verify(jdbcTemplate).queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID));
     }
 
     /**
@@ -56,7 +56,7 @@ public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть пустой список тегов при исключении")
     void shouldReturnEmptyTagsListOnExceptionTest() {
-        when(jdbcTemplate.query(eq(GET_TAGS_FOR_POST), (RowMapper<String>) any(), eq(POST_ID)))
+        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID)))
                 .thenThrow(RuntimeException.class);
 
         List<String> tags = postRepository.getTagsForPost(POST_ID);
@@ -64,31 +64,7 @@ public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {
         assertNotNull(tags);
         assertTrue(tags.isEmpty());
 
-        verify(jdbcTemplate).query(eq(GET_TAGS_FOR_POST), any(RowMapper.class), eq(POST_ID));
-    }
-
-    /**
-     * Проверяет, что RowMapper-лямбда в методе getTagsForPost действительно извлекает значение "name" из ResultSet.
-     * Используется ArgumentCaptor для проверки поведения RowMapper.
-     */
-    @Test
-    @DisplayName("Тест getTagsForPost — проверка RowMapper для тегов")
-    void getTagsForPostLambdaRowMapperTest() throws SQLException {
-        when(jdbcTemplate.query(eq(GET_TAGS_FOR_POST), any(RowMapper.class), eq(123L)))
-                .thenReturn(List.of("java", "spring"));
-
-        List<String> tags = postRepository.getTagsForPost(123L);
-
-        assertEquals(List.of("java", "spring"), tags);
-
-        ArgumentCaptor<RowMapper<String>> rowMapperCaptor = ArgumentCaptor.forClass(RowMapper.class);
-        verify(jdbcTemplate).query(eq(GET_TAGS_FOR_POST), rowMapperCaptor.capture(), eq(123L));
-
-        ResultSet rs = mock(ResultSet.class);
-        when(rs.getString("name")).thenReturn("java");
-
-        String tag = rowMapperCaptor.getValue().mapRow(rs, 0);
-        assertEquals("java", tag, "RowMapper должен возвращать значение поля 'name' из ResultSet");
+        verify(jdbcTemplate).queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID));
     }
 
     /**
@@ -97,11 +73,10 @@ public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Тест getTagsForPost — проверка Exception RowMapper для тегов")
     void getTagsForPostExceptionReturnsEmptyListTest() {
-        when(jdbcTemplate.query(anyString(), any(RowMapper.class), anyLong()))
+        when(jdbcTemplate.queryForList(anyString(), any(String.class), anyLong()))
                 .thenThrow(new RuntimeException("DB error"));
 
         List<String> tags = postRepository.getTagsForPost(123L);
         assertTrue(tags.isEmpty(), "При ошибке должен вернуться пустой список");
     }
-
 }
