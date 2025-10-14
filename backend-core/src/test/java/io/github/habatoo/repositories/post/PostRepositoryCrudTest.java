@@ -17,7 +17,6 @@ import org.springframework.jdbc.support.KeyHolder;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
@@ -165,14 +164,14 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
         )).thenReturn(new PostResponse(1L, createRequest.title(), createRequest.text(), List.of(), 0, 0));
         when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID)))
                 .thenReturn(1);
-        doReturn(new int[][] {new int[createRequest.tags().size()]})
+        doReturn(new int[][]{new int[createRequest.tags().size()]})
                 .when(jdbcTemplate).batchUpdate(
                         eq(INSERT_INTO_TAG),
                         eq(createRequest.tags()),
                         eq(createRequest.tags().size()),
                         any(ParameterizedPreparedStatementSetter.class)
                 );
-        doReturn(new int[][] {new int[createRequest.tags().size()]})
+        doReturn(new int[][]{new int[createRequest.tags().size()]})
                 .when(jdbcTemplate).batchUpdate(
                         eq(INSERT_INTO_POST_TAG),
                         eq(createRequest.tags()),

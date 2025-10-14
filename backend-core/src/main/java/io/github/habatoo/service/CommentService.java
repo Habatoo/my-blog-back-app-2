@@ -20,14 +20,50 @@ import java.util.Optional;
 @Transactional
 public interface CommentService {
 
+    /**
+     * Получить список комментариев для указанного поста.
+     *
+     * @param postId идентификатор поста, для которого запрашиваются комментарии
+     * @return список CommentResponse с комментариями к посту; пустой список если комментариев нет
+     */
     List<CommentResponse> getCommentsByPostId(Long postId);
 
+    /**
+     * Получить комментарий по идентификаторам поста и комментария.
+     *
+     * @param postId идентификатор поста, которому принадлежит комментарий
+     * @param commentId идентификатор комментария
+     * @return Optional с CommentResponse, либо пустой если комментарий не найден
+     */
     Optional<CommentResponse> getCommentByPostIdAndId(Long postId, Long commentId);
 
+    /**
+     * Создать новый комментарий.
+     *
+     * @param request объект с данными для создания комментария: текст, id поста и пр.
+     * @return созданный CommentResponse с заполненными полями, включая сгенерированный id
+     * @throws IllegalStateException при ошибке создания комментария
+     */
     CommentResponse createComment(CommentCreateRequest request);
 
+    /**
+     * Обновить текст существующего комментария.
+     *
+     * @param postId идентификатор поста, к которому относится комментарий
+     * @param commentId идентификатор обновляемого комментария
+     * @param text новый текст комментария
+     * @return обновлённый CommentResponse
+     * @throws IllegalStateException если комментарий с указанными id не найден
+     */
     CommentResponse updateComment(Long postId, Long commentId, String text);
 
+    /**
+     * Удалить комментарий по идентификаторам поста и комментария.
+     *
+     * @param postId идентификатор поста, к которому относится комментарий
+     * @param commentId идентификатор удаляемого комментария
+     * @throws IllegalStateException если комментарий не найден для удаления
+     */
     void deleteComment(Long postId, Long commentId);
 }
 
