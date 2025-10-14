@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -98,8 +97,6 @@ public class PostRepositoryIntegrationTest {
         flyway.clean();
         flyway.migrate();
         PostCreateRequest request = new PostCreateRequest("Новый пост", "Текст нового поста", List.of("Tag1", "Tag3"));
-
-
         PostResponse created = postRepository.createPost(request);
 
         assertThat(created.id()).isPositive();
@@ -123,7 +120,7 @@ public class PostRepositoryIntegrationTest {
     @Test
     @DisplayName("Обновление существующего поста")
     void testUpdatePost() {
-        PostRequest request = new PostRequest(1L, "Обновлённый заголовок", "Обновлённый текст", List.of());
+        PostRequest request = new PostRequest(1L, "Обновлённый заголовок", "Обновлённый текст", List.of("Tag1", "Tag3"));
         PostResponse updated = postRepository.updatePost(request);
 
         assertThat(updated).isNotNull();
@@ -155,7 +152,7 @@ public class PostRepositoryIntegrationTest {
     void testDeletePost_nonExisting() {
         assertThatThrownBy(() -> postRepository.deletePost(999L))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Post to delete not found");
+                .hasMessageContaining("Пост не найден для удаления id==999");
     }
 
     /**
@@ -202,8 +199,8 @@ public class PostRepositoryIntegrationTest {
     @DisplayName("Увеличение количества лайков несуществующего поста вызывает исключение")
     void testIncrementLikes_nonExisting() {
         assertThatThrownBy(() -> postRepository.incrementLikes(999L))
-                .isInstanceOf(EmptyResultDataAccessException.class)
-                .hasMessageContaining("not found");
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("Пост не найден при увеличении лайков id=999");
     }
 
     /**

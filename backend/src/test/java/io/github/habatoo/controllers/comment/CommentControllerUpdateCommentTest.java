@@ -44,7 +44,7 @@ class CommentControllerUpdateCommentTest extends CommentControllerTestBase {
         CommentRequest updateRequest = createCommentRequest(NON_EXISTENT_COMMENT_ID, UPDATED_COMMENT_TEXT, VALID_POST_ID);
 
         when(commentService.updateComment(VALID_POST_ID, NON_EXISTENT_COMMENT_ID, UPDATED_COMMENT_TEXT))
-                .thenThrow(new EmptyResultDataAccessException("Comment not found", 1));
+                .thenThrow(new EmptyResultDataAccessException("Комментарий не найден", 1));
 
         assertThrows(EmptyResultDataAccessException.class, () ->
                 commentController.updateComment(VALID_POST_ID, NON_EXISTENT_COMMENT_ID, updateRequest));

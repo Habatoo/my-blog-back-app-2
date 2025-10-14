@@ -108,7 +108,7 @@ public class CommentRepositoryIntegrationTest {
         CommentCreateRequest newComment = new CommentCreateRequest(3L, "Старый текст");
         CommentResponse saved = commentRepository.save(newComment);
 
-        CommentResponse updated = commentRepository.updateText(saved.id(), "Новый текст");
+        CommentResponse updated = commentRepository.updateText(saved.postId(), saved.id(),"Новый текст");
         assertThat(updated.text()).isEqualTo("Новый текст");
     }
 
@@ -118,7 +118,7 @@ public class CommentRepositoryIntegrationTest {
     @Test
     @DisplayName("Обновление текста комментария (не существующий комментарий)")
     void testUpdateTextNonExistingTest() {
-        assertThatThrownBy(() -> commentRepository.updateText(999L, "Новый текст"))
+        assertThatThrownBy(() -> commentRepository.updateText(1L, 999L, "Новый текст"))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("не найден для обновления");
     }

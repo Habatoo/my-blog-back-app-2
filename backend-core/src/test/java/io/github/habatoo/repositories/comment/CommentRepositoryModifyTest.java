@@ -85,7 +85,7 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
                 eq(COMMENT_ID)))
                 .thenReturn(Collections.singletonList(expectedResponse));
 
-        CommentResponse result = commentRepository.updateText(COMMENT_ID, "Updated Text");
+        CommentResponse result = commentRepository.updateText(POST_ID, COMMENT_ID, "Updated Text");
 
         assertEquals(expectedResponse, result);
         verify(jdbcTemplate).update(eq(UPDATE_COMMENT_TEXT), eq("Updated Text"), any(Timestamp.class), eq(COMMENT_ID));
@@ -138,7 +138,7 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
                 .thenReturn(0);
 
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> commentRepository.updateText(COMMENT_ID, "Updated Text"));
+                () -> commentRepository.updateText(POST_ID, COMMENT_ID, "Updated Text"));
 
         assertEquals("Комментарий с id=" + COMMENT_ID + " не найден для обновления", exception.getMessage());
 

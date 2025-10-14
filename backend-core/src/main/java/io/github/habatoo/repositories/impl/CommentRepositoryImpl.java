@@ -45,8 +45,6 @@ public class CommentRepositoryImpl implements CommentRepository {
      */
     @Override
     public List<CommentResponse> findByPostId(Long postId) {
-        log.debug("Выполняется поиск комментариев для поста id={}", postId);
-
         return jdbcTemplate.query(FIND_BY_POST_ID, commentRowMapper, postId);
     }
 
@@ -55,7 +53,6 @@ public class CommentRepositoryImpl implements CommentRepository {
      */
     @Override
     public Optional<CommentResponse> findByPostIdAndId(Long postId, Long commentId) {
-        log.debug("Выполняется поиск комментария id={} для поста id={}", commentId, postId);
         List<CommentResponse> comments = jdbcTemplate.query(FIND_BY_POST_ID_AND_ID, commentRowMapper, postId, commentId);
 
         return comments.stream().findFirst();
@@ -66,7 +63,6 @@ public class CommentRepositoryImpl implements CommentRepository {
      */
     @Override
     public CommentResponse save(CommentCreateRequest commentCreateRequest) {
-        log.info("Сохраняется новый комментарий к посту id={}", commentCreateRequest.postId());
         LocalDateTime now = LocalDateTime.now();
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -92,9 +88,7 @@ public class CommentRepositoryImpl implements CommentRepository {
      * {@inheritDoc}
      */
     @Override
-    public CommentResponse updateText(Long commentId, String text) {
-        log.info("Обновляется текст комментария id={}", commentId);
-
+    public CommentResponse updateText(Long postId, Long commentId, String text) {
         int updatedRows = jdbcTemplate.update(
                 UPDATE_COMMENT_TEXT,
                 text,
@@ -112,8 +106,6 @@ public class CommentRepositoryImpl implements CommentRepository {
      */
     @Override
     public int deleteById(Long commentId) {
-        log.info("Удаляется комментарий id={}", commentId);
-
         return jdbcTemplate.update(DELETE_COMMENT, commentId);
     }
 

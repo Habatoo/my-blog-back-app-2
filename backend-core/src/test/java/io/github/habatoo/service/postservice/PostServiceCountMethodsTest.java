@@ -121,7 +121,7 @@ class PostServiceCountMethodsTest extends PostServiceTestBase {
         IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
                 postService.incrementCommentsCount(postId)
         );
-        assertTrue(ex.getMessage().contains("Failed to increment comments count for post id " + postId));
+        assertTrue(ex.getMessage().contains("Ошибка при увеличении комментариев для поста id " + postId));
         assertTrue(ex.getCause().getMessage().contains("db error"));
     }
 
@@ -137,7 +137,7 @@ class PostServiceCountMethodsTest extends PostServiceTestBase {
         IllegalStateException ex = assertThrows(IllegalStateException.class, () ->
                 postService.decrementCommentsCount(postId)
         );
-        assertTrue(ex.getMessage().contains("Failed to decrement comments count for post id " + postId));
+        assertTrue(ex.getMessage().contains("Ошибка при уменьшении комментариев для поста id " + postId));
         assertTrue(ex.getCause().getMessage().contains("db error"));
     }
 }

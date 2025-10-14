@@ -210,9 +210,7 @@ public class PostRepositoryImpl implements PostRepository {
      * Выполняет удаление тэгов.
      */
     private void deleteTags(Long postId) {
-        int rowsUpdated = jdbcTemplate.update(DELETE_POST_TAGS, postId);
-        final String msg = String.format("Тэги для поста id=%d не обновлены", postId);
-        checkIfThrow(rowsUpdated, msg);
+        jdbcTemplate.update(DELETE_POST_TAGS, postId);
     }
 
     /**
@@ -246,20 +244,21 @@ public class PostRepositoryImpl implements PostRepository {
      * Выбирает пост по id.
      */
     private PostResponse selectPostById(Long postId) {
-        return jdbcTemplate.queryForObject(
+        PostResponse post = jdbcTemplate.queryForObject(
                 SELECT_POST_BY_ID,
                 postListRowMapper,
                 postId
         );
+        return enrichWithTags(post);
     }
 
     /**
-     * Проверяет ответ после обновления на не нулевое изменение в БД.
-     */
-    private void checkIfThrow(int parameter, String msg) {
-        if (parameter == 0) {
-            log.warn(msg);
-            throw new IllegalStateException(msg);
+         * Проверяет ответ после обновления на не нулевое изменение в БД.
+         */
+        private void checkIfThrow ( int parameter, String msg){
+            if (parameter == 0) {
+                log.warn(msg);
+                throw new IllegalStateException(msg);
+            }
         }
     }
-}

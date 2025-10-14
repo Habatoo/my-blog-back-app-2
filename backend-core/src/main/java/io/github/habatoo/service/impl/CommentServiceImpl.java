@@ -77,20 +77,25 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public CommentResponse createComment(CommentCreateRequest request) {
         log.info("Создание комментария для поста id={}", request.postId());
-        checkPostIsExist(request.postId());
-        CommentResponse newComment = commentRepository.save(request);
-        postService.incrementCommentsCount(request.postId());
+        Long postId = request.postId();
+        checkPostIsExist(postId);
+        try {
+            CommentResponse newComment = commentRepository.save(request);
+            postService.incrementCommentsCount(request.postId());
 
-        commentsCache.compute(request.postId(), (postId, comments) -> {
-            if (comments == null) {
-                comments = new CopyOnWriteArrayList<>();
-            }
-            comments.add(newComment);
-            return comments;
-        });
-        log.info("Комментарий создан: id={}, postId={}", newComment.id(), request.postId());
+            commentsCache.compute(postId, (postId1, comments) -> {
+                if (comments == null) {
+                    comments = new CopyOnWriteArrayList<>();
+                }
+                comments.add(newComment);
+                return comments;
+            });
+            log.info("Комментарий создан: id={}, postId={}", newComment.id(), postId);
 
-        return newComment;
+            return newComment;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Комментарий к посту id=" + postId + " не создан", ex);
+        }
     }
 
     /**
@@ -102,7 +107,7 @@ public class CommentServiceImpl implements CommentService {
         checkPostIsExist(postId);
         CommentResponse updatedComment;
         try {
-            updatedComment = commentRepository.updateText(commentId, text);
+            updatedComment = commentRepository.updateText(postId, commentId, text);
         } catch (EmptyResultDataAccessException e) {
             log.warn("Комментарий id={} не найден для обновления", commentId);
             throw new IllegalStateException("Comment not found for update with id " + commentId, e);
@@ -135,7 +140,7 @@ public class CommentServiceImpl implements CommentService {
             log.info("Комментарий удалён: id={}, postId={}", commentId, postId);
         } else {
             log.warn("Комментарий не найден для удаления: id={}, postId={}", commentId, postId);
-            throw new EmptyResultDataAccessException("Comment not found", 1);
+            throw new EmptyResultDataAccessException("Комментарий не найден", 1);
         }
     }
 

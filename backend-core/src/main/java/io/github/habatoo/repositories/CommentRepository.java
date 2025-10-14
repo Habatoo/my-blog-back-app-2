@@ -51,12 +51,13 @@ public interface CommentRepository {
      * Обновляет текст существующего комментария и временную метку обновления.
      * Возвращает количество обновленных записей (0 или 1).
      *
+     * @param postId идентификатор поста
      * @param commentId идентификатор обновляемого комментария
      * @param text      новый текст комментария
      * @return количество обновленных записей
      * @throws DataAccessException при ошибках обновления в базе данных
      */
-    CommentResponse updateText(Long commentId, String text);
+    CommentResponse updateText(Long postId, Long commentId, String text);
 
     /**
      * Удаляет комментарий по идентификатору.

@@ -33,7 +33,7 @@ class CommentControllerDeleteCommentTest extends CommentControllerTestBase {
     @Test
     @DisplayName("Должен выбросить исключение при удалении несуществующего комментария")
     void shouldThrowExceptionWhenDeletingNonExistentCommentTest() {
-        doThrow(new EmptyResultDataAccessException("Comment not found", 1))
+        doThrow(new EmptyResultDataAccessException("Комментарий не найден", 1))
                 .when(commentService).deleteComment(VALID_POST_ID, NON_EXISTENT_COMMENT_ID);
 
         assertThrows(EmptyResultDataAccessException.class, () ->

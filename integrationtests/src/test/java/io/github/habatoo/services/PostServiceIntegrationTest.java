@@ -6,9 +6,15 @@ import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration
 import io.github.habatoo.configurations.services.ServiceTestConfiguration;
 import io.github.habatoo.dto.request.PostCreateRequest;
 import io.github.habatoo.dto.request.PostRequest;
+import io.github.habatoo.dto.response.PostListResponse;
 import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.repositories.PostRepository;
+import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.PostService;
-import org.junit.jupiter.api.*;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
@@ -17,15 +23,23 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
-@Transactional
+/**
+ * Интеграционные тесты PostServiceImpl.
+ * <p>
+ * Покрывают бизнес-логику получения постов с фильтрацией и пагинацией,
+ * создание, обновление, удаление постов, работу кэша,
+ * а также инкремент и декремент счетчиков лайков и комментариев.
+ */
 @SpringJUnitConfig(classes = {
         TestDataSourceConfiguration.class,
-        ServiceTestConfiguration.class,
+        CommentRepositoryConfiguration.class,
         PostRepositoryConfiguration.class,
-        CommentRepositoryConfiguration.class})
+        ServiceTestConfiguration.class})
+@Transactional
 @DisplayName("Интеграционные тесты PostServiceImpl")
 class PostServiceIntegrationTest {
 
@@ -33,39 +47,165 @@ class PostServiceIntegrationTest {
     private PostService postService;
 
     @Autowired
+    private PostRepository postRepository;
+
+    @Autowired
+    private FileStorageService fileStorageService;
+
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private Flyway flyway;
+
     @BeforeEach
-    void clean() {
-        jdbcTemplate.execute("DELETE FROM post_tag");
-        jdbcTemplate.execute("DELETE FROM tag");
-        jdbcTemplate.execute("DELETE FROM post");
+    void setup() {
+        flyway.clean();
+        flyway.migrate();
+
+        for (int i = 1; i <= 5; i++) {
+            postService.createPost(new PostCreateRequest(
+                    "Title " + i, "Text content " + i, List.of("tag" + (i % 2), "common")));
+        }
     }
 
+    /**
+     * Проверяет получение списка постов с фильтрацией по тексту и тегам,
+     * корректную работу пагинации, а также отсутствие ошибок при пустом поисковом запросе.
+     */
     @Test
-    void testCreateAndFindPost() {
-        PostCreateRequest req = new PostCreateRequest("Тест-пост", "Контент поста", List.of("тег1", "тег2"));
-        PostResponse created = postService.createPost(req);
+    @DisplayName("Получение постов с поиском, тегами и пагинацией")
+    void testGetPostsWithSearchAndTagsAndPagination() {
+        PostListResponse response = postService.getPosts("Text common", 1, 3);
 
-        assertThat(created.id()).isPositive();
-        assertThat(created.title()).isEqualTo("Тест-пост");
-        assertThat(created.tags()).contains("тег1", "тег2");
+        assertThat(response.posts()).hasSizeLessThanOrEqualTo(3);
+        assertThat(response.posts()).allMatch(p -> p.title().contains("Title") || p.text().contains("Text"));
+        assertThat(response.hasPrev()).isFalse();
+        assertThat(response.hasNext()).isTrue();
 
-        Optional<PostResponse> found = postService.getPostById(created.id());
-        assertTrue(found.isPresent());
-        assertThat(found.get().title().contains("Тест-пост"));
+        PostListResponse responsePage2 = postService.getPosts("Text common", 2, 3);
+        assertThat(responsePage2.posts()).isNotEmpty();
+        assertThat(responsePage2.hasPrev()).isTrue();
     }
 
+    /**
+     * Проверяет корректное получение поста по ID из кэша.
+     */
     @Test
+    @DisplayName("Получение поста по ID из кеша")
+    void testGetPostById() {
+        Optional<PostResponse> maybePost = postService.getPostById(1L);
+
+        assertThat(maybePost).isPresent();
+        PostResponse post = maybePost.get();
+        assertThat(post.id()).isEqualTo(1L);
+        assertThat(post.tags()).contains("common");
+    }
+
+    /**
+     * Проверяет создание нового поста и обновление кэша.
+     */
+    @Test
+    @DisplayName("Создание нового поста с обновлением кэша")
+    void testCreatePost() {
+        PostCreateRequest createRequest = new PostCreateRequest("New Title", "New text", List.of("newtag"));
+        PostResponse createdPost = postService.createPost(createRequest);
+
+        assertThat(createdPost.id()).isPositive();
+        assertThat(createdPost.title()).isEqualTo("New Title");
+        assertThat(createdPost.tags()).contains("newtag");
+
+        Optional<PostResponse> cached = postService.getPostById(createdPost.id());
+        assertThat(cached).isPresent();
+    }
+
+    /**
+     * Проверяет обновление существующего поста и обновление записи в кэше.
+     */
+    @Test
+    @DisplayName("Обновление поста с обновлением кэша")
     void testUpdatePost() {
-        PostCreateRequest req = new PostCreateRequest("Тест", "Конт.", List.of("A"));
-        PostResponse created = postService.createPost(req);
+        PostRequest updateRequest = new PostRequest(1L, "Updated Title", "Updated Text", List.of("tag0"));
+        PostResponse updated = postService.updatePost(updateRequest);
 
-        PostRequest updReq = new PostRequest(created.id(), "Обновлено", "Новый текст", List.of("A", "B"));
-        PostResponse updated = postService.updatePost(updReq);
+        assertThat(updated.title()).isEqualTo("Updated Title");
+        assertThat(updated.text()).isEqualTo("Updated Text");
+        assertThat(updated.tags()).contains("tag0");
 
-        assertThat(updated.title()).isEqualTo("Обновлено");
-        assertThat(updated.tags()).contains("A", "B");
+        Optional<PostResponse> cached = postService.getPostById(1L);
+        assertThat(cached).isPresent();
+        assertThat(cached.get().title()).isEqualTo("Updated Title");
+    }
+
+    /**
+     * Проверяет удаление поста и очистку кэша, а также удаление директории файла.
+     */
+    @Test
+    @DisplayName("Удаление поста, очистка кэша и удаление директории")
+    void testDeletePost() {
+        long deleteId = 2L;
+        postService.deletePost(deleteId);
+
+        Optional<PostResponse> cached = postService.getPostById(deleteId);
+        assertThat(cached).isEmpty();
+
+        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE id = ?", Integer.class, deleteId);
+        assertThat(count).isZero();
+
+        verify(fileStorageService).deletePostDirectory(eq(deleteId));
+    }
+
+    /**
+     * Проверяет корректное инкрементирование лайков и обновление кэша.
+     */
+    @Test
+    @DisplayName("Инкремент лайков с обновлением кэша")
+    void testIncrementLikes() {
+        int oldLikes = postService.getPostById(1L).map(PostResponse::likesCount).orElse(0);
+        int newLikes = postService.incrementLikes(1L);
+
+        assertThat(newLikes).isEqualTo(oldLikes + 1);
+
+        Optional<PostResponse> cached = postService.getPostById(1L);
+        assertThat(cached).isPresent();
+        assertThat(cached.get().likesCount()).isEqualTo(newLikes);
+    }
+
+    /**
+     * Проверяет инкремент счётчика комментариев и обновление кэша.
+     */
+    @Test
+    @DisplayName("Инкремент комментариев с обновлением кэша")
+    void testIncrementCommentsCount() {
+        int before = postService.getPostById(1L).map(PostResponse::commentsCount).orElse(0);
+        postService.incrementCommentsCount(1L);
+        int after = postService.getPostById(1L).map(PostResponse::commentsCount).orElse(0);
+
+        assertThat(after).isEqualTo(before + 1);
+    }
+
+    /**
+     * Проверяет декремент счётчика комментариев (не опускается ниже 0) и обновление кэша.
+     */
+    @Test
+    @DisplayName("Декремент комментариев с обновлением кэша, не ниже 0")
+    void testDecrementCommentsCount() {
+        postService.incrementCommentsCount(1L);
+
+        int before = postService.getPostById(1L).map(PostResponse::commentsCount).orElse(0);
+        postService.decrementCommentsCount(1L);
+        int after = postService.getPostById(1L).map(PostResponse::commentsCount).orElse(0);
+
+        assertThat(after).isEqualTo(Math.max(0, before - 1));
+    }
+
+    /**
+     * Проверяет корректную работу метода проверки существования поста.
+     */
+    @Test
+    @DisplayName("Проверка существования поста")
+    void testPostExists() {
+        assertThat(postService.postExists(1L)).isTrue();
+        assertThat(postService.postExists(999L)).isFalse();
     }
 }
-
