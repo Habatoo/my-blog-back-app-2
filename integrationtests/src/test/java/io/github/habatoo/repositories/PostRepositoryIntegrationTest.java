@@ -120,7 +120,8 @@ public class PostRepositoryIntegrationTest {
     @Test
     @DisplayName("Обновление существующего поста")
     void testUpdatePost() {
-        PostRequest request = new PostRequest(1L, "Обновлённый заголовок", "Обновлённый текст", List.of("Tag1", "Tag3"));
+        List<String> tags = List.of("Tag1", "Tag3");
+        PostRequest request = new PostRequest(1L, "Обновлённый заголовок", "Обновлённый текст", List.of("Tag4"));
         PostResponse updated = postRepository.updatePost(request);
 
         assertThat(updated).isNotNull();

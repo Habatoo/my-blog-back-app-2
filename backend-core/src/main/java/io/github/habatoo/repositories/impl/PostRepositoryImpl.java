@@ -6,6 +6,8 @@ import io.github.habatoo.dto.response.PostResponse;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.repositories.mapper.PostListRowMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -217,28 +219,28 @@ public class PostRepositoryImpl implements PostRepository {
      * Выполняет пакетную вставку тегов с использованием MERGE.
      */
     private void insertTags(List<String> tags) {
-        jdbcTemplate.batchUpdate(
-                INSERT_INTO_TAG,
-                tags,
-                tags.size(),
-                (ps, tag) -> ps.setString(1, tag)
-        );
+        for (String tag : tags.stream().distinct().toList()) {
+            try {
+                jdbcTemplate.update(INSERT_INTO_TAG, tag);
+            } catch (DataIntegrityViolationException ignore) {} // Для совместимости с H2
+        }
     }
 
     /**
      * Выполняет пакетную вставку связей посты-теги с использованием MERGE.
      */
     private void insertPostTags(Long postId, List<String> tags) {
-        jdbcTemplate.batchUpdate(
-                INSERT_INTO_POST_TAG,
-                tags,
-                tags.size(),
-                (ps, tag) -> {
-                    ps.setLong(1, postId);
-                    ps.setString(2, tag);
-                }
-        );
+        for (String tag : tags.stream().distinct().toList()) {
+            try {
+                jdbcTemplate.update(
+                        INSERT_INTO_POST_TAG,
+                        postId,
+                        tag
+                );
+            } catch (DataIntegrityViolationException ignored) {} // Для совместимости с H2
+        }
     }
+
 
     /**
      * Выбирает пост по id.

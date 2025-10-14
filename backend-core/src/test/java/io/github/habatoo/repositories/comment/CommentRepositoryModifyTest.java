@@ -8,12 +8,15 @@ import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.support.KeyHolder;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import static io.github.habatoo.repositories.sql.CommentSqlQueries.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -144,6 +147,65 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
 
         verify(jdbcTemplate).update(eq(UPDATE_COMMENT_TEXT), eq("Updated Text"), any(Timestamp.class), eq(COMMENT_ID));
         verify(jdbcTemplate, never()).query(anyString(), any(RowMapper.class), anyLong());
+    }
+
+    /**
+     * Тестирует ветку метода updateText, когда обновление прошло (updatedRows != 0),
+     * но после обновления комментарий с заданным id не найден в базе.
+     * <p>
+     * Метод должен выбросить IllegalStateException с сообщением "Комментарий не обновлен",
+     * если результат запроса пустой.
+     */
+    @Test
+    @DisplayName("updateText — бросает IllegalStateException если комментария нет после обновления")
+    void testUpdateTextThrowsIfCommentNotFoundAfterUpdateTest() {
+        when(jdbcTemplate.update(anyString(), any(), any(), eq(COMMENT_ID))).thenReturn(1);
+        when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(COMMENT_ID)))
+                .thenReturn(Collections.emptyList());
+
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> commentRepository.updateText(POST_ID, COMMENT_ID, COMMENT_NEW_TEXT)
+        );
+        assertEquals("Комментарий не обновлен", ex.getMessage());
+    }
+
+    /**
+     * Тестирует, что при сохранении нового комментария
+     * параметры postId, text, created_at, updated_at корректно пробрасываются в лямбду
+     * connection -> PreparedStatement.
+     * <p>
+     * Проверка реализована с помощью аргумент-каптора для лямбды и моков.
+     */
+    @Test
+    @DisplayName("save — провалидация параметров лямбды через ArgumentCaptor")
+    void testSaveCommentLambdaParametersWithCaptor() {
+        CommentCreateRequest createRequest = createCommentCreateRequest(COMMENT_TEXT, POST_ID);
+        CommentResponse expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT);
+
+        doAnswer(invocation -> {
+            PreparedStatementCreator creator = invocation.getArgument(0);
+            Connection con = mock(Connection.class);
+            PreparedStatement ps = mock(PreparedStatement.class);
+            KeyHolder kh = invocation.getArgument(1);
+            Map<String, Object> keys = Collections.singletonMap("ID", 2L);
+            kh.getKeyList().add(keys);
+            when(con.prepareStatement(anyString(), any(String[].class))).thenReturn(ps);
+            creator.createPreparedStatement(con);
+
+            verify(ps).setLong(eq(1), eq(POST_ID));
+            verify(ps).setString(eq(2), eq(COMMENT_TEXT));
+            verify(ps).setTimestamp(eq(3), any(Timestamp.class));
+            verify(ps).setTimestamp(eq(4), any(Timestamp.class));
+            return null;
+        }).when(jdbcTemplate).update(any(PreparedStatementCreator.class), any(KeyHolder.class));
+
+        when(jdbcTemplate.query(eq(FIND_BY_ID), any(RowMapper.class), eq(COMMENT_ID)))
+                .thenReturn(List.of(expectedResponse));
+
+        CommentResponse response = commentRepository.save(createRequest);
+
+        assertNotNull(response);
     }
 
     /**

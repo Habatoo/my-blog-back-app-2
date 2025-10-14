@@ -2,10 +2,14 @@ package io.github.habatoo.service.comment;
 
 import io.github.habatoo.dto.request.CommentCreateRequest;
 import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.repositories.CommentRepository;
+import io.github.habatoo.service.CommentService;
+import io.github.habatoo.service.PostService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -97,9 +101,35 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> commentService.createComment(request));
-        assertTrue(ex.getMessage().contains("Post not found"));
 
+        assertTrue(ex.getMessage().contains("Post not found"));
         verify(postService).postExists(INVALID_POST_ID);
         verifyNoInteractions(commentRepository);
+    }
+
+    /**
+     * Юнит-тест проверяет сценарий, когда при создании комментария происходит ошибка
+     * в репозитории (например, сбой БД), и метод {@link CommentService#createComment} ожидаемо
+     * выбрасывает IllegalStateException c корректным сообщением и оригинальной причиной.
+     * <p>
+     * Тест мокаует зависимость commentRepository так, что save бросает RuntimeException,
+     * и убеждается, что в сервисе выполняется обработка через catch с генерацией IllegalStateException,
+     * а также что сообщение содержит id поста, а причина исключения соответствует ожидаемой.
+     */
+    @Test
+    @DisplayName("createComment — выбрасывается IllegalStateException при ошибке сохранения")
+    void testCreateCommentThrowsOnRepositoryErrorTest() {
+        CommentCreateRequest request = new CommentCreateRequest(VALID_POST_ID, "text");
+
+        when(postService.postExists(VALID_POST_ID)).thenReturn(true);
+        when(commentRepository.save(any())).thenThrow(new RuntimeException("fail save"));
+
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> commentService.createComment(request));
+
+        assertTrue(ex.getMessage().contains("Комментарий к посту id=1 не создан"));
+        assertNotNull(ex.getCause());
+        assertEquals("fail save", ex.getCause().getMessage());
     }
 }

@@ -27,6 +27,7 @@ abstract class CommentRepositoryTestBase {
     protected final Long POST_ID = 1L;
     protected final Long COMMENT_ID = 2L;
     protected final String COMMENT_TEXT = "Test comment";
+    protected final String COMMENT_NEW_TEXT = "New test comment";
 
     @BeforeEach
     void setUp() {

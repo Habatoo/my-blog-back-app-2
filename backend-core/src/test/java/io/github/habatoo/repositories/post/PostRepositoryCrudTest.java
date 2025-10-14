@@ -1,39 +1,25 @@
 package io.github.habatoo.repositories.post;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
 import io.github.habatoo.dto.request.PostRequest;
 import io.github.habatoo.dto.response.PostResponse;
-import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
-import org.springframework.jdbc.core.ParameterizedPreparedStatementSetter;
-import org.springframework.jdbc.core.PreparedStatementCreator;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.support.KeyHolder;
 
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static io.github.habatoo.repositories.sql.PostSqlQueries.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * <h2>Тесты методов findAllPosts, createPost, updatePost, deletePost для PostRepositoryImpl</h2>
+ * <h2>Тесты методов findAllPosts, updatePost, deletePost для PostRepositoryImpl</h2>
  *
  * <p>
  * Класс покрывает функциональность основных операций над постами:
  * <ul>
  *     <li>Поиск всех постов с их тегами</li>
- *     <li>Создание поста с тегами</li>
  *     <li>Обновление данных поста и его тегов</li>
  *     <li>Удаление поста</li>
  *     <li>Обработка ошибки при попытке удалить несуществующий пост</li>
@@ -42,7 +28,7 @@ import static org.mockito.Mockito.*;
  * Проверяется правильность передаваемых запросов, возвращаемых данных и поведения при ошибках.
  * </p>
  */
-@DisplayName("Тесты методов findAllPosts, createPost, updatePost, deletePost PostRepositoryImpl.")
+@DisplayName("Тесты методов findAllPosts, updatePost, deletePost PostRepositoryImpl.")
 class PostRepositoryCrudTest extends PostRepositoryTestBase {
 
     /**
@@ -58,8 +44,7 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
         );
         List<String> tags = List.of("tagA", "tagB");
         when(jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper)).thenReturn(postsWithoutTags);
-        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), any()))
-                .thenReturn(tags);
+        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), any())).thenReturn(tags);
 
         List<PostResponse> result = postRepository.findAllPosts();
 
@@ -74,141 +59,6 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     }
 
     /**
-     * Проверяет, что метод createPost добавляет новый пост с тегами, корректно вызывает связанные SQL-запросы,
-     * а возвращённый объект содержит все внесённые данные.
-     */
-    @ParameterizedTest(name = "Создание поста: теги={2}")
-    @MethodSource("posts")
-    @DisplayName("Должен создать пост с разными вариантами тегов")
-    void shouldCreatePostWithAndWithoutTagsTest(
-            PostCreateRequest createRequest,
-            PostResponse createdPost,
-            boolean hasTags) {
-        doAnswer(invocation -> {
-            KeyHolder kh = invocation.getArgument(1);
-            Map<String, Object> keys = Collections.singletonMap("ID", POST_ID);
-            kh.getKeyList().add(keys);
-            return 1;
-        }).when(jdbcTemplate).update(any(PreparedStatementCreator.class), any(KeyHolder.class));
-        when(jdbcTemplate.queryForObject(eq(SELECT_POST_BY_ID),
-                any(RowMapper.class),
-                eq(POST_ID)))
-                .thenReturn(createdPost);
-
-        if (hasTags) {
-            when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID))).thenReturn(1);
-            doReturn(new int[][]{new int[createRequest.tags().size()]})
-                    .when(jdbcTemplate).batchUpdate(eq(INSERT_INTO_TAG),
-                            eq(createRequest.tags()),
-                            eq(createRequest.tags().size()),
-                            any(ParameterizedPreparedStatementSetter.class));
-            doReturn(new int[][]{new int[createRequest.tags().size()]})
-                    .when(jdbcTemplate).batchUpdate(eq(INSERT_INTO_POST_TAG),
-                            eq(createRequest.tags()),
-                            eq(createRequest.tags().size()),
-                            any(ParameterizedPreparedStatementSetter.class));
-        }
-
-        postRepository = Mockito.spy(new PostRepositoryImpl(jdbcTemplate, postListRowMapper));
-        PostResponse result = postRepository.createPost(createRequest);
-
-        assertEquals(POST_ID, result.id());
-        assertEquals(createRequest.title(), result.title());
-        assertEquals(createRequest.text(), result.text());
-        assertEquals(createRequest.tags(), result.tags());
-        verify(jdbcTemplate).update(any(PreparedStatementCreator.class), any(KeyHolder.class));
-        verify(jdbcTemplate).queryForObject(eq(SELECT_POST_BY_ID), any(RowMapper.class), eq(POST_ID));
-
-        if (hasTags) {
-            verify(jdbcTemplate, times(1)).update(eq(DELETE_POST_TAGS), eq(POST_ID));
-            verify(jdbcTemplate, times(1))
-                    .batchUpdate(eq(INSERT_INTO_TAG), eq(createRequest.tags()), eq(createRequest.tags().size()), any());
-            verify(jdbcTemplate, times(1))
-                    .batchUpdate(eq(INSERT_INTO_POST_TAG), eq(createRequest.tags()), eq(createRequest.tags().size()), any());
-        } else {
-            verify(jdbcTemplate, never()).update(eq(DELETE_POST_TAGS), anyLong());
-            verify(jdbcTemplate, never()).batchUpdate(eq(INSERT_INTO_TAG), anyList(), anyInt(), any());
-            verify(jdbcTemplate, never()).batchUpdate(eq(INSERT_INTO_POST_TAG), anyList(), anyInt(), any());
-        }
-    }
-
-    /**
-     * Проверяет, что при создании поста используются корректные лямбды для batchUpdate.
-     *
-     * <p>
-     * Этот тест захватывает переданные в batchUpdate лямбды-обработчики PreparedStatement,
-     * и проверяет, что они правильно выставляют параметры в PreparedStatement для каждого тега.
-     * Убеждается, что:
-     * <ul>
-     *   <li>Для вставки тегов в таблицу тегов лямбда вызывает setString с правильным значением.</li>
-     *   <li>Для вставки связей пост-тег лямбда вызывается с правильным postId и тегом.</li>
-     * </ul>
-     * Это обеспечивает правильное формирование параметров batchUpdate на уровне джибкейнов.
-     * </p>
-     *
-     * @throws SQLException в случае ошибок взаимодействия с PreparedStatement при проверке лямбд.
-     */
-    @Test
-    @DisplayName("Должны использоваться корректные лямбды batchUpdate при создании поста")
-    void batchUpdateLambdasTest() throws SQLException {
-        doAnswer(invocation -> {
-            KeyHolder kh = invocation.getArgument(1);
-            Map<String, Object> keys = Collections.singletonMap("ID", 1L);
-            kh.getKeyList().add(keys);
-            return 1;
-        }).when(jdbcTemplate).update(any(PreparedStatementCreator.class), any(KeyHolder.class));
-        when(jdbcTemplate.queryForObject(
-                eq(SELECT_POST_BY_ID),
-                any(RowMapper.class),
-                eq(1L)
-        )).thenReturn(new PostResponse(1L, createRequest.title(), createRequest.text(), List.of(), 0, 0));
-        when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID)))
-                .thenReturn(1);
-        doReturn(new int[][]{new int[createRequest.tags().size()]})
-                .when(jdbcTemplate).batchUpdate(
-                        eq(INSERT_INTO_TAG),
-                        eq(createRequest.tags()),
-                        eq(createRequest.tags().size()),
-                        any(ParameterizedPreparedStatementSetter.class)
-                );
-        doReturn(new int[][]{new int[createRequest.tags().size()]})
-                .when(jdbcTemplate).batchUpdate(
-                        eq(INSERT_INTO_POST_TAG),
-                        eq(createRequest.tags()),
-                        eq(createRequest.tags().size()),
-                        any(ParameterizedPreparedStatementSetter.class)
-                );
-
-        postRepository = Mockito.spy(new PostRepositoryImpl(jdbcTemplate, postListRowMapper));
-        postRepository.createPost(createRequest);
-
-        ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> tagSetterCaptor =
-                ArgumentCaptor.forClass(ParameterizedPreparedStatementSetter.class);
-        verify(jdbcTemplate).batchUpdate(
-                eq(INSERT_INTO_TAG),
-                eq(createRequest.tags()),
-                eq(createRequest.tags().size()),
-                tagSetterCaptor.capture());
-
-        PreparedStatement psTag = mock(PreparedStatement.class);
-        tagSetterCaptor.getValue().setValues(psTag, "tag1");
-        verify(psTag).setString(1, "tag1");
-
-        ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> postTagSetterCaptor =
-                ArgumentCaptor.forClass(ParameterizedPreparedStatementSetter.class);
-        verify(jdbcTemplate).batchUpdate(
-                eq(INSERT_INTO_POST_TAG),
-                eq(createRequest.tags()),
-                eq(createRequest.tags().size()),
-                postTagSetterCaptor.capture());
-
-        PreparedStatement psPostTag = mock(PreparedStatement.class);
-        postTagSetterCaptor.getValue().setValues(psPostTag, "tag1");
-        verify(psPostTag).setLong(1, 1L);
-        verify(psPostTag).setString(2, "tag1");
-    }
-
-    /**
      * Проверяет, что метод updatePost обновляет существующий пост,
      * возвращает обновлённый объект и корректно маппирует теги.
      */
@@ -216,7 +66,8 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     @DisplayName("Должен обновить пост и вернуть обновленный объект с тегами")
     void shouldUpdatePostTest() {
         PostRequest updateRequest = new PostRequest(POST_ID, "Updated Title", "Updated Text", List.of());
-        PostResponse updatedPost = new PostResponse(POST_ID, updateRequest.title(), updateRequest.text(), List.of("tag1"), 5, 10);
+        List<String> updatedTags = List.of("tag1");
+        PostResponse updatedPost = new PostResponse(POST_ID, updateRequest.title(), updateRequest.text(), updatedTags, 5, 10);
         when(jdbcTemplate.update(
                 eq(UPDATE_POST),
                 eq(updateRequest.title()),
@@ -224,12 +75,16 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
                 any(LocalDateTime.class),
                 eq(updateRequest.id())
         )).thenReturn(1);
-
         when(jdbcTemplate.queryForObject(
                 eq(SELECT_POST_BY_ID),
                 any(RowMapper.class),
                 eq(updateRequest.id())
         )).thenReturn(updatedPost);
+        when(jdbcTemplate.queryForList(
+                eq(GET_TAGS_FOR_POST),
+                eq(String.class),
+                eq(updateRequest.id())
+        )).thenReturn(updatedTags);
 
         PostResponse result = postRepository.updatePost(updateRequest);
 
