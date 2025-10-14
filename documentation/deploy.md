@@ -6,7 +6,11 @@
 2. **Собрать backend**
     - В root проекта выполните:
       ```
-      mvn clean install
+      .\mvnw.cmd clean install
+      ```
+      или
+         ```
+      ./mvnw clean install
       ```
    После сборки гарантируется появление файлов
     - `./bacend/target/backend-1.0-SNAPSHOT.war`.

@@ -20,6 +20,19 @@
         <maven-jacoco-plugin.version>0.8.11</maven-jacoco-plugin.version>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.habatoo</groupId>
+            <artifactId>backend-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.habatoo</groupId>
+            <artifactId>backend</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
     <build>
         <pluginManagement>
             <plugins>
@@ -75,19 +88,24 @@
                         <goals>
                             <goal>merge</goal>
                         </goals>
-                        <configuration>
-                            <fileSets>
-                                <fileSet>
-                                    <directory>${code.coverage.project.folder}</directory>
-                                    <includes>
-                                        <include>**/target/jacoco.exec</include>
-                                    </includes>
-                                </fileSet>
-                            </fileSets>
-                            <destFile>${code.coverage.overall.data.folder}/aggregate.exec</destFile>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <fileSets>
+                        <fileSet>
+                            <directory>${project.parent.basedir}/backend/target</directory>
+                            <includes>
+                                <include>jacoco.exec</include>
+                            </includes>
+                        </fileSet>
+                        <fileSet>
+                            <directory>${project.parent.basedir}/backend-core/target</directory>
+                            <includes>
+                                <include>jacoco.exec</include>
+                            </includes>
+                        </fileSet>
+                    </fileSets>
+                </configuration>
             </plugin>
         </plugins>
     </build>
