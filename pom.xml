@@ -61,7 +61,6 @@
         <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
         <maven-jacoco-plugin.version>0.8.11</maven-jacoco-plugin.version>
         <maven-failsafe-plugin.version>3.5.2</maven-failsafe-plugin.version>
-        <jetty-maven-plugin.version>11.0.26</jetty-maven-plugin.version>
         <hikaricp.version>5.0.1</hikaricp.version>
     </properties>
 
@@ -144,23 +143,7 @@
 
             </plugins>
         </pluginManagement>
-
         <plugins>
-            <plugin>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>${jetty-maven-plugin.version}</version>
-                <configuration>
-                    <scan>5</scan>
-                    <webApp>
-                        <contextPath>/</contextPath>
-                    </webApp>
-                    <httpConnector>
-                        <port>8080</port>
-                        <host>localhost</host>
-                    </httpConnector>
-                </configuration>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

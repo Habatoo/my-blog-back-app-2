@@ -3,41 +3,42 @@ services:
     image: postgres:17-alpine
     container_name: blog_db_con
     restart: always
-    environment:
-      POSTGRES_DB: blog_db
-      POSTGRES_USER: blog_admin
-      POSTGRES_PASSWORD: blog_password
+    env_file: ./env/.env
     ports:
       - "5432:5432"
     volumes:
       - blog_db:/var/lib/postgresql/data
 
   flyway:
+    container_name: flyway
     image: flyway/flyway:latest
     depends_on: [db]
-    command: -url=jdbc:postgresql://db:5432/blog_db -user=blog_admin -password=blog_password migrate
+    env_file: ./env/.env
+    command: migrate -connectRetries=10
     volumes:
-      - ./src/main/resources/db/migrations:/flyway/sql
+      - ./backend/src/main/resources/db/migrations:/flyway/sql:ro
 
   my-blog-backend:
-    image: tomcat:9.0-jre11-slim
+    container_name: my-blog-back-app
+    build:
+      context: .
+      dockerfile: Dockerfile
     depends_on: [db, flyway]
+    env_file: ./env/.env
     ports:
       - "8080:8080"
-    environment:
-      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL}
-      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME}
-      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD}
+    restart: unless-stopped
     volumes:
-      - ./target/ROOT.war:/usr/local/tomcat/webapps/ROOT.war
-      - ./tomcat-users.xml:/usr/local/tomcat/conf/tomcat-users.xml
+      - ${M2_PATH}:/root/.m2
 
   my-blog-front-app:
-    build: ./frontend
+    container_name: my-blog-front-app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "80:80"
     restart: unless-stopped
 
 volumes:
   blog_db:
-
