@@ -16,16 +16,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
 
 /**
  * Интеграционные тесты PostServiceImpl.
@@ -58,6 +60,9 @@ class PostServiceIntegrationTest {
     @Autowired
     private Flyway flyway;
 
+    @Value("${app.upload.dir:uploads/posts/}")
+    private String uploadDir;
+
     @BeforeEach
     void setup() {
         flyway.clean();
@@ -73,20 +78,21 @@ class PostServiceIntegrationTest {
      * Проверяет получение списка постов с фильтрацией по тексту и тегам,
      * корректную работу пагинации, а также отсутствие ошибок при пустом поисковом запросе.
      */
-//    @Test
-//    @DisplayName("Получение постов с поиском, тегами и пагинацией")
-//    void testGetPostsWithSearchAndTagsAndPagination() {
-//        PostListResponse response = postService.getPosts("Text common", 1, 3);
-//
-//        assertThat(response.posts()).hasSizeLessThanOrEqualTo(3);
-//        assertThat(response.posts()).allMatch(p -> p.title().contains("Title") || p.text().contains("Text"));
-//        assertThat(response.hasPrev()).isFalse();
-//        assertThat(response.hasNext()).isFalse();
-//
-//        PostListResponse responsePage2 = postService.getPosts("Text common", 2, 3);
-//        assertThat(responsePage2.posts()).isNotEmpty();
-//        assertThat(responsePage2.hasPrev()).isTrue();
-//    }
+    @Test
+    @DisplayName("Получение постов с поиском, тегами и пагинацией")
+    void testGetPostsWithSearchAndTagsAndPagination() {
+        PostListResponse response = postService.getPosts("Text #common", 1, 3);
+
+        assertThat(response.posts()).hasSizeLessThanOrEqualTo(3);
+        assertThat(response.posts()).allMatch(p -> p.title().contains("Title") || p.text().contains("Text"));
+        assertThat(response.hasPrev()).isFalse();   // нет предыдущей страницы для первой
+        assertThat(response.hasNext()).isTrue();    // есть следующая страница, т.к. всего 5 постов, показываем по 3
+
+        PostListResponse responsePage2 = postService.getPosts("Text #common", 2, 3);
+        assertThat(responsePage2.posts()).isNotEmpty();
+        assertThat(responsePage2.hasPrev()).isTrue();
+        assertThat(responsePage2.hasNext()).isFalse(); // конец списка, следующей страницы нет
+    }
 
     /**
      * Проверяет корректное получение поста по ID из кэша.
@@ -140,20 +146,25 @@ class PostServiceIntegrationTest {
     /**
      * Проверяет удаление поста и очистку кэша, а также удаление директории файла.
      */
-//    @Test
-//    @DisplayName("Удаление поста, очистка кэша и удаление директории")
-//    void testDeletePost() {
-//        long deleteId = 2L;
-//        postService.deletePost(deleteId);
-//
-//        Optional<PostResponse> cached = postService.getPostById(deleteId);
-//        assertThat(cached).isEmpty();
-//
-//        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE id = ?", Integer.class, deleteId);
-//        assertThat(count).isZero();
-//
-//        verify(fileStorageService).deletePostDirectory(eq(deleteId));
-//    }
+    @Test
+    @DisplayName("Удаление поста, очистка кэша и удаление директории")
+    void testDeletePost() throws IOException {
+        long deleteId = 2L;
+
+        postService.deletePost(deleteId);
+
+        Optional<PostResponse> cached = postService.getPostById(deleteId);
+        assertThat(cached).isEmpty();
+
+        Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE id = ?", Integer.class, deleteId);
+        assertThat(count).isZero();
+
+        Path baseUploadPath = Paths.get(uploadDir).normalize().toAbsolutePath();
+        Path dirPath = baseUploadPath.resolve(String.valueOf(deleteId));
+        assertThat(Files.notExists(dirPath)).isTrue();
+
+        deleteDirectoryRecursively();
+    }
 
     /**
      * Проверяет корректное инкрементирование лайков и обновление кэша.
@@ -207,5 +218,30 @@ class PostServiceIntegrationTest {
     void testPostExists() {
         assertThat(postService.postExists(1L)).isTrue();
         assertThat(postService.postExists(999L)).isFalse();
+    }
+
+    /**
+     * Удаление тестовых директорий.
+     *
+     * @throws IOException при невозможности удалить
+     */
+    private void deleteDirectoryRecursively() throws IOException {
+        Path path = Paths.get("uploads").normalize().toAbsolutePath();
+
+        if (Files.exists(path)) {
+            Files.walkFileTree(path, new SimpleFileVisitor<>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    Files.delete(file);
+                    return FileVisitResult.CONTINUE;
+                }
+
+                @Override
+                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                    Files.delete(dir);
+                    return FileVisitResult.CONTINUE;
+                }
+            });
+        }
     }
 }
