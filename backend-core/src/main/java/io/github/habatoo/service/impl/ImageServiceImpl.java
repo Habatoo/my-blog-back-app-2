@@ -5,7 +5,7 @@ import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.ImageContentTypeDetector;
 import io.github.habatoo.service.ImageService;
 import io.github.habatoo.service.ImageValidator;
-import io.github.habatoo.service.dto.ImageResponse;
+import io.github.habatoo.service.dto.ImageResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ public class ImageServiceImpl implements ImageService {
     private final ImageValidator imageValidator;
     private final ImageContentTypeDetector contentTypeDetector;
 
-    private final Map<Long, ImageResponse> imageCache = new ConcurrentHashMap<>();
+    private final Map<Long, ImageResponseDto> imageCache = new ConcurrentHashMap<>();
 
     public ImageServiceImpl(
             ImageRepository imageRepository,
@@ -75,7 +75,7 @@ public class ImageServiceImpl implements ImageService {
             byte[] imageData = fileStorageService.loadImageFile(newFileName);
             MediaType mediaType = contentTypeDetector.detect(imageData);
 
-            imageCache.put(postId, new ImageResponse(imageData, mediaType));
+            imageCache.put(postId, new ImageResponseDto(imageData, mediaType));
             log.info("Кэшировано новое изображение для поста id={}", postId);
 
         } catch (IOException e) {
@@ -88,7 +88,7 @@ public class ImageServiceImpl implements ImageService {
      * {@inheritDoc}
      */
     @Override
-    public ImageResponse getPostImage(Long postId) {
+    public ImageResponseDto getPostImage(Long postId) {
         log.debug("Запрос на получение изображения для поста id={}", postId);
         imageValidator.validatePostId(postId);
 
@@ -97,7 +97,7 @@ public class ImageServiceImpl implements ImageService {
             throw new IllegalStateException("Post not found with id: " + postId);
         }
 
-        ImageResponse cached = imageCache.get(postId);
+        ImageResponseDto cached = imageCache.get(postId);
         if (cached != null) {
             log.debug("Изображение для поста id={} получено из кэша", postId);
             return cached;
@@ -113,7 +113,7 @@ public class ImageServiceImpl implements ImageService {
             byte[] imageData = fileStorageService.loadImageFile(fileName);
             MediaType mediaType = contentTypeDetector.detect(imageData);
 
-            ImageResponse imageResponse = new ImageResponse(imageData, mediaType);
+            ImageResponseDto imageResponse = new ImageResponseDto(imageData, mediaType);
             imageCache.put(postId, imageResponse);
             log.info("Изображение для поста id={} загружено и кэшировано", postId);
             return imageResponse;

@@ -2,8 +2,8 @@ package io.github.habatoo.repositories;
 
 import io.github.habatoo.configurations.TestDataSourceConfiguration;
 import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -64,13 +64,13 @@ public class CommentRepositoryIntegrationTest {
     @Test
     @DisplayName("Сохранение комментария и поиск по postId")
     void testSaveAndFindByPostIdTest() {
-        CommentCreateRequest newComment = new CommentCreateRequest(1L, "Тестовый комментарий");
-        CommentResponse saved = commentRepository.save(newComment);
+        CommentCreateRequestDto newComment = new CommentCreateRequestDto(1L, "Тестовый комментарий");
+        CommentResponseDto saved = commentRepository.save(newComment);
 
         assertThat(saved).isNotNull();
         assertThat(saved.text()).isEqualTo("Тестовый комментарий");
 
-        List<CommentResponse> comments = commentRepository.findByPostId(1L);
+        List<CommentResponseDto> comments = commentRepository.findByPostId(1L);
         assertThat(comments).isNotEmpty();
         assertThat(comments).extracting("text").contains("Тестовый комментарий");
     }
@@ -81,10 +81,10 @@ public class CommentRepositoryIntegrationTest {
     @Test
     @DisplayName("Поиск комментария по postId и commentId (существующий)")
     void testFindByPostIdAndIdExistingTest() {
-        CommentCreateRequest newComment = new CommentCreateRequest(2L, "Комментарий для поиска");
-        CommentResponse saved = commentRepository.save(newComment);
+        CommentCreateRequestDto newComment = new CommentCreateRequestDto(2L, "Комментарий для поиска");
+        CommentResponseDto saved = commentRepository.save(newComment);
 
-        Optional<CommentResponse> found = commentRepository.findByPostIdAndId(2L, saved.id());
+        Optional<CommentResponseDto> found = commentRepository.findByPostIdAndId(2L, saved.id());
         assertThat(found).isPresent();
         assertThat(found.get().text()).isEqualTo("Комментарий для поиска");
     }
@@ -95,7 +95,7 @@ public class CommentRepositoryIntegrationTest {
     @Test
     @DisplayName("Поиск комментария по postId и commentId (не существующий)")
     void testFindByPostIdAndIdNonExistingTest() {
-        Optional<CommentResponse> found = commentRepository.findByPostIdAndId(99L, 999L);
+        Optional<CommentResponseDto> found = commentRepository.findByPostIdAndId(99L, 999L);
         assertThat(found).isNotPresent();
     }
 
@@ -105,10 +105,10 @@ public class CommentRepositoryIntegrationTest {
     @Test
     @DisplayName("Обновление текста комментария (существующий комментарий)")
     void testUpdateTextExistingTest() {
-        CommentCreateRequest newComment = new CommentCreateRequest(3L, "Старый текст");
-        CommentResponse saved = commentRepository.save(newComment);
+        CommentCreateRequestDto newComment = new CommentCreateRequestDto(3L, "Старый текст");
+        CommentResponseDto saved = commentRepository.save(newComment);
 
-        CommentResponse updated = commentRepository.updateText(saved.postId(), saved.id(),"Новый текст");
+        CommentResponseDto updated = commentRepository.updateText(saved.postId(), saved.id(),"Новый текст");
         assertThat(updated.text()).isEqualTo("Новый текст");
     }
 
@@ -129,13 +129,13 @@ public class CommentRepositoryIntegrationTest {
     @Test
     @DisplayName("Удаление комментария по id (существующий)")
     void testDeleteByIdExistingTest() {
-        CommentCreateRequest newComment = new CommentCreateRequest(4L, "Будет удалён");
-        CommentResponse saved = commentRepository.save(newComment);
+        CommentCreateRequestDto newComment = new CommentCreateRequestDto(4L, "Будет удалён");
+        CommentResponseDto saved = commentRepository.save(newComment);
 
         int deletedCount = commentRepository.deleteById(saved.id());
         assertThat(deletedCount).isEqualTo(1);
 
-        Optional<CommentResponse> found = commentRepository.findByPostIdAndId(4L, saved.id());
+        Optional<CommentResponseDto> found = commentRepository.findByPostIdAndId(4L, saved.id());
         assertThat(found).isNotPresent();
     }
 
@@ -155,7 +155,7 @@ public class CommentRepositoryIntegrationTest {
     @Test
     @DisplayName("Сохранение комментария с несуществующим postId вызывает ошибку")
     void testSaveCommentForNonExistingPostShouldThrowExceptionTest() {
-        CommentCreateRequest newComment = new CommentCreateRequest(999L, "Неверный пост");
+        CommentCreateRequestDto newComment = new CommentCreateRequestDto(999L, "Неверный пост");
         assertThatThrownBy(() -> commentRepository.save(newComment))
                 .isInstanceOf(DataIntegrityViolationException.class);
     }

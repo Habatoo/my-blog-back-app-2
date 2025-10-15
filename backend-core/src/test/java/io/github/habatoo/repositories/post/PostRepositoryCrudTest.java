@@ -1,7 +1,7 @@
 package io.github.habatoo.repositories.post;
 
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.RowMapper;
@@ -38,18 +38,18 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть список всех постов с тегами")
     void shouldFindAllPostsWithTagsTest() {
-        List<PostResponse> postsWithoutTags = List.of(
-                new PostResponse(1L, "Title1", "Text1", List.of(), 0, 0),
-                new PostResponse(2L, "Title2", "Text2", List.of(), 0, 0)
+        List<PostResponseDto> postsWithoutTags = List.of(
+                new PostResponseDto(1L, "Title1", "Text1", List.of(), 0, 0),
+                new PostResponseDto(2L, "Title2", "Text2", List.of(), 0, 0)
         );
         List<String> tags = List.of("tagA", "tagB");
         when(jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper)).thenReturn(postsWithoutTags);
         when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), any())).thenReturn(tags);
 
-        List<PostResponse> result = postRepository.findAllPosts();
+        List<PostResponseDto> result = postRepository.findAllPosts();
 
         assertEquals(postsWithoutTags.size(), result.size());
-        for (PostResponse post : result) {
+        for (PostResponseDto post : result) {
             assertEquals(List.of("tagA", "tagB"), post.tags());
         }
 
@@ -65,9 +65,9 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен обновить пост и вернуть обновленный объект с тегами")
     void shouldUpdatePostTest() {
-        PostRequest updateRequest = new PostRequest(POST_ID, "Updated Title", "Updated Text", List.of());
+        PostRequestDto updateRequest = new PostRequestDto(POST_ID, "Updated Title", "Updated Text", List.of());
         List<String> updatedTags = List.of("tag1");
-        PostResponse updatedPost = new PostResponse(POST_ID, updateRequest.title(), updateRequest.text(), updatedTags, 5, 10);
+        PostResponseDto updatedPost = new PostResponseDto(POST_ID, updateRequest.title(), updateRequest.text(), updatedTags, 5, 10);
         when(jdbcTemplate.update(
                 eq(UPDATE_POST),
                 eq(updateRequest.title()),
@@ -86,7 +86,7 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
                 eq(updateRequest.id())
         )).thenReturn(updatedTags);
 
-        PostResponse result = postRepository.updatePost(updateRequest);
+        PostResponseDto result = postRepository.updatePost(updateRequest);
 
         assertEquals(updatedPost, result);
         assertTrue(result.tags().contains("tag1"));

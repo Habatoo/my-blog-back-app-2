@@ -1,6 +1,6 @@
 package io.github.habatoo.repositories.mapper;
 
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.response.PostResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Юнит-тесты для {@link PostListRowMapper}.
  * <p>
- * Класс проверяет корректную работу маппера по преобразованию данных ResultSet в PostResponse:
+ * Класс проверяет корректную работу маппера по преобразованию данных ResultSet в PostResponseDto:
  * <ul>
  *   <li> Маппинг валидных записей </li>
  *   <li> Обработка обрезки длинного текста </li>
@@ -28,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class PostListRowMapperTest {
 
     /**
-     * Проверяет корректное преобразование валидной строки ResultSet в PostResponse.
+     * Проверяет корректное преобразование валидной строки ResultSet в PostResponseDto.
      * Ожидается полный успех и соответствие всех полей.
      */
     @Test
@@ -42,7 +42,7 @@ class PostListRowMapperTest {
         Mockito.when(rs.getInt("comments_count")).thenReturn(2);
 
         PostListRowMapper mapper = new PostListRowMapper();
-        PostResponse response = mapper.mapRow(rs, 0);
+        PostResponseDto response = mapper.mapRow(rs, 0);
 
         assertEquals(42L, response.id());
         assertEquals("Заголовок", response.title());
@@ -68,7 +68,7 @@ class PostListRowMapperTest {
         Mockito.when(rs.getInt("comments_count")).thenReturn(5);
 
         PostListRowMapper mapper = new PostListRowMapper();
-        PostResponse response = mapper.mapRow(rs, 0);
+        PostResponseDto response = mapper.mapRow(rs, 0);
 
         assertEquals(1L, response.id());
         assertEquals("Title", response.title());

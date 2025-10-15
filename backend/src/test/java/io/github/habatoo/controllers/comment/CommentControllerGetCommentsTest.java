@@ -1,6 +1,6 @@
 package io.github.habatoo.controllers.comment;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -21,12 +21,12 @@ class CommentControllerGetCommentsTest extends CommentControllerTestBase {
     @Test
     @DisplayName("Должен вернуть список комментариев для существующего поста")
     void shouldReturnCommentsListForExistingPostTest() {
-        List<CommentResponse> expectedComments = createCommentList(VALID_POST_ID);
+        List<CommentResponseDto> expectedComments = createCommentList(VALID_POST_ID);
 
         when(commentService.getCommentsByPostId(VALID_POST_ID))
                 .thenReturn(expectedComments);
 
-        List<CommentResponse> actualComments = commentController
+        List<CommentResponseDto> actualComments = commentController
                 .getCommentsByPostId(VALID_POST_ID);
 
         assertNotNull(actualComments);
@@ -40,7 +40,7 @@ class CommentControllerGetCommentsTest extends CommentControllerTestBase {
     void shouldReturnEmptyListWhenPostHasNoCommentsTest() {
         when(commentService.getCommentsByPostId(VALID_POST_ID)).thenReturn(List.of());
 
-        List<CommentResponse> actualComments = commentController
+        List<CommentResponseDto> actualComments = commentController
                 .getCommentsByPostId(VALID_POST_ID);
 
         assertNotNull(actualComments);
@@ -52,12 +52,12 @@ class CommentControllerGetCommentsTest extends CommentControllerTestBase {
     @ParameterizedTest
     @ValueSource(longs = {1L, 100L, 9999L, Long.MAX_VALUE})
     void shouldHandleDifferentPostIdsTest(Long postId) {
-        List<CommentResponse> expectedComments = createCommentList(postId);
+        List<CommentResponseDto> expectedComments = createCommentList(postId);
 
         when(commentService.getCommentsByPostId(postId))
                 .thenReturn(expectedComments);
 
-        List<CommentResponse> actualComments = commentController.getCommentsByPostId(postId);
+        List<CommentResponseDto> actualComments = commentController.getCommentsByPostId(postId);
 
         assertEquals(expectedComments, actualComments);
         verify(commentService).getCommentsByPostId(postId);

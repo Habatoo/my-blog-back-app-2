@@ -1,6 +1,6 @@
 package io.github.habatoo.service.comment;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -22,21 +22,21 @@ class CommentServiceUpdateCommentTest extends CommentServiceTestBase {
     void shouldUpdateCommentAndRefreshCacheTest() {
         when(postService.postExists(VALID_POST_ID)).thenReturn(true);
 
-        CommentResponse original = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
-        CommentResponse updatedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, UPDATED_COMMENT_TEXT);
+        CommentResponseDto original = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
+        CommentResponseDto updatedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, UPDATED_COMMENT_TEXT);
 
         when(commentRepository.updateText(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT)).thenReturn(updatedComment);
         when(commentRepository.findByPostId(VALID_POST_ID)).thenReturn(List.of(original));
 
         commentService.getCommentsByPostId(VALID_POST_ID);
 
-        CommentResponse result = commentService.updateComment(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
+        CommentResponseDto result = commentService.updateComment(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
 
         assertEquals(UPDATED_COMMENT_TEXT, result.text());
         verify(postService, times(2)).postExists(VALID_POST_ID); // 2 раза т.к. создавали и обновляли
         verify(commentRepository).updateText(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
 
-        Optional<CommentResponse> cachedUpdated = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
+        Optional<CommentResponseDto> cachedUpdated = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
         assertTrue(cachedUpdated.isPresent());
         assertEquals(UPDATED_COMMENT_TEXT, cachedUpdated.get().text());
     }

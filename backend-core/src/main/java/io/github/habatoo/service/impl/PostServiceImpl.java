@@ -1,9 +1,9 @@
 package io.github.habatoo.service.impl;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostListResponse;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostListResponseDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.PostService;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
  * Предоставляет бизнес-логику для операций с постами.
  *
  * @see PostRepository
- * @see PostResponse
+ * @see PostResponseDto
  * @see FileStorageService
  */
 @Slf4j
@@ -30,7 +30,7 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final FileStorageService fileStorageService;
 
-    private final Map<Long, PostResponse> postCache = new ConcurrentHashMap<>();
+    private final Map<Long, PostResponseDto> postCache = new ConcurrentHashMap<>();
 
     public PostServiceImpl(
             PostRepository postRepository,
@@ -44,7 +44,7 @@ public class PostServiceImpl implements PostService {
     @PostConstruct
     public void initCache() {
         log.info("Инициализация кеша постов из репозитория");
-        List<PostResponse> allPosts = postRepository.findAllPosts();
+        List<PostResponseDto> allPosts = postRepository.findAllPosts();
         postCache.clear();
         allPosts.forEach(post -> postCache.put(post.id(), post));
         log.info("Кеш загружен, постов: {}", allPosts.size());
@@ -54,7 +54,7 @@ public class PostServiceImpl implements PostService {
      * {@inheritDoc}
      */
     @Override
-    public PostListResponse getPosts(String search, int pageNumber, int pageSize) {
+    public PostListResponseDto getPosts(String search, int pageNumber, int pageSize) {
         log.debug("Запрошен список постов: search='{}', pageNumber={}, pageSize={}", search, pageNumber, pageSize);
         List<String> words = Arrays.stream(search.split("\\s+"))
                 .filter(w -> !w.isBlank())
@@ -69,7 +69,7 @@ public class PostServiceImpl implements PostService {
                 .filter(w -> !w.startsWith("#"))
                 .collect(Collectors.joining(" "));
 
-        List<PostResponse> filtered = postCache.values().stream()
+        List<PostResponseDto> filtered = postCache.values().stream()
                 .filter(post -> searchPart.isEmpty()
                         || post.title().contains(searchPart)
                         || post.text().contains(searchPart))
@@ -77,24 +77,24 @@ public class PostServiceImpl implements PostService {
                         || tags.stream().allMatch(tag ->
                         post.tags().stream().anyMatch(t -> t.equals(tag))
                 ))
-                .sorted(Comparator.comparing(PostResponse::id))
+                .sorted(Comparator.comparing(PostResponseDto::id))
                 .toList();
 
         int totalCount = filtered.size();
         int fromIndex = Math.min((pageNumber - 1) * pageSize, totalCount);
         int toIndex = Math.min(fromIndex + pageSize, totalCount);
-        List<PostResponse> page = filtered.subList(fromIndex, toIndex);
+        List<PostResponseDto> page = filtered.subList(fromIndex, toIndex);
 
         log.debug("Фильтровано {} постов, от {} до {}", totalCount, fromIndex, toIndex);
 
-        return new PostListResponse(page, fromIndex > 0, toIndex < totalCount, totalCount);
+        return new PostListResponseDto(page, fromIndex > 0, toIndex < totalCount, totalCount);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    public Optional<PostResponse> getPostById(Long id) {
+    public Optional<PostResponseDto> getPostById(Long id) {
         log.debug("Получение поста по id={}", id);
 
         return Optional.ofNullable(postCache.get(id));
@@ -104,11 +104,11 @@ public class PostServiceImpl implements PostService {
      * {@inheritDoc}
      */
     @Override
-    public PostResponse createPost(PostCreateRequest postCreateRequest) {
+    public PostResponseDto createPost(PostCreateRequestDto postCreateRequest) {
         log.info("Создание нового поста: title='{}'", postCreateRequest.title());
 
         try {
-            PostResponse createdPost = postRepository.createPost(postCreateRequest);
+            PostResponseDto createdPost = postRepository.createPost(postCreateRequest);
             postCache.put(createdPost.id(), createdPost);
 
             return createdPost;
@@ -122,11 +122,11 @@ public class PostServiceImpl implements PostService {
      * {@inheritDoc}
      */
     @Override
-    public PostResponse updatePost(PostRequest postRequest) {
+    public PostResponseDto updatePost(PostRequestDto postRequest) {
         log.info("Обновление поста: id={}", postRequest.id());
 
         try {
-            PostResponse updatedPost = postRepository.updatePost(postRequest);
+            PostResponseDto updatedPost = postRepository.updatePost(postRequest);
             postCache.put(updatedPost.id(), updatedPost);
             log.info("Пост обновлён: id={}", updatedPost.id());
             return updatedPost;
@@ -155,10 +155,10 @@ public class PostServiceImpl implements PostService {
     public int incrementLikes(Long id) {
         log.debug("Инкремент лайков для поста id={}", id);
         postRepository.incrementLikes(id);
-        PostResponse post = postCache.get(id);
+        PostResponseDto post = postCache.get(id);
         if (post != null) {
             int updatedLikes = post.likesCount() + 1;
-            PostResponse updatedPost = new PostResponse(
+            PostResponseDto updatedPost = new PostResponseDto(
                     post.id(),
                     post.title(),
                     post.text(),
@@ -183,10 +183,10 @@ public class PostServiceImpl implements PostService {
         log.debug("Инкремент комментариев для поста id={}", id);
         try {
             postRepository.incrementCommentsCount(id);
-            PostResponse post = postCache.get(id);
+            PostResponseDto post = postCache.get(id);
             if (post != null) {
                 int updatedCount = post.commentsCount() + 1;
-                PostResponse updatedPost = new PostResponse(
+                PostResponseDto updatedPost = new PostResponseDto(
                         post.id(),
                         post.title(),
                         post.text(),
@@ -213,10 +213,10 @@ public class PostServiceImpl implements PostService {
         log.debug("Декремент комментариев для поста id={}", id);
         try {
             postRepository.decrementCommentsCount(id);
-            PostResponse post = postCache.get(id);
+            PostResponseDto post = postCache.get(id);
             if (post != null) {
                 int updatedCount = Math.max(0, post.commentsCount() - 1);
-                PostResponse updatedPost = new PostResponse(
+                PostResponseDto updatedPost = new PostResponseDto(
                         post.id(),
                         post.title(),
                         post.text(),

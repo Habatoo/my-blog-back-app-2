@@ -1,7 +1,7 @@
 package io.github.habatoo.controllers.post;
 
-import io.github.habatoo.dto.response.PostListResponse;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.response.PostListResponseDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,13 +23,13 @@ class PostControllerGetPostsTest extends PostControllerTestBase {
     @Test
     @DisplayName("Должен вернуть пагинированный список постов при валидных параметрах")
     void shouldReturnPaginatedPostListWithValidParametersTest() {
-        List<PostResponse> posts = createPostList();
-        PostListResponse expectedResponse = createPostListResponse(posts, false, true, 3);
+        List<PostResponseDto> posts = createPostList();
+        PostListResponseDto expectedResponse = createPostListResponse(posts, false, true, 3);
 
         when(postService.getPosts(SEARCH_QUERY, VALID_PAGE_NUMBER, VALID_PAGE_SIZE))
                 .thenReturn(expectedResponse);
 
-        ResponseEntity<PostListResponse> response = postController.getPosts(
+        ResponseEntity<PostListResponseDto> response = postController.getPosts(
                 SEARCH_QUERY, VALID_PAGE_NUMBER, VALID_PAGE_SIZE);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -40,12 +40,12 @@ class PostControllerGetPostsTest extends PostControllerTestBase {
     @Test
     @DisplayName("Должен вернуть пустой список когда посты не найдены")
     void shouldReturnEmptyListWhenNoPostsFoundTest() {
-        PostListResponse expectedResponse = createPostListResponse(List.of(), false, false, 0);
+        PostListResponseDto expectedResponse = createPostListResponse(List.of(), false, false, 0);
 
         when(postService.getPosts(SEARCH_QUERY, VALID_PAGE_NUMBER, VALID_PAGE_SIZE))
                 .thenReturn(expectedResponse);
 
-        ResponseEntity<PostListResponse> response = postController.getPosts(
+        ResponseEntity<PostListResponseDto> response = postController.getPosts(
                 SEARCH_QUERY, VALID_PAGE_NUMBER, VALID_PAGE_SIZE);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -64,11 +64,11 @@ class PostControllerGetPostsTest extends PostControllerTestBase {
             "' ', 1, 1"
     })
     void shouldHandleDifferentPaginationParametersTest(String search, int pageNumber, int pageSize) {
-        PostListResponse expectedResponse = createPostListResponse(createPostList(), true, false, 5);
+        PostListResponseDto expectedResponse = createPostListResponse(createPostList(), true, false, 5);
 
         when(postService.getPosts(search, pageNumber, pageSize)).thenReturn(expectedResponse);
 
-        ResponseEntity<PostListResponse> response = postController.getPosts(search, pageNumber, pageSize);
+        ResponseEntity<PostListResponseDto> response = postController.getPosts(search, pageNumber, pageSize);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedResponse, response.getBody());

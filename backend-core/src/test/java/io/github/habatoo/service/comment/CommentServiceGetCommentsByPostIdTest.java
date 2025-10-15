@@ -1,6 +1,6 @@
 package io.github.habatoo.service.comment;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,12 +18,12 @@ class CommentServiceGetCommentsByPostIdTest extends CommentServiceTestBase {
     @Test
     @DisplayName("Должен возвращать комментарии из кеша при наличии")
     void shouldReturnCommentsFromCacheIfExistTest() {
-        List<CommentResponse> repoComments = List.of(createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT));
+        List<CommentResponseDto> repoComments = List.of(createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT));
         when(postService.postExists(VALID_POST_ID)).thenReturn(true);
         when(commentRepository.findByPostId(VALID_POST_ID)).thenReturn(repoComments);
 
-        List<CommentResponse> firstCall = commentService.getCommentsByPostId(VALID_POST_ID);
-        List<CommentResponse> secondCall = commentService.getCommentsByPostId(VALID_POST_ID);
+        List<CommentResponseDto> firstCall = commentService.getCommentsByPostId(VALID_POST_ID);
+        List<CommentResponseDto> secondCall = commentService.getCommentsByPostId(VALID_POST_ID);
 
         assertEquals(repoComments, firstCall);
         assertEquals(repoComments, secondCall);

@@ -1,6 +1,6 @@
 package io.github.habatoo.repositories.mapper;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
@@ -10,13 +10,13 @@ import java.sql.SQLException;
 /**
  * Маппер отаета из БД в DTO ответа.
  *
- * @see CommentResponse
+ * @see CommentResponseDto
  */
 @Component
-public class CommentRowMapper implements RowMapper<CommentResponse> {
+public class CommentRowMapper implements RowMapper<CommentResponseDto> {
     @Override
-    public CommentResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new CommentResponse(
+    public CommentResponseDto mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return new CommentResponseDto(
                 rs.getLong("id"),
                 rs.getString("text"),
                 rs.getLong("post_id")

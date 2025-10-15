@@ -1,8 +1,8 @@
 package io.github.habatoo.repositories;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import org.springframework.data.repository.Repository;
 
@@ -23,27 +23,27 @@ public interface PostRepository {
     /**
      * Получить список всех постов.
      *
-     * @return список объектов PostResponse с информацией по всем постам
+     * @return список объектов PostResponseDto с информацией по всем постам
      */
-    List<PostResponse> findAllPosts();
+    List<PostResponseDto> findAllPosts();
 
     /**
      * Создать новый пост.
      *
      * @param postCreateRequest объект с данными для создания поста: title, text, список тегов
-     * @return созданный PostResponse с заполненными полями, включая сгенерированный id и список тегов
+     * @return созданный PostResponseDto с заполненными полями, включая сгенерированный id и список тегов
      * @throws IllegalStateException если пост не удалось создать
      */
-    PostResponse createPost(PostCreateRequest postCreateRequest);
+    PostResponseDto createPost(PostCreateRequestDto postCreateRequest);
 
     /**
      * Обновить существующий пост.
      *
      * @param postRequest объект с данными для обновления поста: id, title, text, список тегов
-     * @return обновлённый PostResponse с актуальными данными поста и тегов
+     * @return обновлённый PostResponseDto с актуальными данными поста и тегов
      * @throws IllegalStateException если пост с указанным id не найден
      */
-    PostResponse updatePost(PostRequest postRequest);
+    PostResponseDto updatePost(PostRequestDto postRequest);
 
     /**
      * Удалить пост по идентификатору.
@@ -79,7 +79,7 @@ public interface PostRepository {
      * Получить список тэгов поста.
      *
      * @param postId идентификатор поста для которого уменьшается количество комментариев
-     * @return обновлённый PostResponse с актуальными данными поста и тегов
+     * @return обновлённый PostResponseDto с актуальными данными поста и тегов
      */
     List<String> getTagsForPost(Long postId);
 }

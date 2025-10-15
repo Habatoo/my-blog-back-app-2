@@ -4,9 +4,9 @@ import io.github.habatoo.configurations.TestDataSourceConfiguration;
 import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
 import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
 import io.github.habatoo.configurations.services.ServiceTestConfiguration;
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
 import org.flywaydb.core.Flyway;
@@ -56,7 +56,7 @@ class CommentServiceIntegrationTest {
         flyway.clean();
         flyway.migrate();
         for (int i = 0; i < 3; i++) {
-            postService.createPost(new PostCreateRequest("Заголовок_ " + i, "Текст_" + i, List.of("tag_1" + i, "tag2" + i)));
+            postService.createPost(new PostCreateRequestDto("Заголовок_ " + i, "Текст_" + i, List.of("tag_1" + i, "tag2" + i)));
         }
     }
 
@@ -71,12 +71,12 @@ class CommentServiceIntegrationTest {
     @DisplayName("Создание комментария через сервис и получение списка комментариев по посту")
     void testCreateAndGetComments() {
         Long postId = 1L;
-        CommentCreateRequest req = new CommentCreateRequest(postId, "Новый комментарий");
-        CommentResponse saved = commentService.createComment(req);
+        CommentCreateRequestDto req = new CommentCreateRequestDto(postId, "Новый комментарий");
+        CommentResponseDto saved = commentService.createComment(req);
 
         assertThat(saved.id()).isPositive();
         assertThat(saved.text()).isEqualTo("Новый комментарий");
-        List<CommentResponse> comments = commentService.getCommentsByPostId(postId);
+        List<CommentResponseDto> comments = commentService.getCommentsByPostId(postId);
 
         assertThat(comments).isNotEmpty();
         assertThat(comments).anyMatch(c -> c.text().equals("Новый комментарий"));
@@ -92,13 +92,13 @@ class CommentServiceIntegrationTest {
     @Test
     @DisplayName("Обновление комментария через сервис и проверка обновлённого текста")
     void testUpdateAndGetComments() {
-        CommentCreateRequest req = new CommentCreateRequest(1L, "Новый комментарий");
-        CommentResponse saved = commentService.createComment(req);
-        CommentResponse edited = commentService.updateComment(1L, saved.id(), "Обновленный комментарий");
+        CommentCreateRequestDto req = new CommentCreateRequestDto(1L, "Новый комментарий");
+        CommentResponseDto saved = commentService.createComment(req);
+        CommentResponseDto edited = commentService.updateComment(1L, saved.id(), "Обновленный комментарий");
 
         assertThat(edited.id()).isPositive();
         assertThat(edited.text()).isEqualTo("Обновленный комментарий");
-        List<CommentResponse> updatedComments = commentService.getCommentsByPostId(1L);
+        List<CommentResponseDto> updatedComments = commentService.getCommentsByPostId(1L);
 
         assertThat(updatedComments).isNotEmpty();
         assertThat(updatedComments).anyMatch(c -> c.text().equals("Обновленный комментарий"));
@@ -111,8 +111,8 @@ class CommentServiceIntegrationTest {
     @Test
     @DisplayName("Удаление комментария уменьшает счётчик комментариев у поста и удаляет комментарий")
     void testDeleteComment() {
-        CommentCreateRequest req = new CommentCreateRequest(1L, "Удаляемый комментарий");
-        CommentResponse saved = commentService.createComment(req);
+        CommentCreateRequestDto req = new CommentCreateRequestDto(1L, "Удаляемый комментарий");
+        CommentResponseDto saved = commentService.createComment(req);
 
         Integer before = jdbcTemplate.queryForObject("SELECT comments_count FROM post WHERE id = ?", Integer.class, 1L);
         commentService.deleteComment(1L, saved.id());
@@ -159,7 +159,7 @@ class CommentServiceIntegrationTest {
     @DisplayName("При попытке обновить несуществующий комментарий выбрасывается исключение")
     void testUpdateNonExistingComment() {
         Long postId = 1L;
-        CommentCreateRequest req = new CommentCreateRequest(postId, "Комментарий");
+        CommentCreateRequestDto req = new CommentCreateRequestDto(postId, "Комментарий");
         commentService.createComment(req);
         Long nonExistingCommentId = 999L;
         assertThatThrownBy(() -> commentService.updateComment(postId, nonExistingCommentId, "Обновление текста"))
@@ -190,8 +190,8 @@ class CommentServiceIntegrationTest {
     @DisplayName("При попытке удалить несуществующий комментарий выбрасывается исключение")
     void testDeleteNonExistingComment() {
         Long postId = 1L;
-        CommentCreateRequest req = new CommentCreateRequest(postId, "Комментарий");
-        CommentResponse saved = commentService.createComment(req);
+        CommentCreateRequestDto req = new CommentCreateRequestDto(postId, "Комментарий");
+        CommentResponseDto saved = commentService.createComment(req);
         Long nonExistingCommentId = 999L;
         assertThatThrownBy(() -> commentService.deleteComment(postId, nonExistingCommentId))
                 .isInstanceOf(EmptyResultDataAccessException.class)

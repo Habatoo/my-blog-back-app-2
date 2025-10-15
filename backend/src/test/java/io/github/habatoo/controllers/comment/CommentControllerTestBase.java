@@ -1,9 +1,9 @@
 package io.github.habatoo.controllers.comment;
 
 import io.github.habatoo.controllers.CommentController;
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.request.CommentRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.request.CommentRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.service.CommentService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,19 +36,19 @@ public abstract class CommentControllerTestBase {
         commentController = new CommentController(commentService);
     }
 
-    protected CommentResponse createCommentResponse(Long id, Long postId, String text) {
-        return new CommentResponse(id, text, postId);
+    protected CommentResponseDto createCommentResponse(Long id, Long postId, String text) {
+        return new CommentResponseDto(id, text, postId);
     }
 
-    protected CommentCreateRequest createCommentCreateRequest(String text, Long postId) {
-        return new CommentCreateRequest(postId, text);
+    protected CommentCreateRequestDto createCommentCreateRequest(String text, Long postId) {
+        return new CommentCreateRequestDto(postId, text);
     }
 
-    protected CommentRequest createCommentRequest(Long id, String text, Long postId) {
-        return new CommentRequest(id, text, postId);
+    protected CommentRequestDto createCommentRequest(Long id, String text, Long postId) {
+        return new CommentRequestDto(id, text, postId);
     }
 
-    protected List<CommentResponse> createCommentList(Long postId) {
+    protected List<CommentResponseDto> createCommentList(Long postId) {
         return List.of(
                 createCommentResponse(1L, postId, "Первый комментарий"),
                 createCommentResponse(2L, postId, "Второй комментарий"),

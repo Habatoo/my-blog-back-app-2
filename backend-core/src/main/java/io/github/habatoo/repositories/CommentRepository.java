@@ -1,7 +1,7 @@
 package io.github.habatoo.repositories;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.springframework.dao.DataAccessException;
 
 import java.util.List;
@@ -17,13 +17,13 @@ public interface CommentRepository {
 
     /**
      * Выполняет поиск всех комментариев, связанных с указанным постом.
-     * Результаты возвращаются в виде списка объектов CommentResponse.
+     * Результаты возвращаются в виде списка объектов CommentResponseDto.
      *
      * @param postId идентификатор поста для поиска комментариев
      * @return список комментариев для указанного поста, может быть пустым
      * @throws DataAccessException при ошибках доступа к базе данных
      */
-    List<CommentResponse> findByPostId(Long postId);
+    List<CommentResponseDto> findByPostId(Long postId);
 
     /**
      * Выполняет поиск конкретного комментария по идентификаторам поста и комментария.
@@ -34,7 +34,7 @@ public interface CommentRepository {
      * @return Optional с найденным комментарием или empty если не найден
      * @throws DataAccessException при ошибках доступа к базе данных
      */
-    Optional<CommentResponse> findByPostIdAndId(Long postId, Long commentId);
+    Optional<CommentResponseDto> findByPostIdAndId(Long postId, Long commentId);
 
     /**
      * Сохраняет новый комментарий в базе данных и возвращает сгенерированный идентификатор.
@@ -45,7 +45,7 @@ public interface CommentRepository {
      * @throws DataAccessException   при ошибках сохранения в базу данных
      * @throws IllegalStateException если не удалось получить сгенерированный ключ
      */
-    CommentResponse save(CommentCreateRequest commentCreateRequest);
+    CommentResponseDto save(CommentCreateRequestDto commentCreateRequest);
 
     /**
      * Обновляет текст существующего комментария и временную метку обновления.
@@ -57,7 +57,7 @@ public interface CommentRepository {
      * @return количество обновленных записей
      * @throws DataAccessException при ошибках обновления в базе данных
      */
-    CommentResponse updateText(Long postId, Long commentId, String text);
+    CommentResponseDto updateText(Long postId, Long commentId, String text);
 
     /**
      * Удаляет комментарий по идентификатору.

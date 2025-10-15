@@ -1,10 +1,10 @@
 package io.github.habatoo.controllers.post;
 
 import io.github.habatoo.controllers.PostController;
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostListResponse;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostListResponseDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.service.PostService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -40,25 +40,25 @@ public abstract class PostControllerTestBase {
         postController = new PostController(postService);
     }
 
-    protected PostResponse createPostResponse(Long id, String title, String text, List<String> tags,
-                                              int likesCount, int commentsCount) {
-        return new PostResponse(id, title, text, tags, likesCount, commentsCount);
+    protected PostResponseDto createPostResponse(Long id, String title, String text, List<String> tags,
+                                                 int likesCount, int commentsCount) {
+        return new PostResponseDto(id, title, text, tags, likesCount, commentsCount);
     }
 
-    protected PostListResponse createPostListResponse(List<PostResponse> posts, boolean hasPrev,
-                                                      boolean hasNext, int lastPage) {
-        return new PostListResponse(posts, hasPrev, hasNext, lastPage);
+    protected PostListResponseDto createPostListResponse(List<PostResponseDto> posts, boolean hasPrev,
+                                                         boolean hasNext, int lastPage) {
+        return new PostListResponseDto(posts, hasPrev, hasNext, lastPage);
     }
 
-    protected PostCreateRequest createPostCreateRequest(String title, String text, List<String> tags) {
-        return new PostCreateRequest(title, text, tags);
+    protected PostCreateRequestDto createPostCreateRequest(String title, String text, List<String> tags) {
+        return new PostCreateRequestDto(title, text, tags);
     }
 
-    protected PostRequest createPostRequest(Long id, String title, String text, List<String> tags) {
-        return new PostRequest(id, title, text, tags);
+    protected PostRequestDto createPostRequest(Long id, String title, String text, List<String> tags) {
+        return new PostRequestDto(id, title, text, tags);
     }
 
-    protected List<PostResponse> createPostList() {
+    protected List<PostResponseDto> createPostList() {
         return List.of(
                 createPostResponse(
                         1L,

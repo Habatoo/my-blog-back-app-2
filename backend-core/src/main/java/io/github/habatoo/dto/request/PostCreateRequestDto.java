@@ -13,7 +13,7 @@ import java.util.List;
  * @param text  текст поста в формате Markdown (обязательное поле)
  * @param tags  список тегов поста (не может быть null)
  */
-public record PostCreateRequest(
+public record PostCreateRequestDto(
         String title,
         String text,
         List<String> tags

@@ -1,6 +1,6 @@
 package io.github.habatoo.service.comment;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -24,7 +24,7 @@ class CommentServiceDeleteCommentTest extends CommentServiceTestBase {
         when(postService.postExists(VALID_POST_ID)).thenReturn(true);
         when(commentRepository.deleteById(VALID_COMMENT_ID)).thenReturn(1);
 
-        CommentResponse comment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
+        CommentResponseDto comment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
         when(commentRepository.findByPostId(VALID_POST_ID)).thenReturn(List.of(comment));
 
         commentService.getCommentsByPostId(VALID_POST_ID);
@@ -34,7 +34,7 @@ class CommentServiceDeleteCommentTest extends CommentServiceTestBase {
         verify(commentRepository).deleteById(VALID_COMMENT_ID);
         verify(postService).decrementCommentsCount(VALID_POST_ID);
 
-        Optional<CommentResponse> cachedComment = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
+        Optional<CommentResponseDto> cachedComment = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
         assertTrue(cachedComment.isEmpty());
     }
 

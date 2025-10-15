@@ -1,15 +1,12 @@
 package io.github.habatoo.service.comment;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
-import io.github.habatoo.repositories.CommentRepository;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.service.CommentService;
-import io.github.habatoo.service.PostService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -40,19 +37,19 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
     void shouldCreateCommentAndUpdateCacheAndPostTest() {
         when(postService.postExists(VALID_POST_ID)).thenReturn(true);
 
-        CommentCreateRequest request = createCommentCreateRequest(COMMENT_TEXT, VALID_POST_ID);
-        CommentResponse savedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
+        CommentCreateRequestDto request = createCommentCreateRequest(COMMENT_TEXT, VALID_POST_ID);
+        CommentResponseDto savedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
 
         when(commentRepository.save(request)).thenReturn(savedComment);
 
-        CommentResponse result = commentService.createComment(request);
+        CommentResponseDto result = commentService.createComment(request);
 
         assertEquals(savedComment, result);
         verify(postService).postExists(VALID_POST_ID);
         verify(commentRepository).save(request);
         verify(postService).incrementCommentsCount(VALID_POST_ID);
 
-        List<CommentResponse> cachedComments = commentService.getCommentsByPostId(VALID_POST_ID);
+        List<CommentResponseDto> cachedComments = commentService.getCommentsByPostId(VALID_POST_ID);
         assertTrue(cachedComments.contains(savedComment));
     }
 
@@ -66,24 +63,24 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
     void shouldAddCommentToExistingCacheList() {
         when(postService.postExists(VALID_POST_ID)).thenReturn(true);
 
-        CommentCreateRequest request = createCommentCreateRequest(COMMENT_TEXT, VALID_POST_ID);
-        CommentResponse savedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
+        CommentCreateRequestDto request = createCommentCreateRequest(COMMENT_TEXT, VALID_POST_ID);
+        CommentResponseDto savedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
 
         when(commentRepository.save(request)).thenReturn(savedComment);
         commentService.createComment(request);
 
-        CommentCreateRequest newRequest = createCommentCreateRequest(COMMENT_TEXT_NEW, VALID_POST_ID);
-        CommentResponse newSavedComment = createCommentResponse(VALID_COMMENT_ID_2, VALID_POST_ID, COMMENT_TEXT_NEW);
+        CommentCreateRequestDto newRequest = createCommentCreateRequest(COMMENT_TEXT_NEW, VALID_POST_ID);
+        CommentResponseDto newSavedComment = createCommentResponse(VALID_COMMENT_ID_2, VALID_POST_ID, COMMENT_TEXT_NEW);
 
         when(commentRepository.save(newRequest)).thenReturn(newSavedComment);
-        CommentResponse result = commentService.createComment(newRequest);
+        CommentResponseDto result = commentService.createComment(newRequest);
 
         assertEquals(newSavedComment, result);
         verify(postService, times(2)).postExists(VALID_POST_ID);
         verify(commentRepository).save(newRequest);
         verify(postService, times(2)).incrementCommentsCount(VALID_POST_ID);
 
-        List<CommentResponse> cachedComments = commentService.getCommentsByPostId(VALID_POST_ID);
+        List<CommentResponseDto> cachedComments = commentService.getCommentsByPostId(VALID_POST_ID);
         assertTrue(cachedComments.contains(newSavedComment));
     }
 
@@ -97,7 +94,7 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
     void shouldThrowIfPostDoesNotExistTest() {
         when(postService.postExists(INVALID_POST_ID)).thenReturn(false);
 
-        CommentCreateRequest request = createCommentCreateRequest(COMMENT_TEXT, INVALID_POST_ID);
+        CommentCreateRequestDto request = createCommentCreateRequest(COMMENT_TEXT, INVALID_POST_ID);
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> commentService.createComment(request));
@@ -119,7 +116,7 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
     @Test
     @DisplayName("createComment — выбрасывается IllegalStateException при ошибке сохранения")
     void testCreateCommentThrowsOnRepositoryErrorTest() {
-        CommentCreateRequest request = new CommentCreateRequest(VALID_POST_ID, "text");
+        CommentCreateRequestDto request = new CommentCreateRequestDto(VALID_POST_ID, "text");
 
         when(postService.postExists(VALID_POST_ID)).thenReturn(true);
         when(commentRepository.save(any())).thenThrow(new RuntimeException("fail save"));

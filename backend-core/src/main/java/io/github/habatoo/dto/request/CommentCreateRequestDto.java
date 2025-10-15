@@ -10,7 +10,7 @@ package io.github.habatoo.dto.request;
  * @param postId идентификатор поста, к которому добавляется комментарий (обязательное поле, не может быть null)
  * @param text   текст комментария (обязательное поле, не может быть null или пустым)
  */
-public record CommentCreateRequest(
+public record CommentCreateRequestDto(
         Long postId,
         String text
 

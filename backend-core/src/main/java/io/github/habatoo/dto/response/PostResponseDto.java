@@ -15,7 +15,7 @@ import java.util.List;
  * @param likesCount    количество лайков поста
  * @param commentsCount количество комментариев поста
  */
-public record PostResponse(
+public record PostResponseDto(
         Long id,
         String title,
         String text,
@@ -27,7 +27,7 @@ public record PostResponse(
     /**
      * Конструктор с валидацией обязательных полей.
      */
-    public PostResponse {
+    public PostResponseDto {
         if (id == null) {
             throw new IllegalArgumentException("Post ID cannot be null");
         }

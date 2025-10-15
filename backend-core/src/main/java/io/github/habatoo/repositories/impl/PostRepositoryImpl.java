@@ -1,13 +1,12 @@
 package io.github.habatoo.repositories.impl;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.repositories.mapper.PostListRowMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
@@ -45,8 +44,8 @@ public class PostRepositoryImpl implements PostRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<PostResponse> findAllPosts() {
-        List<PostResponse> posts = jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper);
+    public List<PostResponseDto> findAllPosts() {
+        List<PostResponseDto> posts = jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper);
 
         return posts.stream()
                 .map(this::enrichWithTags)
@@ -57,7 +56,7 @@ public class PostRepositoryImpl implements PostRepository {
      * {@inheritDoc}
      */
     @Override
-    public PostResponse createPost(PostCreateRequest postCreateRequest) {
+    public PostResponseDto createPost(PostCreateRequestDto postCreateRequest) {
         LocalDateTime now = LocalDateTime.now();
         Long postId = createPost(postCreateRequest.title(), postCreateRequest.text(), now);
         log.info("Пост успешно создан с id='{}'", postId);
@@ -72,7 +71,7 @@ public class PostRepositoryImpl implements PostRepository {
      * {@inheritDoc}
      */
     @Override
-    public PostResponse updatePost(PostRequest postRequest) {
+    public PostResponseDto updatePost(PostRequestDto postRequest) {
         Long postId = postRequest.id();
         updatePost(postRequest.title(),
                 postRequest.text(),
@@ -142,9 +141,9 @@ public class PostRepositoryImpl implements PostRepository {
     /**
      * Обогащает ответ.
      */
-    private PostResponse enrichWithTags(PostResponse post) {
+    private PostResponseDto enrichWithTags(PostResponseDto post) {
         List<String> tags = getTagsForPost(post.id());
-        return new PostResponse(
+        return new PostResponseDto(
                 post.id(),
                 post.title(),
                 post.text(),
@@ -245,8 +244,8 @@ public class PostRepositoryImpl implements PostRepository {
     /**
      * Выбирает пост по id.
      */
-    private PostResponse selectPostById(Long postId) {
-        PostResponse post = jdbcTemplate.queryForObject(
+    private PostResponseDto selectPostById(Long postId) {
+        PostResponseDto post = jdbcTemplate.queryForObject(
                 SELECT_POST_BY_ID,
                 postListRowMapper,
                 postId

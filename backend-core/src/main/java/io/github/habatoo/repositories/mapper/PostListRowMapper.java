@@ -1,6 +1,6 @@
 package io.github.habatoo.repositories.mapper;
 
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.response.PostResponseDto;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
@@ -12,20 +12,20 @@ import java.util.List;
  * RowMapper для маппинга списка постов с пагинацией.
  * Обрезает текст до 128 символов для превью.
  *
- * @see PostResponse
+ * @see PostResponseDto
  */
 @Component
-public class PostListRowMapper implements RowMapper<PostResponse> {
+public class PostListRowMapper implements RowMapper<PostResponseDto> {
 
     @Override
-    public PostResponse mapRow(ResultSet rs, int rowNum) throws SQLException {
+    public PostResponseDto mapRow(ResultSet rs, int rowNum) throws SQLException {
         Long id = rs.getLong("id");
         String title = rs.getString("title");
         String text = truncatePostText(rs.getString("text"));
         Integer likesCount = rs.getInt("likes_count");
         Integer commentsCount = rs.getInt("comments_count");
 
-        return new PostResponse(id, title, text, List.of(), likesCount, commentsCount);
+        return new PostResponseDto(id, title, text, List.of(), likesCount, commentsCount);
     }
 
     /**

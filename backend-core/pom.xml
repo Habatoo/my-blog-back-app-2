@@ -145,9 +145,7 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <configuration>
                     <excludes>
-                        <exclude>**/dto/**/*</exclude>
-                        <exclude>**/*Request.java</exclude>
-                        <exclude>**/*Response.java</exclude>
+                        <exclude>**/*Dto.*</exclude>
                     </excludes>
                 </configuration>
                 <executions>

@@ -2,9 +2,9 @@ package io.github.habatoo.repositories;
 
 import io.github.habatoo.configurations.TestDataSourceConfiguration;
 import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +76,7 @@ public class PostRepositoryIntegrationTest {
     @Test
     @DisplayName("Получение всех постов с тегами")
     void testFindAllPosts() {
-        List<PostResponse> posts = postRepository.findAllPosts();
+        List<PostResponseDto> posts = postRepository.findAllPosts();
 
         assertThat(posts).isNotEmpty();
         assertThat(posts).anyMatch(p -> p.tags().contains("Tag1"));
@@ -96,8 +96,8 @@ public class PostRepositoryIntegrationTest {
     void testCreatePost() {
         flyway.clean();
         flyway.migrate();
-        PostCreateRequest request = new PostCreateRequest("Новый пост", "Текст нового поста", List.of("Tag1", "Tag3"));
-        PostResponse created = postRepository.createPost(request);
+        PostCreateRequestDto request = new PostCreateRequestDto("Новый пост", "Текст нового поста", List.of("Tag1", "Tag3"));
+        PostResponseDto created = postRepository.createPost(request);
 
         assertThat(created.id()).isPositive();
         assertThat(created.title()).isEqualTo("Новый пост");
@@ -121,8 +121,8 @@ public class PostRepositoryIntegrationTest {
     @DisplayName("Обновление существующего поста")
     void testUpdatePost() {
         List<String> tags = List.of("Tag1", "Tag3");
-        PostRequest request = new PostRequest(1L, "Обновлённый заголовок", "Обновлённый текст", List.of("Tag4"));
-        PostResponse updated = postRepository.updatePost(request);
+        PostRequestDto request = new PostRequestDto(1L, "Обновлённый заголовок", "Обновлённый текст", List.of("Tag4"));
+        PostResponseDto updated = postRepository.updatePost(request);
 
         assertThat(updated).isNotNull();
         assertThat(updated.id()).isEqualTo(1L);

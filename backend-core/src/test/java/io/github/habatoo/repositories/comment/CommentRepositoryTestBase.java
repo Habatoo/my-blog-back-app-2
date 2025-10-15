@@ -1,7 +1,7 @@
 package io.github.habatoo.repositories.comment;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.repositories.CommentRepository;
 import io.github.habatoo.repositories.impl.CommentRepositoryImpl;
 import io.github.habatoo.repositories.mapper.CommentRowMapper;
@@ -34,11 +34,11 @@ abstract class CommentRepositoryTestBase {
         commentRepository = new CommentRepositoryImpl(jdbcTemplate, commentRowMapper);
     }
 
-    protected CommentResponse createCommentResponse(Long id, Long postId, String text) {
-        return new CommentResponse(id, text, postId);
+    protected CommentResponseDto createCommentResponse(Long id, Long postId, String text) {
+        return new CommentResponseDto(id, text, postId);
     }
 
-    protected CommentCreateRequest createCommentCreateRequest(String text, Long postId) {
-        return new CommentCreateRequest(postId, text);
+    protected CommentCreateRequestDto createCommentCreateRequest(String text, Long postId) {
+        return new CommentCreateRequestDto(postId, text);
     }
 }

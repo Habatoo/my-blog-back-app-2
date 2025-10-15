@@ -1,7 +1,7 @@
 package io.github.habatoo.repositories.impl;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.repositories.CommentRepository;
 import io.github.habatoo.repositories.mapper.CommentRowMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -44,7 +44,7 @@ public class CommentRepositoryImpl implements CommentRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<CommentResponse> findByPostId(Long postId) {
+    public List<CommentResponseDto> findByPostId(Long postId) {
         return jdbcTemplate.query(FIND_BY_POST_ID, commentRowMapper, postId);
     }
 
@@ -52,8 +52,8 @@ public class CommentRepositoryImpl implements CommentRepository {
      * {@inheritDoc}
      */
     @Override
-    public Optional<CommentResponse> findByPostIdAndId(Long postId, Long commentId) {
-        List<CommentResponse> comments = jdbcTemplate.query(FIND_BY_POST_ID_AND_ID, commentRowMapper, postId, commentId);
+    public Optional<CommentResponseDto> findByPostIdAndId(Long postId, Long commentId) {
+        List<CommentResponseDto> comments = jdbcTemplate.query(FIND_BY_POST_ID_AND_ID, commentRowMapper, postId, commentId);
 
         return comments.stream().findFirst();
     }
@@ -62,7 +62,7 @@ public class CommentRepositoryImpl implements CommentRepository {
      * {@inheritDoc}
      */
     @Override
-    public CommentResponse save(CommentCreateRequest commentCreateRequest) {
+    public CommentResponseDto save(CommentCreateRequestDto commentCreateRequest) {
         LocalDateTime now = LocalDateTime.now();
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
@@ -88,7 +88,7 @@ public class CommentRepositoryImpl implements CommentRepository {
      * {@inheritDoc}
      */
     @Override
-    public CommentResponse updateText(Long postId, Long commentId, String text) {
+    public CommentResponseDto updateText(Long postId, Long commentId, String text) {
         int updatedRows = jdbcTemplate.update(
                 UPDATE_COMMENT_TEXT,
                 text,
@@ -109,7 +109,7 @@ public class CommentRepositoryImpl implements CommentRepository {
         return jdbcTemplate.update(DELETE_COMMENT, commentId);
     }
 
-    private Optional<CommentResponse> findById(Long commentId) {
+    private Optional<CommentResponseDto> findById(Long commentId) {
         log.debug("Выполняется поиск комментария id={}", commentId);
 
         return jdbcTemplate.query(FIND_BY_ID, commentRowMapper, commentId).stream().findFirst();

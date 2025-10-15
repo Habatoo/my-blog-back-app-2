@@ -19,7 +19,7 @@ public class PostRepositoryConfiguration {
 
     /**
      * Создаёт бин маппер списка постов для преобразования
-     * строк результата SQL-запросов в DTO PostResponse.
+     * строк результата SQL-запросов в DTO PostResponseDto.
      *
      * @return экземпляр PostListRowMapper
      */
@@ -36,7 +36,7 @@ public class PostRepositoryConfiguration {
      * </p>
      *
      * @param jdbcTemplate      шаблон работы с базой данных
-     * @param postListRowMapper маппер строк в PostResponse
+     * @param postListRowMapper маппер строк в PostResponseDto
      * @return экземпляр репозитория постов
      */
     @Bean

@@ -10,8 +10,8 @@ import java.util.List;
  * @param hasNext  наличие следующей страницы.
  * @param lastPage последняя страница номер
  */
-public record PostListResponse(
-        List<PostResponse> posts,
+public record PostListResponseDto(
+        List<PostResponseDto> posts,
         boolean hasPrev,
         boolean hasNext,
         int lastPage) {

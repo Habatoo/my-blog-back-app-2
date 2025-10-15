@@ -1,6 +1,6 @@
 package io.github.habatoo.repositories.mapper;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * <p>
  * Класс проверяет:
  * <ul>
- *   <li>Корректное преобразование валидных данных ResultSet в CommentResponse</li>
+ *   <li>Корректное преобразование валидных данных ResultSet в CommentResponseDto</li>
  *   <li>Бросание IllegalArgumentException на любые невалидные значения (null, пустые строки и т.д.)</li>
  * </ul>
  * Для генерации данных используется Mockito, тесты не требуют Spring-контекста.
@@ -30,10 +30,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class CommentRowMapperTest {
 
     /**
-     * Проверяет корректный маппинг валидных полей ResultSet в объект CommentResponse.
+     * Проверяет корректный маппинг валидных полей ResultSet в объект CommentResponseDto.
      */
     @Test
-    @DisplayName("Тест успешного маппинга валидных данных ResultSet в CommentResponse")
+    @DisplayName("Тест успешного маппинга валидных данных ResultSet в CommentResponseDto")
     void mapRowBasicFieldsTest() throws Exception {
         ResultSet rs = Mockito.mock(ResultSet.class);
         Mockito.when(rs.getLong("id")).thenReturn(100L);
@@ -41,7 +41,7 @@ class CommentRowMapperTest {
         Mockito.when(rs.getLong("post_id")).thenReturn(7L);
 
         CommentRowMapper mapper = new CommentRowMapper();
-        CommentResponse resp = mapper.mapRow(rs, 0);
+        CommentResponseDto resp = mapper.mapRow(rs, 0);
 
         assertEquals(100L, resp.id());
         assertEquals("Комментарий", resp.text());
@@ -53,7 +53,7 @@ class CommentRowMapperTest {
      * Параметризованный тест, который проверяет поведение CommentRowMapper при различных валидных и невалидных входных данных.
      * <ul>
      *   <li>Если shouldThrow=true, должен выброситься {@link IllegalArgumentException} с ожидаемым сообщением.</li>
-     *   <li>Если shouldThrow=false, происходит корректный маппинг всех полей в CommentResponse.</li>
+     *   <li>Если shouldThrow=false, происходит корректный маппинг всех полей в CommentResponseDto.</li>
      * </ul>
      * </p>
      *
@@ -87,7 +87,7 @@ class CommentRowMapperTest {
             assertTrue(ex.getMessage().startsWith(expectedMsgPrefix),
                     "Expected prefix: " + expectedMsgPrefix + ", but was: " + ex.getMessage());
         } else {
-            CommentResponse resp = mapper.mapRow(rs, 0);
+            CommentResponseDto resp = mapper.mapRow(rs, 0);
             assertEquals(id, resp.id());
             assertEquals(text, resp.text());
             assertEquals(postId, resp.postId());

@@ -1,6 +1,6 @@
 package io.github.habatoo.service.imageservice;
 
-import io.github.habatoo.service.dto.ImageResponse;
+import io.github.habatoo.service.dto.ImageResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -49,8 +49,8 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
 
         imageService.updatePostImage(VALID_POST_ID, imageFile);
 
-        ImageResponse firstCall = imageService.getPostImage(VALID_POST_ID);
-        ImageResponse secondCall = imageService.getPostImage(VALID_POST_ID);
+        ImageResponseDto firstCall = imageService.getPostImage(VALID_POST_ID);
+        ImageResponseDto secondCall = imageService.getPostImage(VALID_POST_ID);
 
         assertArrayEquals(IMAGE_DATA, firstCall.data());
         assertEquals(MEDIA_TYPE, firstCall.mediaType());
@@ -70,7 +70,7 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
     @Test
     @DisplayName("Должен загрузить изображение из файловой системы и кэшировать его при отсутствии в кэше")
     void shouldLoadImageFromFileAndCacheTest() throws IOException {
-        ImageResponse expectedResponse = new ImageResponse(IMAGE_DATA, MEDIA_TYPE);
+        ImageResponseDto expectedResponse = new ImageResponseDto(IMAGE_DATA, MEDIA_TYPE);
 
         doNothing().when(imageValidator).validatePostId(VALID_POST_ID);
         when(imageRepository.existsPostById(VALID_POST_ID)).thenReturn(true);
@@ -78,7 +78,7 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         when(fileStorageService.loadImageFile(IMAGE_FILENAME)).thenReturn(IMAGE_DATA);
         when(contentTypeDetector.detect(IMAGE_DATA)).thenReturn(MEDIA_TYPE);
 
-        ImageResponse result = imageService.getPostImage(VALID_POST_ID);
+        ImageResponseDto result = imageService.getPostImage(VALID_POST_ID);
 
         assertEquals(expectedResponse.mediaType(), result.mediaType());
         assertArrayEquals(expectedResponse.data(), result.data());

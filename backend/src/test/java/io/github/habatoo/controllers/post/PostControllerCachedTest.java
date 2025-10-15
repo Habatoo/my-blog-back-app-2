@@ -2,10 +2,10 @@ package io.github.habatoo.controllers.post;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.habatoo.controllers.PostController;
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostListResponse;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostListResponseDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.handlers.GlobalExceptionHandler;
 import io.github.habatoo.service.PostService;
 import org.junit.jupiter.api.*;
@@ -52,11 +52,11 @@ class PostControllerCachedTest {
     private PostService postService;
     private ObjectMapper objectMapper;
 
-    private PostResponse mockPost1;
-    private PostResponse mockPost2;
-    private PostListResponse mockPostListResponse;
-    private PostCreateRequest mockCreateRequest;
-    private PostRequest mockUpdateRequest;
+    private PostResponseDto mockPost1;
+    private PostResponseDto mockPost2;
+    private PostListResponseDto mockPostListResponse;
+    private PostCreateRequestDto mockCreateRequest;
+    private PostRequestDto mockUpdateRequest;
 
     @BeforeAll
     void setUpAll() {
@@ -73,16 +73,16 @@ class PostControllerCachedTest {
      * Инициализация тестовых данных
      */
     private void initializeTestData() {
-        mockPost1 = new PostResponse(1L, "Первый пост", "Текст первого поста",
+        mockPost1 = new PostResponseDto(1L, "Первый пост", "Текст первого поста",
                 Arrays.asList("технологии", "java"), 10, 5);
-        mockPost2 = new PostResponse(2L, "Второй пост", "Текст второго поста",
+        mockPost2 = new PostResponseDto(2L, "Второй пост", "Текст второго поста",
                 Arrays.asList("spring", "тестирование"), 5, 2);
 
-        List<PostResponse> posts = Arrays.asList(mockPost1, mockPost2);
-        mockPostListResponse = new PostListResponse(posts, true, false, 5);
-        mockCreateRequest = new PostCreateRequest("Новый пост", "Текст нового поста",
+        List<PostResponseDto> posts = Arrays.asList(mockPost1, mockPost2);
+        mockPostListResponse = new PostListResponseDto(posts, true, false, 5);
+        mockCreateRequest = new PostCreateRequestDto("Новый пост", "Текст нового поста",
                 Arrays.asList("новости", "блог"));
-        mockUpdateRequest = new PostRequest(1L, "Обновленный пост", "Обновленный текст",
+        mockUpdateRequest = new PostRequestDto(1L, "Обновленный пост", "Обновленный текст",
                 Arrays.asList("обновление", "технологии"));
     }
 
@@ -114,7 +114,7 @@ class PostControllerCachedTest {
                 .andReturn();
 
         String responseContent = result.getResponse().getContentAsString();
-        PostListResponse response = objectMapper.readValue(responseContent, PostListResponse.class);
+        PostListResponseDto response = objectMapper.readValue(responseContent, PostListResponseDto.class);
 
         assertEquals(2, response.posts().size());
         assertEquals("Первый пост", response.posts().get(0).title());
@@ -134,7 +134,7 @@ class PostControllerCachedTest {
         int pageNumber = 1;
         int pageSize = 10;
 
-        PostListResponse emptyResponse = new PostListResponse(Collections.emptyList(), false, false, 0);
+        PostListResponseDto emptyResponse = new PostListResponseDto(Collections.emptyList(), false, false, 0);
         when(postService.getPosts(search, pageNumber, pageSize))
                 .thenReturn(emptyResponse);
 
@@ -147,7 +147,7 @@ class PostControllerCachedTest {
                 .andReturn();
 
         String responseContent = result.getResponse().getContentAsString();
-        PostListResponse response = objectMapper.readValue(responseContent, PostListResponse.class);
+        PostListResponseDto response = objectMapper.readValue(responseContent, PostListResponseDto.class);
 
         assertTrue(response.posts().isEmpty());
         verify(postService, times(1)).getPosts(search, pageNumber, pageSize);
@@ -169,7 +169,7 @@ class PostControllerCachedTest {
                 .andReturn();
 
         String responseContent = result.getResponse().getContentAsString();
-        PostResponse response = objectMapper.readValue(responseContent, PostResponse.class);
+        PostResponseDto response = objectMapper.readValue(responseContent, PostResponseDto.class);
 
         assertEquals(mockPost1.id(), response.id());
         assertEquals(mockPost1.title(), response.title());
@@ -202,7 +202,7 @@ class PostControllerCachedTest {
     @Test
     @DisplayName("POST /api/posts - должен создать пост")
     void createPostWithValidRequestTest() throws Exception {
-        when(postService.createPost(any(PostCreateRequest.class)))
+        when(postService.createPost(any(PostCreateRequestDto.class)))
                 .thenReturn(mockPost1);
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/api/posts")
@@ -213,13 +213,13 @@ class PostControllerCachedTest {
                 .andReturn();
 
         String responseContent = result.getResponse().getContentAsString();
-        PostResponse response = objectMapper.readValue(responseContent, PostResponse.class);
+        PostResponseDto response = objectMapper.readValue(responseContent, PostResponseDto.class);
 
         assertEquals(mockPost1.id(), response.id());
         assertEquals(mockPost1.title(), response.title());
         assertEquals(mockPost1.text(), response.text());
 
-        verify(postService, times(1)).createPost(any(PostCreateRequest.class));
+        verify(postService, times(1)).createPost(any(PostCreateRequestDto.class));
     }
 
     /**
@@ -228,7 +228,7 @@ class PostControllerCachedTest {
     @Test
     @DisplayName("POST /api/posts - должен вернуть ошибку для невалидных данных")
     void createPostWithInvalidDataTest() throws Exception {
-        when(postService.createPost(any(PostCreateRequest.class)))
+        when(postService.createPost(any(PostCreateRequestDto.class)))
                 .thenThrow(new IllegalArgumentException("Invalid post data"));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/posts")
@@ -236,7 +236,7 @@ class PostControllerCachedTest {
                         .content(objectMapper.writeValueAsString(mockCreateRequest)))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
-        verify(postService, times(1)).createPost(any(PostCreateRequest.class));
+        verify(postService, times(1)).createPost(any(PostCreateRequestDto.class));
     }
 
     /**
@@ -246,10 +246,10 @@ class PostControllerCachedTest {
     @DisplayName("PUT /api/posts/{id} - должен обновить пост")
     void updatePostWithValidRequestTest() throws Exception {
         Long postId = 1L;
-        PostResponse updatedPost = new PostResponse(postId, "Обновленный пост",
+        PostResponseDto updatedPost = new PostResponseDto(postId, "Обновленный пост",
                 "Обновленный текст", List.of("обновление"), 10, 5);
 
-        when(postService.updatePost(any(PostRequest.class)))
+        when(postService.updatePost(any(PostRequestDto.class)))
                 .thenReturn(updatedPost);
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put("/api/posts/{id}", postId)
@@ -259,13 +259,13 @@ class PostControllerCachedTest {
                 .andReturn();
 
         String responseContent = result.getResponse().getContentAsString();
-        PostResponse response = objectMapper.readValue(responseContent, PostResponse.class);
+        PostResponseDto response = objectMapper.readValue(responseContent, PostResponseDto.class);
 
         assertEquals(postId, response.id());
         assertEquals("Обновленный пост", response.title());
         assertEquals("Обновленный текст", response.text());
 
-        verify(postService, times(1)).updatePost(any(PostRequest.class));
+        verify(postService, times(1)).updatePost(any(PostRequestDto.class));
     }
 
     /**
@@ -275,7 +275,7 @@ class PostControllerCachedTest {
     @DisplayName("PUT /api/posts/{id} - должен вернуть ошибку для несуществующего поста")
     void updatePostWithNonExistentPostTest() throws Exception {
         Long postId = 999L;
-        when(postService.updatePost(any(PostRequest.class)))
+        when(postService.updatePost(any(PostRequestDto.class)))
                 .thenThrow(new org.springframework.dao.EmptyResultDataAccessException("Post not found", 1));
 
         mockMvc.perform(MockMvcRequestBuilders.put("/api/posts/{id}", postId)
@@ -283,7 +283,7 @@ class PostControllerCachedTest {
                         .content(objectMapper.writeValueAsString(mockUpdateRequest)))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
 
-        verify(postService, times(1)).updatePost(any(PostRequest.class));
+        verify(postService, times(1)).updatePost(any(PostRequestDto.class));
     }
 
     /**

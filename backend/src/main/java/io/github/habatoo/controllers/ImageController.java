@@ -2,7 +2,7 @@ package io.github.habatoo.controllers;
 
 import io.github.habatoo.handlers.GlobalExceptionHandler;
 import io.github.habatoo.service.ImageService;
-import io.github.habatoo.service.dto.ImageResponse;
+import io.github.habatoo.service.dto.ImageResponseDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -74,7 +74,7 @@ public class ImageController {
     @GetMapping("/{postId}/image")
     public ResponseEntity<byte[]> getPostImage(@PathVariable("postId") Long postId) {
         log.info("Запрос на получение изображения для поста id={}", postId);
-        ImageResponse imageResponse = imageService.getPostImage(postId);
+        ImageResponseDto imageResponse = imageService.getPostImage(postId);
         return ResponseEntity.ok()
                 .contentType(imageResponse.mediaType())
                 .body(imageResponse.data());

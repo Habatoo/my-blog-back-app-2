@@ -1,6 +1,6 @@
 package io.github.habatoo.service.comment;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -21,12 +21,12 @@ class CommentServiceGetCommentByPostIdAndIdTest extends CommentServiceTestBase {
     @Test
     @DisplayName("Должен возвращать комментарий из кеша при наличии")
     void shouldReturnCommentFromCacheIfPresentTest() {
-        List<CommentResponse> repoComments = List.of(createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT));
+        List<CommentResponseDto> repoComments = List.of(createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT));
         when(postService.postExists(VALID_POST_ID)).thenReturn(true);
         when(commentRepository.findByPostId(VALID_POST_ID)).thenReturn(repoComments);
         commentService.getCommentsByPostId(VALID_POST_ID);
 
-        Optional<CommentResponse> result = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
+        Optional<CommentResponseDto> result = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
 
         assertTrue(result.isPresent());
         assertEquals(VALID_COMMENT_ID, result.get().id());
@@ -38,7 +38,7 @@ class CommentServiceGetCommentByPostIdAndIdTest extends CommentServiceTestBase {
         when(commentRepository.findByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID))
                 .thenReturn(Optional.of(createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT)));
 
-        Optional<CommentResponse> result = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
+        Optional<CommentResponseDto> result = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
 
         assertTrue(result.isPresent());
         assertEquals(VALID_COMMENT_ID, result.get().id());
@@ -51,7 +51,7 @@ class CommentServiceGetCommentByPostIdAndIdTest extends CommentServiceTestBase {
         when(commentRepository.findByPostIdAndId(VALID_POST_ID, NON_EXISTENT_COMMENT_ID))
                 .thenReturn(Optional.empty());
 
-        Optional<CommentResponse> result = commentService.getCommentByPostIdAndId(VALID_POST_ID, NON_EXISTENT_COMMENT_ID);
+        Optional<CommentResponseDto> result = commentService.getCommentByPostIdAndId(VALID_POST_ID, NON_EXISTENT_COMMENT_ID);
 
         assertTrue(result.isEmpty());
         verify(commentRepository).findByPostIdAndId(VALID_POST_ID, NON_EXISTENT_COMMENT_ID);

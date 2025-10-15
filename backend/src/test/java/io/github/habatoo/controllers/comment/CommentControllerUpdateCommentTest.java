@@ -1,7 +1,7 @@
 package io.github.habatoo.controllers.comment;
 
-import io.github.habatoo.dto.request.CommentRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,13 +24,13 @@ class CommentControllerUpdateCommentTest extends CommentControllerTestBase {
     @Test
     @DisplayName("Должен обновить комментарий и вернуть 200 статус")
     void shouldUpdateCommentAndReturnOkStatusTest() {
-        CommentRequest updateRequest = createCommentRequest(VALID_COMMENT_ID, UPDATED_COMMENT_TEXT, VALID_POST_ID);
-        CommentResponse expectedResponse = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, UPDATED_COMMENT_TEXT);
+        CommentRequestDto updateRequest = createCommentRequest(VALID_COMMENT_ID, UPDATED_COMMENT_TEXT, VALID_POST_ID);
+        CommentResponseDto expectedResponse = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, UPDATED_COMMENT_TEXT);
 
         when(commentService.updateComment(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT))
                 .thenReturn(expectedResponse);
 
-        ResponseEntity<CommentResponse> response = commentController.updateComment(
+        ResponseEntity<CommentResponseDto> response = commentController.updateComment(
                 VALID_POST_ID, VALID_COMMENT_ID, updateRequest);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -41,7 +41,7 @@ class CommentControllerUpdateCommentTest extends CommentControllerTestBase {
     @Test
     @DisplayName("Должен выбросить исключение при обновлении несуществующего комментария")
     void shouldThrowExceptionWhenUpdatingNonExistentCommentTest() {
-        CommentRequest updateRequest = createCommentRequest(NON_EXISTENT_COMMENT_ID, UPDATED_COMMENT_TEXT, VALID_POST_ID);
+        CommentRequestDto updateRequest = createCommentRequest(NON_EXISTENT_COMMENT_ID, UPDATED_COMMENT_TEXT, VALID_POST_ID);
 
         when(commentService.updateComment(VALID_POST_ID, NON_EXISTENT_COMMENT_ID, UPDATED_COMMENT_TEXT))
                 .thenThrow(new EmptyResultDataAccessException("Комментарий не найден", 1));
@@ -61,13 +61,13 @@ class CommentControllerUpdateCommentTest extends CommentControllerTestBase {
             "100, 200, Финальный вариант текста"
     })
     void shouldUpdateCommentsWithDifferentTextsTest(Long postId, Long commentId, String newText) {
-        CommentRequest updateRequest = createCommentRequest(commentId, newText, postId);
-        CommentResponse expectedResponse = createCommentResponse(commentId, postId, newText);
+        CommentRequestDto updateRequest = createCommentRequest(commentId, newText, postId);
+        CommentResponseDto expectedResponse = createCommentResponse(commentId, postId, newText);
 
         when(commentService.updateComment(postId, commentId, newText))
                 .thenReturn(expectedResponse);
 
-        ResponseEntity<CommentResponse> response = commentController.updateComment(postId, commentId, updateRequest);
+        ResponseEntity<CommentResponseDto> response = commentController.updateComment(postId, commentId, updateRequest);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(newText, response.getBody().text());

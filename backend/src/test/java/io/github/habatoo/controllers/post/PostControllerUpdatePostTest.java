@@ -1,7 +1,7 @@
 package io.github.habatoo.controllers.post;
 
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -24,14 +24,14 @@ class PostControllerUpdatePostTest extends PostControllerTestBase {
     @Test
     @DisplayName("Должен обновить пост и вернуть 200 статус")
     void shouldUpdatePostAndReturnOkStatusTest() {
-        PostRequest updateRequest = createPostRequest(VALID_POST_ID, "Новый заголовок",
+        PostRequestDto updateRequest = createPostRequest(VALID_POST_ID, "Новый заголовок",
                 "Новый текст", List.of("newTag"));
-        PostResponse expectedResponse = createPostResponse(VALID_POST_ID, "Новый заголовок",
+        PostResponseDto expectedResponse = createPostResponse(VALID_POST_ID, "Новый заголовок",
                 "Новый текст", List.of("newTag"), 5, 3);
 
         when(postService.updatePost(updateRequest)).thenReturn(expectedResponse);
 
-        ResponseEntity<PostResponse> response = postController.updatePost(VALID_POST_ID, updateRequest);
+        ResponseEntity<PostResponseDto> response = postController.updatePost(VALID_POST_ID, updateRequest);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedResponse, response.getBody());
@@ -47,12 +47,12 @@ class PostControllerUpdatePostTest extends PostControllerTestBase {
     })
     void shouldUpdatePostWithDifferentDataTest(Long postId, String title, String text, String tags) {
         List<String> tagList = tags.isEmpty() ? List.of() : List.of(tags.split(","));
-        PostRequest updateRequest = createPostRequest(postId, title, text, tagList);
-        PostResponse expectedResponse = createPostResponse(postId, title, text, tagList, 0, 0);
+        PostRequestDto updateRequest = createPostRequest(postId, title, text, tagList);
+        PostResponseDto expectedResponse = createPostResponse(postId, title, text, tagList, 0, 0);
 
         when(postService.updatePost(updateRequest)).thenReturn(expectedResponse);
 
-        ResponseEntity<PostResponse> response = postController.updatePost(postId, updateRequest);
+        ResponseEntity<PostResponseDto> response = postController.updatePost(postId, updateRequest);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(title, response.getBody().title());

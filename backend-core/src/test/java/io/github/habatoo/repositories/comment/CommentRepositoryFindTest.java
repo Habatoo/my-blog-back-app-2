@@ -1,6 +1,6 @@
 package io.github.habatoo.repositories.comment;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.repositories.mapper.CommentRowMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,14 +38,14 @@ class CommentRepositoryFindTest extends CommentRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть список комментариев для заданного postId")
     void shouldReturnCommentsByPostIdTest() {
-        List<CommentResponse> expectedComments = List.of(
+        List<CommentResponseDto> expectedComments = List.of(
                 createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT)
         );
 
         when(jdbcTemplate.query(anyString(), any(CommentRowMapper.class), eq(POST_ID)))
                 .thenReturn(expectedComments);
 
-        List<CommentResponse> result = commentRepository.findByPostId(POST_ID);
+        List<CommentResponseDto> result = commentRepository.findByPostId(POST_ID);
 
         assertEquals(expectedComments, result);
         verify(jdbcTemplate).query(FIND_BY_POST_ID, commentRowMapper, POST_ID);
@@ -59,12 +59,12 @@ class CommentRepositoryFindTest extends CommentRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть Optional с комментарием при существовании по postId и commentId")
     void shouldReturnOptionalCommentByPostIdAndIdFoundTest() {
-        List<CommentResponse> comments = List.of(createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT));
+        List<CommentResponseDto> comments = List.of(createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT));
 
         when(jdbcTemplate.query(anyString(), any(CommentRowMapper.class), eq(POST_ID), eq(COMMENT_ID)))
                 .thenReturn(comments);
 
-        Optional<CommentResponse> result = commentRepository.findByPostIdAndId(POST_ID, COMMENT_ID);
+        Optional<CommentResponseDto> result = commentRepository.findByPostIdAndId(POST_ID, COMMENT_ID);
 
         assertTrue(result.isPresent());
         assertEquals(COMMENT_ID, result.get().id());
@@ -80,7 +80,7 @@ class CommentRepositoryFindTest extends CommentRepositoryTestBase {
         when(jdbcTemplate.query(anyString(), any(CommentRowMapper.class), eq(POST_ID), eq(COMMENT_ID)))
                 .thenReturn(Collections.emptyList());
 
-        Optional<CommentResponse> result = commentRepository.findByPostIdAndId(POST_ID, COMMENT_ID);
+        Optional<CommentResponseDto> result = commentRepository.findByPostIdAndId(POST_ID, COMMENT_ID);
 
         assertTrue(result.isEmpty());
     }

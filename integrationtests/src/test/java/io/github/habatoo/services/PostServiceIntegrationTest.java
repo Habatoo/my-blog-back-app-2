@@ -4,10 +4,10 @@ import io.github.habatoo.configurations.TestDataSourceConfiguration;
 import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
 import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
 import io.github.habatoo.configurations.services.ServiceTestConfiguration;
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostListResponse;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostListResponseDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.PostService;
@@ -69,7 +69,7 @@ class PostServiceIntegrationTest {
         flyway.migrate();
 
         for (int i = 1; i <= 5; i++) {
-            postService.createPost(new PostCreateRequest(
+            postService.createPost(new PostCreateRequestDto(
                     "Title " + i, "Text content " + i, List.of("tag" + (i % 2), "common")));
         }
     }
@@ -81,14 +81,14 @@ class PostServiceIntegrationTest {
     @Test
     @DisplayName("Получение постов с поиском, тегами и пагинацией")
     void testGetPostsWithSearchAndTagsAndPagination() {
-        PostListResponse response = postService.getPosts("Text #common", 1, 3);
+        PostListResponseDto response = postService.getPosts("Text #common", 1, 3);
 
         assertThat(response.posts()).hasSizeLessThanOrEqualTo(3);
         assertThat(response.posts()).allMatch(p -> p.title().contains("Title") || p.text().contains("Text"));
         assertThat(response.hasPrev()).isFalse();   // нет предыдущей страницы для первой
         assertThat(response.hasNext()).isTrue();    // есть следующая страница, т.к. всего 5 постов, показываем по 3
 
-        PostListResponse responsePage2 = postService.getPosts("Text #common", 2, 3);
+        PostListResponseDto responsePage2 = postService.getPosts("Text #common", 2, 3);
         assertThat(responsePage2.posts()).isNotEmpty();
         assertThat(responsePage2.hasPrev()).isTrue();
         assertThat(responsePage2.hasNext()).isFalse(); // конец списка, следующей страницы нет
@@ -100,10 +100,10 @@ class PostServiceIntegrationTest {
     @Test
     @DisplayName("Получение поста по ID из кеша")
     void testGetPostById() {
-        Optional<PostResponse> maybePost = postService.getPostById(1L);
+        Optional<PostResponseDto> maybePost = postService.getPostById(1L);
 
         assertThat(maybePost).isPresent();
-        PostResponse post = maybePost.get();
+        PostResponseDto post = maybePost.get();
         assertThat(post.id()).isEqualTo(1L);
         assertThat(post.tags()).contains("common");
     }
@@ -114,14 +114,14 @@ class PostServiceIntegrationTest {
     @Test
     @DisplayName("Создание нового поста с обновлением кэша")
     void testCreatePost() {
-        PostCreateRequest createRequest = new PostCreateRequest("New Title", "New text", List.of("newtag"));
-        PostResponse createdPost = postService.createPost(createRequest);
+        PostCreateRequestDto createRequest = new PostCreateRequestDto("New Title", "New text", List.of("newtag"));
+        PostResponseDto createdPost = postService.createPost(createRequest);
 
         assertThat(createdPost.id()).isPositive();
         assertThat(createdPost.title()).isEqualTo("New Title");
         assertThat(createdPost.tags()).contains("newtag");
 
-        Optional<PostResponse> cached = postService.getPostById(createdPost.id());
+        Optional<PostResponseDto> cached = postService.getPostById(createdPost.id());
         assertThat(cached).isPresent();
     }
 
@@ -131,14 +131,14 @@ class PostServiceIntegrationTest {
     @Test
     @DisplayName("Обновление поста с обновлением кэша")
     void testUpdatePost() {
-        PostRequest updateRequest = new PostRequest(1L, "Updated Title", "Updated Text", List.of("tag0"));
-        PostResponse updated = postService.updatePost(updateRequest);
+        PostRequestDto updateRequest = new PostRequestDto(1L, "Updated Title", "Updated Text", List.of("tag0"));
+        PostResponseDto updated = postService.updatePost(updateRequest);
 
         assertThat(updated.title()).isEqualTo("Updated Title");
         assertThat(updated.text()).isEqualTo("Updated Text");
         assertThat(updated.tags()).contains("tag0");
 
-        Optional<PostResponse> cached = postService.getPostById(1L);
+        Optional<PostResponseDto> cached = postService.getPostById(1L);
         assertThat(cached).isPresent();
         assertThat(cached.get().title()).isEqualTo("Updated Title");
     }
@@ -153,7 +153,7 @@ class PostServiceIntegrationTest {
 
         postService.deletePost(deleteId);
 
-        Optional<PostResponse> cached = postService.getPostById(deleteId);
+        Optional<PostResponseDto> cached = postService.getPostById(deleteId);
         assertThat(cached).isEmpty();
 
         Integer count = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM post WHERE id = ?", Integer.class, deleteId);
@@ -172,12 +172,12 @@ class PostServiceIntegrationTest {
     @Test
     @DisplayName("Инкремент лайков с обновлением кэша")
     void testIncrementLikes() {
-        int oldLikes = postService.getPostById(1L).map(PostResponse::likesCount).orElse(0);
+        int oldLikes = postService.getPostById(1L).map(PostResponseDto::likesCount).orElse(0);
         int newLikes = postService.incrementLikes(1L);
 
         assertThat(newLikes).isEqualTo(oldLikes + 1);
 
-        Optional<PostResponse> cached = postService.getPostById(1L);
+        Optional<PostResponseDto> cached = postService.getPostById(1L);
         assertThat(cached).isPresent();
         assertThat(cached.get().likesCount()).isEqualTo(newLikes);
     }
@@ -188,9 +188,9 @@ class PostServiceIntegrationTest {
     @Test
     @DisplayName("Инкремент комментариев с обновлением кэша")
     void testIncrementCommentsCount() {
-        int before = postService.getPostById(1L).map(PostResponse::commentsCount).orElse(0);
+        int before = postService.getPostById(1L).map(PostResponseDto::commentsCount).orElse(0);
         postService.incrementCommentsCount(1L);
-        int after = postService.getPostById(1L).map(PostResponse::commentsCount).orElse(0);
+        int after = postService.getPostById(1L).map(PostResponseDto::commentsCount).orElse(0);
 
         assertThat(after).isEqualTo(before + 1);
     }
@@ -203,9 +203,9 @@ class PostServiceIntegrationTest {
     void testDecrementCommentsCount() {
         postService.incrementCommentsCount(1L);
 
-        int before = postService.getPostById(1L).map(PostResponse::commentsCount).orElse(0);
+        int before = postService.getPostById(1L).map(PostResponseDto::commentsCount).orElse(0);
         postService.decrementCommentsCount(1L);
-        int after = postService.getPostById(1L).map(PostResponse::commentsCount).orElse(0);
+        int after = postService.getPostById(1L).map(PostResponseDto::commentsCount).orElse(0);
 
         assertThat(after).isEqualTo(Math.max(0, before - 1));
     }

@@ -1,6 +1,6 @@
 package io.github.habatoo.controllers.post;
 
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.response.PostResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -25,12 +25,12 @@ class PostControllerGetPostByIdTest extends PostControllerTestBase {
     @Test
     @DisplayName("Должен вернуть пост когда он существует")
     void shouldReturnPostWhenExistsTest() {
-        PostResponse expectedPost = createPostResponse(VALID_POST_ID, POST_TITLE, POST_TEXT,
+        PostResponseDto expectedPost = createPostResponse(VALID_POST_ID, POST_TITLE, POST_TEXT,
                 POST_TAGS, 5, 3);
 
         when(postService.getPostById(VALID_POST_ID)).thenReturn(Optional.of(expectedPost));
 
-        ResponseEntity<PostResponse> response = postController.getPostById(VALID_POST_ID);
+        ResponseEntity<PostResponseDto> response = postController.getPostById(VALID_POST_ID);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedPost, response.getBody());
@@ -42,7 +42,7 @@ class PostControllerGetPostByIdTest extends PostControllerTestBase {
     void shouldReturnNotFoundWhenPostDoesNotExistTest() {
         when(postService.getPostById(NON_EXISTENT_POST_ID)).thenReturn(Optional.empty());
 
-        ResponseEntity<PostResponse> response = postController.getPostById(NON_EXISTENT_POST_ID);
+        ResponseEntity<PostResponseDto> response = postController.getPostById(NON_EXISTENT_POST_ID);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertFalse(response.hasBody());
@@ -53,12 +53,12 @@ class PostControllerGetPostByIdTest extends PostControllerTestBase {
     @ParameterizedTest
     @ValueSource(longs = {1L, 10L, 100L, 1000L, Long.MAX_VALUE})
     void shouldHandleDifferentPostIdsTest(Long postId) {
-        PostResponse expectedPost = createPostResponse(postId, "Пост " + postId,
+        PostResponseDto expectedPost = createPostResponse(postId, "Пост " + postId,
                 "Текст поста", List.of("tag"), 0, 0);
 
         when(postService.getPostById(postId)).thenReturn(Optional.of(expectedPost));
 
-        ResponseEntity<PostResponse> response = postController.getPostById(postId);
+        ResponseEntity<PostResponseDto> response = postController.getPostById(postId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(postId, response.getBody().id());

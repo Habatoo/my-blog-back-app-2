@@ -1,8 +1,7 @@
 package io.github.habatoo.repositories.post;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import io.github.habatoo.repositories.mapper.PostListRowMapper;
@@ -34,8 +33,8 @@ abstract class PostRepositoryTestBase {
     protected static final Long NON_EXISTING_POST_ID = 999L;
 
     protected final List<String> tags = List.of("t1", "t2");
-    protected final PostCreateRequest createRequest = new PostCreateRequest("New Title", "New Text", tags);
-    protected final PostResponse createdPost = new PostResponse(
+    protected final PostCreateRequestDto createRequest = new PostCreateRequestDto("New Title", "New Text", tags);
+    protected final PostResponseDto createdPost = new PostResponseDto(
             POST_ID, createRequest.title(), createRequest.text(), List.of(), 0, 0);
 
     @BeforeEach
@@ -46,13 +45,13 @@ abstract class PostRepositoryTestBase {
     protected static Stream<Arguments> posts() {
         return Stream.of(
                 Arguments.of(
-                        new PostCreateRequest("title1", "text1", List.of("t1", "t2")),
-                        new PostResponse(POST_ID, "title1", "text1", List.of("t1", "t2"), 0, 0),
+                        new PostCreateRequestDto("title1", "text1", List.of("t1", "t2")),
+                        new PostResponseDto(POST_ID, "title1", "text1", List.of("t1", "t2"), 0, 0),
                         true
                 ),
                 Arguments.of(
-                        new PostCreateRequest("title2", "text2", List.of()),
-                        new PostResponse(POST_ID, "title2", "text2", List.of(), 0, 0),
+                        new PostCreateRequestDto("title2", "text2", List.of()),
+                        new PostResponseDto(POST_ID, "title2", "text2", List.of(), 0, 0),
                         false
                 )
         );

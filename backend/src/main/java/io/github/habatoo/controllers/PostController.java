@@ -1,9 +1,9 @@
 package io.github.habatoo.controllers;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostListResponse;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostListResponseDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.service.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
@@ -48,12 +48,12 @@ public class PostController {
      * @throws IllegalArgumentException если параметры пагинации невалидны
      */
     @GetMapping
-    public ResponseEntity<PostListResponse> getPosts(
+    public ResponseEntity<PostListResponseDto> getPosts(
             @RequestParam("search") String search,
             @RequestParam("pageNumber") int pageNumber,
             @RequestParam("pageSize") int pageSize) {
         log.info("Запрос на получение списка постов: search='{}', pageNumber={}, pageSize={}", search, pageNumber, pageSize);
-        PostListResponse result = postService.getPosts(search, pageNumber, pageSize);
+        PostListResponseDto result = postService.getPosts(search, pageNumber, pageSize);
         return ResponseEntity.ok(result);
     }
 
@@ -68,7 +68,7 @@ public class PostController {
      * @throws IllegalArgumentException если идентификатор невалиден
      */
     @GetMapping("/{id}")
-    public ResponseEntity<PostResponse> getPostById(@PathVariable("id") Long id) {
+    public ResponseEntity<PostResponseDto> getPostById(@PathVariable("id") Long id) {
         log.info("Запрос на получение поста по id={}", id);
         return postService.getPostById(id)
                 .map(ResponseEntity::ok)
@@ -87,9 +87,9 @@ public class PostController {
      * @throws DataAccessException      при ошибках сохранения в базу данных
      */
     @PostMapping
-    public ResponseEntity<PostResponse> createPost(@RequestBody PostCreateRequest postCreateRequest) {
+    public ResponseEntity<PostResponseDto> createPost(@RequestBody PostCreateRequestDto postCreateRequest) {
         log.info("Запрос на создание нового поста");
-        PostResponse result = postService.createPost(postCreateRequest);
+        PostResponseDto result = postService.createPost(postCreateRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
 
@@ -106,11 +106,11 @@ public class PostController {
      * @throws EmptyResultDataAccessException если пост с указанным ID не найден
      */
     @PutMapping("/{id}")
-    public ResponseEntity<PostResponse> updatePost(
+    public ResponseEntity<PostResponseDto> updatePost(
             @PathVariable("id") Long id,
-            @RequestBody PostRequest postRequest) {
+            @RequestBody PostRequestDto postRequest) {
         log.info("Запрос на обновление поста id={}", id);
-        PostResponse result = postService.updatePost(postRequest);
+        PostResponseDto result = postService.updatePost(postRequest);
         return ResponseEntity.ok(result);
     }
 

@@ -1,6 +1,6 @@
 package io.github.habatoo.controllers.image;
 
-import io.github.habatoo.service.dto.ImageResponse;
+import io.github.habatoo.service.dto.ImageResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,7 +26,7 @@ class ImageControllerGetPostImageTest extends ImageControllerTestBase {
     @DisplayName("Должен вернуть изображение JPEG с правильным Content-Type")
     void shouldReturnJpegImageWithCorrectContentTypeTest() {
         byte[] imageData = createJpegImageData();
-        ImageResponse imageResponse = createImageResponse(imageData, MediaType.IMAGE_JPEG);
+        ImageResponseDto imageResponse = createImageResponse(imageData, MediaType.IMAGE_JPEG);
 
         when(imageService.getPostImage(VALID_POST_ID)).thenReturn(imageResponse);
 
@@ -41,7 +41,7 @@ class ImageControllerGetPostImageTest extends ImageControllerTestBase {
     @DisplayName("Должен вернуть изображение PNG с правильным Content-Type")
     void shouldReturnPngImageWithCorrectContentTypeTest() {
         byte[] imageData = createPngImageData();
-        ImageResponse imageResponse = createImageResponse(imageData, MediaType.IMAGE_PNG);
+        ImageResponseDto imageResponse = createImageResponse(imageData, MediaType.IMAGE_PNG);
 
         when(imageService.getPostImage(VALID_POST_ID)).thenReturn(imageResponse);
 
@@ -56,7 +56,7 @@ class ImageControllerGetPostImageTest extends ImageControllerTestBase {
     @DisplayName("Должен вернуть пустое изображение с octet-stream Content-Type")
     void shouldReturnEmptyImageWithOctetStreamContentTypeTest() {
         byte[] emptyData = createEmptyImageData();
-        ImageResponse imageResponse = createImageResponse(emptyData, MediaType.APPLICATION_OCTET_STREAM);
+        ImageResponseDto imageResponse = createImageResponse(emptyData, MediaType.APPLICATION_OCTET_STREAM);
 
         when(imageService.getPostImage(VALID_POST_ID)).thenReturn(imageResponse);
 
@@ -72,7 +72,7 @@ class ImageControllerGetPostImageTest extends ImageControllerTestBase {
     @ValueSource(longs = {1L, 5L, 10L, 50L, 100L})
     void shouldHandleDifferentPostIdsTest(Long postId) {
         byte[] imageData = createJpegImageData();
-        ImageResponse imageResponse = createImageResponse(imageData, MediaType.IMAGE_JPEG);
+        ImageResponseDto imageResponse = createImageResponse(imageData, MediaType.IMAGE_JPEG);
 
         when(imageService.getPostImage(postId)).thenReturn(imageResponse);
 
@@ -87,7 +87,7 @@ class ImageControllerGetPostImageTest extends ImageControllerTestBase {
     @MethodSource("provideMediaTypes")
     void shouldHandleDifferentMediaTypesFromServiceTest(MediaType mediaType) {
         byte[] imageData = createJpegImageData();
-        ImageResponse imageResponse = createImageResponse(imageData, mediaType);
+        ImageResponseDto imageResponse = createImageResponse(imageData, mediaType);
 
         when(imageService.getPostImage(VALID_POST_ID)).thenReturn(imageResponse);
 

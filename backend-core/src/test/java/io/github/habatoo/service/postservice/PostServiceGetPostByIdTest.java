@@ -1,6 +1,6 @@
 package io.github.habatoo.service.postservice;
 
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.response.PostResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +18,7 @@ class PostServiceGetPostByIdTest extends PostServiceTestBase {
     @Test
     @DisplayName("Должен вернуть пост из кеша, если он существует")
     void shouldReturnPostIfExistsTest() {
-        Optional<PostResponse> result = postService.getPostById(VALID_POST_ID);
+        Optional<PostResponseDto> result = postService.getPostById(VALID_POST_ID);
 
         assertTrue(result.isPresent());
         assertEquals(POST_RESPONSE_1, result.get());
@@ -27,7 +27,7 @@ class PostServiceGetPostByIdTest extends PostServiceTestBase {
     @Test
     @DisplayName("Должен вернуть пустой Optional если пост отсутствует")
     void shouldReturnEmptyIfPostNotExistsTest() {
-        Optional<PostResponse> result = postService.getPostById(INVALID_POST_ID);
+        Optional<PostResponseDto> result = postService.getPostById(INVALID_POST_ID);
         assertTrue(result.isEmpty());
     }
 }

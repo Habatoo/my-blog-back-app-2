@@ -2,9 +2,9 @@ package io.github.habatoo.controllers.comment;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.habatoo.controllers.CommentController;
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.request.CommentRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.request.CommentRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.handlers.GlobalExceptionHandler;
 import io.github.habatoo.service.CommentService;
 import org.junit.jupiter.api.*;
@@ -40,10 +40,10 @@ class CommentControllerCachedTest {
     private CommentService commentService;
     private ObjectMapper objectMapper;
 
-    private CommentResponse mockComment1;
-    private CommentResponse mockComment2;
-    private CommentCreateRequest mockCreateRequest;
-    private CommentRequest mockUpdateRequest;
+    private CommentResponseDto mockComment1;
+    private CommentResponseDto mockComment2;
+    private CommentCreateRequestDto mockCreateRequest;
+    private CommentRequestDto mockUpdateRequest;
 
     @BeforeAll
     void setUpAll() {
@@ -60,11 +60,11 @@ class CommentControllerCachedTest {
      * Инициализация тестовых данных
      */
     private void initializeTestData() {
-        mockComment1 = new CommentResponse(1L, "Первый комментарий", 1L);
-        mockComment2 = new CommentResponse(2L, "Второй комментарий", 1L);
+        mockComment1 = new CommentResponseDto(1L, "Первый комментарий", 1L);
+        mockComment2 = new CommentResponseDto(2L, "Второй комментарий", 1L);
 
-        mockCreateRequest = new CommentCreateRequest( 1L,"Новый комментарий");
-        mockUpdateRequest = new CommentRequest(1L, "Обновленный комментарий", 1L);
+        mockCreateRequest = new CommentCreateRequestDto( 1L,"Новый комментарий");
+        mockUpdateRequest = new CommentRequestDto(1L, "Обновленный комментарий", 1L);
     }
 
     @BeforeEach
@@ -79,7 +79,7 @@ class CommentControllerCachedTest {
     @DisplayName("GET /api/posts/{postId}/comments - должен вернуть список комментариев")
     void getCommentsByPostIdWithValidPostIdTest() throws Exception {
         Long postId = 1L;
-        List<CommentResponse> mockComments = Arrays.asList(mockComment1, mockComment2);
+        List<CommentResponseDto> mockComments = Arrays.asList(mockComment1, mockComment2);
         when(commentService.getCommentsByPostId(postId)).thenReturn(mockComments);
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.get("/api/posts/{postId}/comments", postId)
@@ -167,7 +167,7 @@ class CommentControllerCachedTest {
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
         String responseContent = result.getResponse().getContentAsString();
-        CommentResponse responseComment = objectMapper.readValue(responseContent, CommentResponse.class);
+        CommentResponseDto responseComment = objectMapper.readValue(responseContent, CommentResponseDto.class);
 
         assertEquals(mockComment1.id(), responseComment.id());
         assertEquals(mockComment1.postId(), responseComment.postId());
@@ -183,7 +183,7 @@ class CommentControllerCachedTest {
     @DisplayName("POST /api/posts/{postId}/comments - должен создать комментарий")
     void createCommentWithValidRequestTest() throws Exception {
         Long postId = 1L;
-        when(commentService.createComment(any(CommentCreateRequest.class)))
+        when(commentService.createComment(any(CommentCreateRequestDto.class)))
                 .thenReturn(mockComment1);
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.post("/api/posts/{postId}/comments", postId)
@@ -194,13 +194,13 @@ class CommentControllerCachedTest {
                 .andReturn();
 
         String responseContent = result.getResponse().getContentAsString();
-        CommentResponse responseComment = objectMapper.readValue(responseContent, CommentResponse.class);
+        CommentResponseDto responseComment = objectMapper.readValue(responseContent, CommentResponseDto.class);
 
         assertEquals(mockComment1.id(), responseComment.id());
         assertEquals(mockComment1.postId(), responseComment.postId());
         assertEquals(mockComment1.text(), responseComment.text());
 
-        verify(commentService, times(1)).createComment(any(CommentCreateRequest.class));
+        verify(commentService, times(1)).createComment(any(CommentCreateRequestDto.class));
     }
 
     /**
@@ -211,7 +211,7 @@ class CommentControllerCachedTest {
     void updateCommentWithValidRequestTest() throws Exception {
         Long postId = 1L;
         Long commentId = 2L;
-        CommentResponse updatedComment = new CommentResponse(2L, "Обновленный комментарий", 1L);
+        CommentResponseDto updatedComment = new CommentResponseDto(2L, "Обновленный комментарий", 1L);
 
         when(commentService.updateComment(anyLong(), anyLong(), anyString()))
                 .thenReturn(updatedComment);
@@ -224,7 +224,7 @@ class CommentControllerCachedTest {
                 .andReturn();
 
         String responseContent = result.getResponse().getContentAsString();
-        CommentResponse responseComment = objectMapper.readValue(responseContent, CommentResponse.class);
+        CommentResponseDto responseComment = objectMapper.readValue(responseContent, CommentResponseDto.class);
 
         assertEquals(updatedComment.id(), responseComment.id());
         assertEquals(updatedComment.postId(), responseComment.postId());
@@ -257,7 +257,7 @@ class CommentControllerCachedTest {
     @DisplayName("POST /api/posts/{postId}/comments - должен вернуть 400 при невалидных данных")
     void createCommentWithInvalidDataTest() throws Exception {
         Long postId = 1L;
-        when(commentService.createComment(any(CommentCreateRequest.class)))
+        when(commentService.createComment(any(CommentCreateRequestDto.class)))
                 .thenThrow(new IllegalArgumentException("Invalid comment data"));
 
         mockMvc.perform(MockMvcRequestBuilders.post("/api/posts/{postId}/comments", postId)
@@ -265,7 +265,7 @@ class CommentControllerCachedTest {
                         .content(objectMapper.writeValueAsString(mockCreateRequest)))
                 .andExpect(MockMvcResultMatchers.status().isBadRequest());
 
-        verify(commentService, times(1)).createComment(any(CommentCreateRequest.class));
+        verify(commentService, times(1)).createComment(any(CommentCreateRequestDto.class));
     }
 
     /**
@@ -295,8 +295,8 @@ class CommentControllerCachedTest {
         Long[] postIds = {1L, 100L, 9999L};
         for (Long postId : postIds) {
             reset(commentService);
-            List<CommentResponse> comments = Collections.singletonList(
-                    new CommentResponse(1L, "Comment for post " + postId, postId));
+            List<CommentResponseDto> comments = Collections.singletonList(
+                    new CommentResponseDto(1L, "Comment for post " + postId, postId));
 
             when(commentService.getCommentsByPostId(postId)).thenReturn(comments);
 

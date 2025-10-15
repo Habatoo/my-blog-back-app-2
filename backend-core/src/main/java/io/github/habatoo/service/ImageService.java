@@ -1,7 +1,7 @@
 package io.github.habatoo.service;
 
 import io.github.habatoo.repositories.CommentRepository;
-import io.github.habatoo.service.dto.ImageResponse;
+import io.github.habatoo.service.dto.ImageResponseDto;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +34,6 @@ public interface ImageService {
      * @throws IllegalArgumentException       если у поста нет изображения
      * @throws DataAccessException            при ошибках доступа к базе данных
      */
-    ImageResponse getPostImage(Long postId);
+    ImageResponseDto getPostImage(Long postId);
 
 }

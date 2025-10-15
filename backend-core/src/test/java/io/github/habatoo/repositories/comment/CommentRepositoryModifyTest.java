@@ -1,7 +1,7 @@
 package io.github.habatoo.repositories.comment;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.PreparedStatementCreator;
@@ -38,14 +38,14 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
 
     /**
      * Проверяет, что метод save правильно сохраняет новый комментарий
-     * и возвращает ожидаемый объект CommentResponse.
+     * и возвращает ожидаемый объект CommentResponseDto.
      * Мокаются вызовы jdbcTemplate.update() с KeyHolder и последующий вызов queryForObject для получения результата.
      */
     @Test
     @DisplayName("Должен сохранить новый комментарий и вернуть созданный объект")
     void shouldSaveNewCommentTest() {
-        CommentCreateRequest createRequest = createCommentCreateRequest(COMMENT_TEXT, POST_ID);
-        CommentResponse expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT);
+        CommentCreateRequestDto createRequest = createCommentCreateRequest(COMMENT_TEXT, POST_ID);
+        CommentResponseDto expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT);
 
         when(jdbcTemplate.update(any(PreparedStatementCreator.class), any(KeyHolder.class)))
                 .thenAnswer(invocation -> {
@@ -59,7 +59,7 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
                 eq(COMMENT_ID)))
                 .thenReturn(Collections.singletonList(expectedResponse));
 
-        CommentResponse result = commentRepository.save(createRequest);
+        CommentResponseDto result = commentRepository.save(createRequest);
 
         assertEquals(expectedResponse, result);
         verify(jdbcTemplate).update(any(PreparedStatementCreator.class), any(KeyHolder.class));
@@ -68,13 +68,13 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
 
     /**
      * Проверяет, что метод updateText корректно обновляет текст комментария
-     * и возвращает актуализированный объект CommentResponse.
+     * и возвращает актуализированный объект CommentResponseDto.
      * Мокаются вызовы jdbcTemplate.update() и queryForObject().
      */
     @Test
     @DisplayName("Должен обновить текст комментария и вернуть обновленный объект")
     void shouldUpdateCommentTextTest() {
-        CommentResponse expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, "Updated Text");
+        CommentResponseDto expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, "Updated Text");
 
         when(jdbcTemplate.update(
                 eq(UPDATE_COMMENT_TEXT),
@@ -88,7 +88,7 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
                 eq(COMMENT_ID)))
                 .thenReturn(Collections.singletonList(expectedResponse));
 
-        CommentResponse result = commentRepository.updateText(POST_ID, COMMENT_ID, "Updated Text");
+        CommentResponseDto result = commentRepository.updateText(POST_ID, COMMENT_ID, "Updated Text");
 
         assertEquals(expectedResponse, result);
         verify(jdbcTemplate).update(eq(UPDATE_COMMENT_TEXT), eq("Updated Text"), any(Timestamp.class), eq(COMMENT_ID));
@@ -104,7 +104,7 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
     @Test
     @DisplayName("Должен бросить исключение, если после сохранения комментарий не найден")
     void shouldThrowWhenSaveFindByIdReturnsEmpty() {
-        CommentCreateRequest createRequest = createCommentCreateRequest(COMMENT_TEXT, POST_ID);
+        CommentCreateRequestDto createRequest = createCommentCreateRequest(COMMENT_TEXT, POST_ID);
 
         when(jdbcTemplate.update(any(PreparedStatementCreator.class), any(KeyHolder.class))).thenAnswer(invocation -> {
             KeyHolder keyHolder = invocation.getArgument(1);
@@ -180,8 +180,8 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
     @Test
     @DisplayName("save — провалидация параметров лямбды через ArgumentCaptor")
     void testSaveCommentLambdaParametersWithCaptor() {
-        CommentCreateRequest createRequest = createCommentCreateRequest(COMMENT_TEXT, POST_ID);
-        CommentResponse expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT);
+        CommentCreateRequestDto createRequest = createCommentCreateRequest(COMMENT_TEXT, POST_ID);
+        CommentResponseDto expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT);
 
         doAnswer(invocation -> {
             PreparedStatementCreator creator = invocation.getArgument(0);
@@ -203,7 +203,7 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
         when(jdbcTemplate.query(eq(FIND_BY_ID), any(RowMapper.class), eq(COMMENT_ID)))
                 .thenReturn(List.of(expectedResponse));
 
-        CommentResponse response = commentRepository.save(createRequest);
+        CommentResponseDto response = commentRepository.save(createRequest);
 
         assertNotNull(response);
     }

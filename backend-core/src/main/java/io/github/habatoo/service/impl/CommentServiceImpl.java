@@ -1,7 +1,7 @@
 package io.github.habatoo.service.impl;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.repositories.CommentRepository;
 import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
@@ -33,7 +33,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final CommentRepository commentRepository;
     private final PostService postService;
-    private final Map<Long, CopyOnWriteArrayList<CommentResponse>> commentsCache = new ConcurrentHashMap<>();
+    private final Map<Long, CopyOnWriteArrayList<CommentResponseDto>> commentsCache = new ConcurrentHashMap<>();
 
     public CommentServiceImpl(CommentRepository commentRepository, PostService postService) {
         this.commentRepository = commentRepository;
@@ -44,12 +44,12 @@ public class CommentServiceImpl implements CommentService {
      * {@inheritDoc}
      */
     @Override
-    public List<CommentResponse> getCommentsByPostId(Long postId) {
+    public List<CommentResponseDto> getCommentsByPostId(Long postId) {
         log.debug("Получение комментариев для поста id={}", postId);
         checkPostIsExist(postId);
 
         return commentsCache.computeIfAbsent(postId, id -> {
-            List<CommentResponse> loaded = commentRepository.findByPostId(id);
+            List<CommentResponseDto> loaded = commentRepository.findByPostId(id);
             log.debug("Комментарии кэшированы для поста id={}, количество: {}", postId, loaded.size());
             return new CopyOnWriteArrayList<>(loaded);
         });
@@ -59,9 +59,9 @@ public class CommentServiceImpl implements CommentService {
      * {@inheritDoc}
      */
     @Override
-    public Optional<CommentResponse> getCommentByPostIdAndId(Long postId, Long commentId) {
+    public Optional<CommentResponseDto> getCommentByPostIdAndId(Long postId, Long commentId) {
         log.debug("Получение комментария id={} для поста id={}", commentId, postId);
-        CopyOnWriteArrayList<CommentResponse> comments = commentsCache.get(postId);
+        CopyOnWriteArrayList<CommentResponseDto> comments = commentsCache.get(postId);
 
         if (comments != null) {
             return comments.stream()
@@ -75,12 +75,12 @@ public class CommentServiceImpl implements CommentService {
      * {@inheritDoc}
      */
     @Override
-    public CommentResponse createComment(CommentCreateRequest request) {
+    public CommentResponseDto createComment(CommentCreateRequestDto request) {
         log.info("Создание комментария для поста id={}", request.postId());
         Long postId = request.postId();
         checkPostIsExist(postId);
         try {
-            CommentResponse newComment = commentRepository.save(request);
+            CommentResponseDto newComment = commentRepository.save(request);
             postService.incrementCommentsCount(request.postId());
 
             commentsCache.compute(postId, (postId1, comments) -> {
@@ -102,10 +102,10 @@ public class CommentServiceImpl implements CommentService {
      * {@inheritDoc}
      */
     @Override
-    public CommentResponse updateComment(Long postId, Long commentId, String text) {
+    public CommentResponseDto updateComment(Long postId, Long commentId, String text) {
         log.info("Обновление комментария id={} для поста id={}", commentId, postId);
         checkPostIsExist(postId);
-        CommentResponse updatedComment;
+        CommentResponseDto updatedComment;
         try {
             updatedComment = commentRepository.updateText(postId, commentId, text);
         } catch (EmptyResultDataAccessException e) {

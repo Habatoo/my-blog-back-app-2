@@ -10,7 +10,7 @@ package io.github.habatoo.dto.response;
  * @param text   текст комментария
  * @param postId идентификатор связанного поста
  */
-public record CommentResponse(
+public record CommentResponseDto(
         Long id,
         String text,
         Long postId
@@ -19,7 +19,7 @@ public record CommentResponse(
     /**
      * Конструктор с валидацией обязательных полей.
      */
-    public CommentResponse {
+    public CommentResponseDto {
         if (id == null) {
             throw new IllegalArgumentException("Comment ID cannot be null");
         }

@@ -3,7 +3,7 @@ package io.github.habatoo.controllers.image;
 import io.github.habatoo.controllers.ImageController;
 import io.github.habatoo.handlers.GlobalExceptionHandler;
 import io.github.habatoo.service.ImageService;
-import io.github.habatoo.service.dto.ImageResponse;
+import io.github.habatoo.service.dto.ImageResponseDto;
 import org.junit.jupiter.api.*;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -44,7 +44,7 @@ class ImageControllerCachedTest {
     private ImageService imageService;
 
     private MockMultipartFile mockImageFile;
-    private ImageResponse mockImageResponse;
+    private ImageResponseDto mockImageResponse;
 
     @BeforeAll
     void setUpAll() {
@@ -68,7 +68,7 @@ class ImageControllerCachedTest {
                 imageData
         );
 
-        mockImageResponse = new ImageResponse(
+        mockImageResponse = new ImageResponseDto(
                 imageData,
                 MediaType.IMAGE_JPEG
         );
@@ -213,7 +213,7 @@ class ImageControllerCachedTest {
         for (int i = 0; i < postIds.length; i++) {
             reset(imageService);
             Long postId = postIds[i];
-            ImageResponse imageResponse = new ImageResponse(
+            ImageResponseDto imageResponse = new ImageResponseDto(
                     imageData[i].getBytes(),
                     mediaTypes[i]
             );

@@ -1,10 +1,9 @@
 package io.github.habatoo.service;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostListResponse;
-import io.github.habatoo.dto.response.PostResponse;
-import io.github.habatoo.repositories.PostRepository;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostListResponseDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 
 import java.util.Optional;
 
@@ -26,35 +25,35 @@ public interface PostService {
      * @param search строка для поиска по содержимому постов
      * @param pageNumber номер страницы для пагинации (начиная с 0)
      * @param pageSize количество постов на странице
-     * @return объект PostListResponse, содержащий список постов и информацию о пагинации
+     * @return объект PostListResponseDto, содержащий список постов и информацию о пагинации
      */
-    PostListResponse getPosts(String search, int pageNumber, int pageSize);
+    PostListResponseDto getPosts(String search, int pageNumber, int pageSize);
 
     /**
      * Получить пост по его уникальному идентификатору.
      *
      * @param id идентификатор поста
-     * @return Optional с PostResponse, если пост найден, иначе пустой Optional
+     * @return Optional с PostResponseDto, если пост найден, иначе пустой Optional
      */
-    Optional<PostResponse> getPostById(Long id);
+    Optional<PostResponseDto> getPostById(Long id);
 
     /**
      * Создать новый пост.
      *
      * @param postCreateRequest объект с данными для создания поста: title, text, теги и др.
-     * @return созданный PostResponse с сгенерированным ID и другими заполненными полями
+     * @return созданный PostResponseDto с сгенерированным ID и другими заполненными полями
      * @throws IllegalStateException если не удалось создать пост
      */
-    PostResponse createPost(PostCreateRequest postCreateRequest);
+    PostResponseDto createPost(PostCreateRequestDto postCreateRequest);
 
     /**
      * Обновить существующий пост.
      *
      * @param postRequest объект с данными для обновления поста: id, title, text, теги и др.
-     * @return обновлённый PostResponse с актуальными данными
+     * @return обновлённый PostResponseDto с актуальными данными
      * @throws IllegalStateException если пост с указанным ID не найден
      */
-    PostResponse updatePost(PostRequest postRequest);
+    PostResponseDto updatePost(PostRequestDto postRequest);
 
     /**
      * Удалить пост по его ID.

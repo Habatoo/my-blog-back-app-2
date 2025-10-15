@@ -1,7 +1,7 @@
 package io.github.habatoo.controllers.post;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -26,13 +26,13 @@ class PostControllerCreatePostTest extends PostControllerTestBase {
     @Test
     @DisplayName("Должен создать пост и вернуть 201 статус")
     void shouldCreatePostAndReturnCreatedStatusTest() {
-        PostCreateRequest createRequest = createPostCreateRequest(POST_TITLE, POST_TEXT, POST_TAGS);
-        PostResponse expectedResponse = createPostResponse(3L, POST_TITLE, POST_TEXT,
+        PostCreateRequestDto createRequest = createPostCreateRequest(POST_TITLE, POST_TEXT, POST_TAGS);
+        PostResponseDto expectedResponse = createPostResponse(3L, POST_TITLE, POST_TEXT,
                 POST_TAGS, 0, 0);
 
         when(postService.createPost(createRequest)).thenReturn(expectedResponse);
 
-        ResponseEntity<PostResponse> response = postController.createPost(createRequest);
+        ResponseEntity<PostResponseDto> response = postController.createPost(createRequest);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(expectedResponse, response.getBody());
@@ -45,12 +45,12 @@ class PostControllerCreatePostTest extends PostControllerTestBase {
     @ParameterizedTest
     @MethodSource("provideDifferentTags")
     void shouldCreatePostWithDifferentTagsTest(List<String> tags) {
-        PostCreateRequest createRequest = createPostCreateRequest(POST_TITLE, POST_TEXT, tags);
-        PostResponse expectedResponse = createPostResponse(1L, POST_TITLE, POST_TEXT, tags, 0, 0);
+        PostCreateRequestDto createRequest = createPostCreateRequest(POST_TITLE, POST_TEXT, tags);
+        PostResponseDto expectedResponse = createPostResponse(1L, POST_TITLE, POST_TEXT, tags, 0, 0);
 
         when(postService.createPost(createRequest)).thenReturn(expectedResponse);
 
-        ResponseEntity<PostResponse> response = postController.createPost(createRequest);
+        ResponseEntity<PostResponseDto> response = postController.createPost(createRequest);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(tags, response.getBody().tags());

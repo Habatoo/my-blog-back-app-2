@@ -1,7 +1,7 @@
 package io.github.habatoo.service.postservice;
 
-import io.github.habatoo.dto.response.PostListResponse;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.response.PostListResponseDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.service.impl.PostServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -39,24 +39,24 @@ class PostServiceGetPostsTest extends PostServiceTestBase {
     void shouldReturnSearchedPosts(
             String search,
             int expectedCount) {
-        List<PostResponse> data = List.of(
-                new PostResponse(1L, "Spring Framework", "Spring — это каркас...", List.of("java", "backend"), 5, 2),
-                new PostResponse(2L, "PostgreSQL Integration", "Настроим postgres...", List.of("db", "backend"), 3, 1),
-                new PostResponse(3L, "Советы по Markdown", "Учимся оформлять post", List.of("markdown"), 1, 0),
-                new PostResponse(4L, "Framework Tips", "Framework rocks!", List.of("framework"), 2, 5),
-                new PostResponse(5L, "Java Collections", "about HashMap и List", List.of("java"), 4, 3)
+        List<PostResponseDto> data = List.of(
+                new PostResponseDto(1L, "Spring Framework", "Spring — это каркас...", List.of("java", "backend"), 5, 2),
+                new PostResponseDto(2L, "PostgreSQL Integration", "Настроим postgres...", List.of("db", "backend"), 3, 1),
+                new PostResponseDto(3L, "Советы по Markdown", "Учимся оформлять post", List.of("markdown"), 1, 0),
+                new PostResponseDto(4L, "Framework Tips", "Framework rocks!", List.of("framework"), 2, 5),
+                new PostResponseDto(5L, "Java Collections", "about HashMap и List", List.of("java"), 4, 3)
         );
         when(postRepository.findAllPosts()).thenReturn(data);
         postService = new PostServiceImpl(postRepository, fileStorageService);
 
-        PostListResponse result = postService.getPosts(search, 1, 100);
+        PostListResponseDto result = postService.getPosts(search, 1, 100);
         assertEquals(expectedCount, result.posts().size());
 
         List<String> words = getWords(search);
         List<String> tags = getTags(words);
         String searchPart = getSearchPart(words);
 
-        for (PostResponse post : result.posts()) {
+        for (PostResponseDto post : result.posts()) {
             boolean titleOrTextMatch = searchPart.isEmpty()
                     || post.title().contains(searchPart)
                     || post.text().contains(searchPart);
@@ -79,8 +79,8 @@ class PostServiceGetPostsTest extends PostServiceTestBase {
             "50, 2, 3"       // страница 2, размер 50 (только последние 3 поста)
     })
     void shouldPaginateProperly(int pageSize, int page, int expectedCount) {
-        List<PostResponse> data = IntStream.rangeClosed(1, 53)
-                .mapToObj(i -> new PostResponse(
+        List<PostResponseDto> data = IntStream.rangeClosed(1, 53)
+                .mapToObj(i -> new PostResponseDto(
                         (long) i,
                         "Title " + i,
                         "Text " + i,
@@ -91,7 +91,7 @@ class PostServiceGetPostsTest extends PostServiceTestBase {
         when(postRepository.findAllPosts()).thenReturn(data);
         postService = new PostServiceImpl(postRepository, fileStorageService);
 
-        PostListResponse response = postService.getPosts("", page, pageSize);
+        PostListResponseDto response = postService.getPosts("", page, pageSize);
         assertEquals(expectedCount, response.posts().size());
 
         int totalCount = 53;

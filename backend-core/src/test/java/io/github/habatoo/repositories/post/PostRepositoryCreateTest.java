@@ -1,8 +1,8 @@
 package io.github.habatoo.repositories.post;
 
-import io.github.habatoo.dto.request.PostCreateRequest;
-import io.github.habatoo.dto.request.PostRequest;
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.PostRequestDto;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -50,8 +50,8 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
     @MethodSource("posts")
     @DisplayName("Должен создать пост с разными вариантами тегов")
     void shouldCreatePostWithAndWithoutTagsTest(
-            PostCreateRequest createRequest,
-            PostResponse createdPost,
+            PostCreateRequestDto createRequest,
+            PostResponseDto createdPost,
             boolean hasTags) {
         doAnswer(invocation -> {
             KeyHolder kh = invocation.getArgument(1);
@@ -70,7 +70,7 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         }
 
         postRepository = Mockito.spy(new PostRepositoryImpl(jdbcTemplate, postListRowMapper));
-        PostResponse result = postRepository.createPost(createRequest);
+        PostResponseDto result = postRepository.createPost(createRequest);
 
         assertEquals(POST_ID, result.id());
         assertEquals(createRequest.title(), result.title());
@@ -121,7 +121,7 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         when(jdbcTemplate.queryForObject(eq(SELECT_POST_BY_ID), eq(postListRowMapper), eq(POST_ID)))
                 .thenReturn(createdPost);
 
-        PostResponse postResponse = repository.createPost(createRequest);
+        PostResponseDto postResponse = repository.createPost(createRequest);
 
         assertNotNull(postResponse);
     }
@@ -138,7 +138,7 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         String title = "test";
         String text = "text";
 
-        PostRequest createRequest = new PostRequest(POST_ID, title, text, tags);
+        PostRequestDto createRequest = new PostRequestDto(POST_ID, title, text, tags);
 
         doReturn(1).when(jdbcTemplate).update(
                 eq(UPDATE_POST),
@@ -146,13 +146,13 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
                 eq(createRequest.text()),
                 any(LocalDateTime.class),
                 eq(POST_ID));
-        doReturn(new PostResponse(POST_ID, createRequest.title(), createRequest.text(), List.of(), 0, 0))
+        doReturn(new PostResponseDto(POST_ID, createRequest.title(), createRequest.text(), List.of(), 0, 0))
                 .when(jdbcTemplate).queryForObject(
                         eq(SELECT_POST_BY_ID),
                         eq(postListRowMapper),
                         eq(POST_ID));
 
-        PostResponse response = postRepository.updatePost(createRequest);
+        PostResponseDto response = postRepository.updatePost(createRequest);
 
         verify(jdbcTemplate, never()).update(eq(DELETE_POST_TAGS), eq(POST_ID));
         verify(jdbcTemplate, never()).update(eq(INSERT_INTO_TAG), any(String.class));
@@ -173,7 +173,7 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         String title = "test";
         String text = "text";
 
-        PostRequest createRequest = new PostRequest(POST_ID, title, text, tags);
+        PostRequestDto createRequest = new PostRequestDto(POST_ID, title, text, tags);
 
         doReturn(1).when(jdbcTemplate).update(
                 eq(UPDATE_POST),
@@ -187,13 +187,13 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
                 .when(jdbcTemplate).update(eq(INSERT_INTO_TAG), any(String.class));
         doThrow(new DataIntegrityViolationException("test"))
                 .when(jdbcTemplate).update(eq(INSERT_INTO_POST_TAG), eq(POST_ID), any(String.class));
-        doReturn(new PostResponse(POST_ID, createRequest.title(), createRequest.text(), tags, 0, 0))
+        doReturn(new PostResponseDto(POST_ID, createRequest.title(), createRequest.text(), tags, 0, 0))
                 .when(jdbcTemplate).queryForObject(
                         eq(SELECT_POST_BY_ID),
                         eq(postListRowMapper),
                         eq(POST_ID));
 
-        PostResponse response = postRepository.updatePost(createRequest);
+        PostResponseDto response = postRepository.updatePost(createRequest);
 
         verify(jdbcTemplate, times(1)).update(eq(DELETE_POST_TAGS), eq(POST_ID));
         verify(jdbcTemplate, times(tags.size())).update(eq(INSERT_INTO_TAG), any(String.class));
@@ -211,7 +211,7 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
     @Test
     void testCreatePostKeyHolderKeyIsNullThrows() {
         PostRepositoryImpl repository = spy(new PostRepositoryImpl(jdbcTemplate, postListRowMapper));
-        PostCreateRequest createRequest = new PostCreateRequest("title", "text", List.of("tag1"));
+        PostCreateRequestDto createRequest = new PostCreateRequestDto("title", "text", List.of("tag1"));
 
         doAnswer(invocation -> {
             PreparedStatementCreator psc = invocation.getArgument(0);

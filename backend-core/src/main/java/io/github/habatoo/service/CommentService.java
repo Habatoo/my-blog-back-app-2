@@ -1,7 +1,7 @@
 package io.github.habatoo.service;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.repositories.CommentRepository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,27 +24,27 @@ public interface CommentService {
      * Получить список комментариев для указанного поста.
      *
      * @param postId идентификатор поста, для которого запрашиваются комментарии
-     * @return список CommentResponse с комментариями к посту; пустой список если комментариев нет
+     * @return список CommentResponseDto с комментариями к посту; пустой список если комментариев нет
      */
-    List<CommentResponse> getCommentsByPostId(Long postId);
+    List<CommentResponseDto> getCommentsByPostId(Long postId);
 
     /**
      * Получить комментарий по идентификаторам поста и комментария.
      *
      * @param postId идентификатор поста, которому принадлежит комментарий
      * @param commentId идентификатор комментария
-     * @return Optional с CommentResponse, либо пустой если комментарий не найден
+     * @return Optional с CommentResponseDto, либо пустой если комментарий не найден
      */
-    Optional<CommentResponse> getCommentByPostIdAndId(Long postId, Long commentId);
+    Optional<CommentResponseDto> getCommentByPostIdAndId(Long postId, Long commentId);
 
     /**
      * Создать новый комментарий.
      *
      * @param request объект с данными для создания комментария: текст, id поста и пр.
-     * @return созданный CommentResponse с заполненными полями, включая сгенерированный id
+     * @return созданный CommentResponseDto с заполненными полями, включая сгенерированный id
      * @throws IllegalStateException при ошибке создания комментария
      */
-    CommentResponse createComment(CommentCreateRequest request);
+    CommentResponseDto createComment(CommentCreateRequestDto request);
 
     /**
      * Обновить текст существующего комментария.
@@ -52,10 +52,10 @@ public interface CommentService {
      * @param postId идентификатор поста, к которому относится комментарий
      * @param commentId идентификатор обновляемого комментария
      * @param text новый текст комментария
-     * @return обновлённый CommentResponse
+     * @return обновлённый CommentResponseDto
      * @throws IllegalStateException если комментарий с указанными id не найден
      */
-    CommentResponse updateComment(Long postId, Long commentId, String text);
+    CommentResponseDto updateComment(Long postId, Long commentId, String text);
 
     /**
      * Удалить комментарий по идентификаторам поста и комментария.

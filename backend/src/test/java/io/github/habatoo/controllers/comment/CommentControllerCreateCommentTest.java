@@ -1,7 +1,7 @@
 package io.github.habatoo.controllers.comment;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -22,12 +22,12 @@ class CommentControllerCreateCommentTest extends CommentControllerTestBase {
     @DisplayName("Должен создать комментарий и вернуть 201 статус")
     @Test
     void shouldCreateCommentAndReturnCreatedStatusTest() {
-        CommentCreateRequest createRequest = createCommentCreateRequest(COMMENT_TEXT, VALID_POST_ID);
-        CommentResponse expectedResponse = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
+        CommentCreateRequestDto createRequest = createCommentCreateRequest(COMMENT_TEXT, VALID_POST_ID);
+        CommentResponseDto expectedResponse = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
 
         when(commentService.createComment(createRequest)).thenReturn(expectedResponse);
 
-        ResponseEntity<CommentResponse> response = commentController.createComment(VALID_POST_ID, createRequest);
+        ResponseEntity<CommentResponseDto> response = commentController.createComment(VALID_POST_ID, createRequest);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(expectedResponse, response.getBody());
@@ -44,12 +44,12 @@ class CommentControllerCreateCommentTest extends CommentControllerTestBase {
             "   Текст с пробелами   "
     })
     void shouldCreateCommentWithDifferentTextsTest(String text) {
-        CommentCreateRequest createRequest = createCommentCreateRequest(text, VALID_POST_ID);
-        CommentResponse expectedResponse = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, text);
+        CommentCreateRequestDto createRequest = createCommentCreateRequest(text, VALID_POST_ID);
+        CommentResponseDto expectedResponse = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, text);
 
         when(commentService.createComment(createRequest)).thenReturn(expectedResponse);
 
-        ResponseEntity<CommentResponse> response = commentController.createComment(VALID_POST_ID, createRequest);
+        ResponseEntity<CommentResponseDto> response = commentController.createComment(VALID_POST_ID, createRequest);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(text, response.getBody().text());
@@ -60,12 +60,12 @@ class CommentControllerCreateCommentTest extends CommentControllerTestBase {
     @ParameterizedTest
     @ValueSource(longs = {1L, 10L, 100L, 1000L})
     void shouldCreateCommentForDifferentPostsTest(Long postId) {
-        CommentCreateRequest createRequest = createCommentCreateRequest(COMMENT_TEXT, postId);
-        CommentResponse expectedResponse = createCommentResponse(VALID_COMMENT_ID, postId, COMMENT_TEXT);
+        CommentCreateRequestDto createRequest = createCommentCreateRequest(COMMENT_TEXT, postId);
+        CommentResponseDto expectedResponse = createCommentResponse(VALID_COMMENT_ID, postId, COMMENT_TEXT);
 
         when(commentService.createComment(createRequest)).thenReturn(expectedResponse);
 
-        ResponseEntity<CommentResponse> response = commentController.createComment(postId, createRequest);
+        ResponseEntity<CommentResponseDto> response = commentController.createComment(postId, createRequest);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(postId, response.getBody().postId());

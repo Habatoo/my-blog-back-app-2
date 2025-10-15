@@ -1,6 +1,6 @@
 package io.github.habatoo.service.postservice;
 
-import io.github.habatoo.dto.response.PostResponse;
+import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.PostService;
@@ -33,9 +33,9 @@ abstract class PostServiceTestBase {
     protected static final Long VALID_POST_ID = 1L;
     protected static final Long INVALID_POST_ID = 999L;
 
-    protected static final PostResponse POST_RESPONSE_1 = new PostResponse(1L, "Первый", "Текст 1", List.of("tag1", "tag2"), 5, 10);
-    protected static final PostResponse POST_RESPONSE_2 = new PostResponse(2L, "Второй", "Текст 2", List.of("tag2", "tag3"), 3, 5);
-    protected static final PostResponse POST_RESPONSE_3 = new PostResponse(3L, "Третий", "Текст 3", List.of(), 0, 0);
+    protected static final PostResponseDto POST_RESPONSE_1 = new PostResponseDto(1L, "Первый", "Текст 1", List.of("tag1", "tag2"), 5, 10);
+    protected static final PostResponseDto POST_RESPONSE_2 = new PostResponseDto(2L, "Второй", "Текст 2", List.of("tag2", "tag3"), 3, 5);
+    protected static final PostResponseDto POST_RESPONSE_3 = new PostResponseDto(3L, "Третий", "Текст 3", List.of(), 0, 0);
 
     @BeforeEach
     void setUp() {

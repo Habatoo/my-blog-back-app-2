@@ -2,7 +2,7 @@ package io.github.habatoo.controllers.image;
 
 import io.github.habatoo.controllers.ImageController;
 import io.github.habatoo.service.ImageService;
-import io.github.habatoo.service.dto.ImageResponse;
+import io.github.habatoo.service.dto.ImageResponseDto;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -35,8 +35,8 @@ public abstract class ImageControllerTestBase {
         imageController = new ImageController(imageService);
     }
 
-    protected ImageResponse createImageResponse(byte[] data, MediaType mediaType) {
-        return new ImageResponse(data, mediaType);
+    protected ImageResponseDto createImageResponse(byte[] data, MediaType mediaType) {
+        return new ImageResponseDto(data, mediaType);
     }
 
     protected byte[] createJpegImageData() {

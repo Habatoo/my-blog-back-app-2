@@ -1,8 +1,8 @@
 package io.github.habatoo.controllers;
 
-import io.github.habatoo.dto.request.CommentCreateRequest;
-import io.github.habatoo.dto.request.CommentRequest;
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.request.CommentRequestDto;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.handlers.GlobalExceptionHandler;
 import io.github.habatoo.service.CommentService;
 import lombok.extern.slf4j.Slf4j;
@@ -22,8 +22,8 @@ import java.util.List;
  * Обрабатывает HTTP запросы и возвращает данные в формате JSON.</p>
  *
  * @see CommentService
- * @see CommentResponse
- * @see CommentCreateRequest
+ * @see CommentResponseDto
+ * @see CommentCreateRequestDto
  * @see GlobalExceptionHandler
  */
 @Slf4j
@@ -55,7 +55,7 @@ public class CommentController {
      * @throws DataAccessException      при ошибках доступа к данным
      */
     @GetMapping("/{postId}/comments")
-    public List<CommentResponse> getCommentsByPostId(@PathVariable("postId") Long postId) {
+    public List<CommentResponseDto> getCommentsByPostId(@PathVariable("postId") Long postId) {
         log.info("Запрос на получение комментариев для поста id={}", postId);
 
         return commentService.getCommentsByPostId(postId);
@@ -75,7 +75,7 @@ public class CommentController {
      * @throws DataAccessException      при ошибках доступа к данным
      */
     @GetMapping("/{postId}/comments/{commentId}")
-    public ResponseEntity<CommentResponse> getCommentByPostIdAndId(
+    public ResponseEntity<CommentResponseDto> getCommentByPostIdAndId(
             @PathVariable("postId") Long postId,
             @PathVariable("commentId") Long commentId) {
         log.info("Запрос на получение комментария id={} для поста id={}", commentId, postId);
@@ -100,11 +100,11 @@ public class CommentController {
      * @throws DataAccessException            при ошибках сохранения данных
      */
     @PostMapping("/{postId}/comments")
-    public ResponseEntity<CommentResponse> createComment(
+    public ResponseEntity<CommentResponseDto> createComment(
             @PathVariable("postId") Long postId,
-            @RequestBody CommentCreateRequest commentCreateRequest) {
+            @RequestBody CommentCreateRequestDto commentCreateRequest) {
         log.info("Запрос на создание комментария к посту id={}", postId);
-        CommentResponse result = commentService.createComment(commentCreateRequest);
+        CommentResponseDto result = commentService.createComment(commentCreateRequest);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -124,12 +124,12 @@ public class CommentController {
      * @throws DataAccessException            при ошибках обновления данных
      */
     @PutMapping("/{postId}/comments/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(
+    public ResponseEntity<CommentResponseDto> updateComment(
             @PathVariable("postId") Long postId,
             @PathVariable("commentId") Long commentId,
-            @RequestBody CommentRequest commentRequest) {
+            @RequestBody CommentRequestDto commentRequest) {
         log.info("Запрос на обновление комментария id={} для поста id={}", commentId, postId);
-        CommentResponse result = commentService.updateComment(postId, commentId, commentRequest.text());
+        CommentResponseDto result = commentService.updateComment(postId, commentId, commentRequest.text());
 
         return ResponseEntity.ok(result);
     }

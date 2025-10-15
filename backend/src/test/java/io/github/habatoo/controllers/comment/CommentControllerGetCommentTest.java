@@ -1,6 +1,6 @@
 package io.github.habatoo.controllers.comment;
 
-import io.github.habatoo.dto.response.CommentResponse;
+import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -23,12 +23,12 @@ class CommentControllerGetCommentTest extends CommentControllerTestBase {
     @Test
     @DisplayName("Должен вернуть комментарий когда он существует")
     void shouldReturnCommentWhenExistsTest() {
-        CommentResponse expectedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
+        CommentResponseDto expectedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
 
         when(commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID))
                 .thenReturn(Optional.of(expectedComment));
 
-        ResponseEntity<CommentResponse> response = commentController
+        ResponseEntity<CommentResponseDto> response = commentController
                 .getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -43,7 +43,7 @@ class CommentControllerGetCommentTest extends CommentControllerTestBase {
         when(commentService.getCommentByPostIdAndId(VALID_POST_ID, NON_EXISTENT_COMMENT_ID))
                 .thenReturn(Optional.empty());
 
-        ResponseEntity<CommentResponse> response = commentController
+        ResponseEntity<CommentResponseDto> response = commentController
                 .getCommentByPostIdAndId(VALID_POST_ID, NON_EXISTENT_COMMENT_ID);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -57,7 +57,7 @@ class CommentControllerGetCommentTest extends CommentControllerTestBase {
         when(commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID))
                 .thenReturn(Optional.empty());
 
-        ResponseEntity<CommentResponse> response = commentController
+        ResponseEntity<CommentResponseDto> response = commentController
                 .getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
 
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -73,12 +73,12 @@ class CommentControllerGetCommentTest extends CommentControllerTestBase {
             "123, 456"
     })
     void shouldHandleDifferentPostAndCommentIdsTest(Long postId, Long commentId) {
-        CommentResponse expectedComment = createCommentResponse(commentId, postId, COMMENT_TEXT);
+        CommentResponseDto expectedComment = createCommentResponse(commentId, postId, COMMENT_TEXT);
 
         when(commentService.getCommentByPostIdAndId(postId, commentId))
                 .thenReturn(Optional.of(expectedComment));
 
-        ResponseEntity<CommentResponse> response = commentController
+        ResponseEntity<CommentResponseDto> response = commentController
                 .getCommentByPostIdAndId(postId, commentId);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());

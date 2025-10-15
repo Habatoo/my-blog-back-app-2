@@ -19,7 +19,7 @@ public class CommentRepositoryConfiguration {
 
     /**
      * Создаёт бин маппер комментариев для преобразования
-     * строк результата SQL-запросов в DTO CommentResponse.
+     * строк результата SQL-запросов в DTO CommentResponseDto.
      *
      * @return экземпляр CommentRowMapper
      */
@@ -35,7 +35,7 @@ public class CommentRepositoryConfiguration {
      * </p>
      *
      * @param jdbcTemplate     шаблон работы с базой данных
-     * @param commentRowMapper маппер строк в CommentResponse
+     * @param commentRowMapper маппер строк в CommentResponseDto
      * @return экземпляр репозитория комментариев
      */
     @Bean
