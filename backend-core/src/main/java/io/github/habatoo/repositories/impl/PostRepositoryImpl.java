@@ -161,7 +161,7 @@ public class PostRepositoryImpl implements PostRepository {
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
                     CREATE_POST,
-                    new String[]{"ID"}
+                    new String[]{"id"}
             );
             ps.setString(1, title);
             ps.setString(2, text);

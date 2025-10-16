@@ -12,7 +12,7 @@ services:
   flyway:
     container_name: flyway
     image: flyway/flyway:latest
-    depends_on: [db]
+    depends_on: [ db ]
     env_file: ./env/.env
     command: migrate -connectRetries=10
     volumes:
@@ -23,13 +23,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    depends_on: [db, flyway]
+    depends_on: [ db, flyway ]
     env_file: ./env/.env
     ports:
       - "8080:8080"
     restart: unless-stopped
     volumes:
-      - ${M2_PATH}:/root/.m2
+      - uploads_data:/app/uploads/posts
 
   my-blog-front-app:
     container_name: my-blog-front-app
@@ -42,3 +42,4 @@ services:
 
 volumes:
   blog_db:
+  uploads_data:

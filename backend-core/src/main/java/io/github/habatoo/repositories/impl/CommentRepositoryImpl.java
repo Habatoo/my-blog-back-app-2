@@ -69,7 +69,7 @@ public class CommentRepositoryImpl implements CommentRepository {
         jdbcTemplate.update(connection -> {
             PreparedStatement ps = connection.prepareStatement(
                     INSERT_COMMENT,
-                    new String[]{"ID"}
+                    new String[]{"id"}
             );
             ps.setLong(1, commentCreateRequest.postId());
             ps.setString(2, commentCreateRequest.text());
