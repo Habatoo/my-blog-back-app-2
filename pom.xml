@@ -13,8 +13,8 @@
     <modules>
         <module>bom</module>
         <module>backend-core</module>
-        <module>backend</module>
-        <module>integrationtests</module>
+        <module>api</module>
+        <module>integrations</module>
         <module>report</module>
     </modules>
 
@@ -80,12 +80,12 @@
             </dependency>
             <dependency>
                 <groupId>io.github.habatoo</groupId>
-                <artifactId>backend</artifactId>
+                <artifactId>api</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.habatoo</groupId>
-                <artifactId>integrationtests</artifactId>
+                <artifactId>integrations</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
@@ -160,30 +160,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>dev</id> <!-- Профиль для разработки -->
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <properties>
-                <log.level>DEBUG</log.level>
-                <server.port>8080</server.port>
-            </properties>
-        </profile>
-        <profile>
-            <id>prod</id> <!-- Профиль для продакшна -->
-            <activation>
-                <property>
-                    <name>env</name>
-                    <value>prod</value>
-                </property>
-            </activation>
-            <properties>
-                <log.level>WARN</log.level>
-                <server.port>80</server.port>
-            </properties>
-        </profile>
-    </profiles>
 </project>

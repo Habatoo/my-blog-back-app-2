@@ -13,12 +13,12 @@
       mvnw clean install
       ```
    После сборки гарантируется появление файлов
-    - `./bacend/target/backend-1.0-SNAPSHOT.war`.
+    - `./api/target/api-1.0-SNAPSHOT.war`.
     - `./backend-core/target/backend-core-1.0-SNAPSHOT.jar`.
    Файл backend-1.0-SNAPSHOT.war содержит все нужные зависимости из модуля backend-core
 
 3. **Подготовить миграции Flyway и настроить переменные БД**
-    - Миграции должны лежать в `./backend/src/main/resources/db/migrations/`
+    - Миграции должны лежать в `./api/src/main/resources/db/migrations/`
     - .env файл — в нем заданы параметры БД.
 
 4. **Собрать и запустить Docker-кластер**

@@ -26,7 +26,7 @@
         </dependency>
         <dependency>
             <groupId>io.github.habatoo</groupId>
-            <artifactId>backend</artifactId>
+            <artifactId>api</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
@@ -63,7 +63,7 @@
                 <configuration>
                     <fileSets>
                         <fileSet>
-                            <directory>${project.parent.basedir}/backend/target</directory>
+                            <directory>${project.parent.basedir}/api/target</directory>
                             <includes>
                                 <include>jacoco.exec</include>
                             </includes>
