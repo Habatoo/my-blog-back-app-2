@@ -47,7 +47,7 @@ public class PostRepositoryIntegrationTest {
      */
     @BeforeEach
     @DisplayName("Подготовка тестовой базы и вставка постов с тегами")
-    void setup() {
+    void setUp() {
         flyway.clean();
         flyway.migrate();
 
@@ -75,7 +75,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Получение всех постов с тегами")
-    void testFindAllPosts() {
+    void testFindAllPoststTest() {
         List<PostResponseDto> posts = postRepository.findAllPosts();
 
         assertThat(posts).isNotEmpty();
@@ -93,7 +93,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Создание нового поста с тегами")
-    void testCreatePost() {
+    void testCreatePostTest() {
         flyway.clean();
         flyway.migrate();
         PostCreateRequestDto request = new PostCreateRequestDto("Новый пост", "Текст нового поста", List.of("Tag1", "Tag3"));
@@ -119,8 +119,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Обновление существующего поста")
-    void testUpdatePost() {
-        List<String> tags = List.of("Tag1", "Tag3");
+    void testUpdatePostTest() {
         PostRequestDto request = new PostRequestDto(1L, "Обновлённый заголовок", "Обновлённый текст", List.of("Tag4"));
         PostResponseDto updated = postRepository.updatePost(request);
 
@@ -136,7 +135,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Удаление существующего поста")
-    void testDeletePost_existing() {
+    void testDeletePostExistingTest() {
         postRepository.deletePost(3L);
 
         Integer count = jdbcTemplate.queryForObject(
@@ -150,7 +149,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Удаление несуществующего поста вызывает исключение")
-    void testDeletePost_nonExisting() {
+    void testDeletePostNonExistingTest() {
         assertThatThrownBy(() -> postRepository.deletePost(999L))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Пост не найден для удаления id==999");
@@ -162,7 +161,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Получение тегов для существующего поста")
-    void testGetTagsForPost_existing() {
+    void testGetTagsForPostExistingTest() {
         List<String> tags = postRepository.getTagsForPost(1L);
         assertThat(tags).containsExactlyInAnyOrder("Tag1", "Tag2");
     }
@@ -173,7 +172,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Получение тегов для несуществующего поста возвращает пустой список")
-    void testGetTagsForPost_nonExisting() {
+    void testGetTagsForPostNonExistingTest() {
         List<String> tags = postRepository.getTagsForPost(999L);
         assertThat(tags).isEmpty();
     }
@@ -184,7 +183,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Увеличение количества лайков существующего поста")
-    void testIncrementLikes_existing() {
+    void testIncrementLikesExistingTest() {
         postRepository.incrementLikes(1L);
 
         Integer likesCount = jdbcTemplate.queryForObject(
@@ -198,7 +197,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Увеличение количества лайков несуществующего поста вызывает исключение")
-    void testIncrementLikes_nonExisting() {
+    void testIncrementLikesNonExistingTest() {
         assertThatThrownBy(() -> postRepository.incrementLikes(999L))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Пост не найден при увеличении лайков id=999");
@@ -210,7 +209,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Увеличение счётчика комментариев существующего поста")
-    void testIncrementCommentsCount() {
+    void testIncrementCommentsCountTest() {
         Integer before = jdbcTemplate.queryForObject(
                 "SELECT comments_count FROM post WHERE id = ?", Integer.class, 1L);
         postRepository.incrementCommentsCount(1L);
@@ -226,7 +225,7 @@ public class PostRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Уменьшение счётчика комментариев существующего поста")
-    void testDecrementCommentsCount() {
+    void testDecrementCommentsCountTest() {
         postRepository.incrementCommentsCount(1L);
 
         Integer before = jdbcTemplate.queryForObject(

@@ -8,6 +8,7 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.testcontainers.containers.PostgreSQLContainer;
 
 import javax.sql.DataSource;
 
@@ -35,34 +36,46 @@ public class TestDataSourceConfiguration {
         return new PropertySourcesPlaceholderConfigurer();
     }
 
+    /**
+     * Создаёт и запускает тестовый контейнер PostgreSQL на базе образа postgres:17-alpine.
+     * Используется исключительно для целей интеграционного тестирования.
+     *
+     * @return экземпляр управляемого Testcontainers контейнера PostgreSQL
+     */
+    @Bean
+    public static PostgreSQLContainer<?> postgres() {
+        PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:17-alpine")
+                .withDatabaseName("blog_test")
+                .withUsername("test")
+                .withPassword("test");
+        container.start();
+        return container;
+    }
+
+    /**
+     * Создаёт менеджер транзакций Spring для работы с JDBC DataSource.
+     *
+     * @param dataSource источник данных для транзакций
+     * @return менеджер транзакций DataSourceTransactionManager
+     */
     @Bean
     public DataSourceTransactionManager transactionManager(DataSource dataSource) {
         return new DataSourceTransactionManager(dataSource);
     }
 
     /**
-     * Создаёт бин источника данных по параметрам из properties.
-     * В тестах обычно используется H2 или другой embedded-движок.
+     * Создаёт источник данных (DataSource) на основании параметров контейнера PostgreSQL.
      *
-     * @param driver   драйвер JDBC
-     * @param url      JDBC URL подключения
-     * @param username имя пользователя БД
-     * @param password пароль пользователя БД
-     * @return источник данных JDBC
+     * @param postgres запущенный контейнер PostgreSQL с параметрами доступа
+     * @return настроенный источник данных DriverManagerDataSource
      */
     @Bean
-    public DataSource dataSource(
-            @Value("${spring.datasource.driver-class-name}") String driver,
-            @Value("${spring.datasource.url}") String url,
-            @Value("${spring.datasource.username}") String username,
-            @Value("${spring.datasource.password}") String password
-    ) {
-        log.info("Создаём DataSource для H2");
+    public DataSource dataSource(PostgreSQLContainer<?> postgres) {
         DriverManagerDataSource ds = new DriverManagerDataSource();
-        ds.setDriverClassName(driver);
-        ds.setUrl(url);
-        ds.setUsername(username);
-        ds.setPassword(password);
+        ds.setDriverClassName(postgres.getDriverClassName());
+        ds.setUrl(postgres.getJdbcUrl());
+        ds.setUsername(postgres.getUsername());
+        ds.setPassword(postgres.getPassword());
         return ds;
     }
 

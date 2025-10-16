@@ -1,0 +1,187 @@
+package io.github.habatoo.controllers;
+
+import io.github.habatoo.configurations.TestDataSourceConfiguration;
+import io.github.habatoo.configurations.controllers.PostControllerConfiguration;
+import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.handlers.GlobalExceptionHandler;
+import io.github.habatoo.service.PostService;
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import javax.sql.DataSource;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+/**
+ * Интеграционные тесты контроллера постов (PostController).
+ * Проверяет корректность работы CRUD-операций, поиска, пагинации и лайков в REST API.
+ * <p>
+ * В каждом тесте база инициализируется одними и теми же постами,
+ * чтобы результаты запросов можно было проверять однозначно.
+ */
+@ExtendWith(SpringExtension.class)
+@Testcontainers
+@ContextConfiguration(classes = {PostControllerConfiguration.class, TestDataSourceConfiguration.class})
+@DisplayName("Интеграционные тесты PostController")
+class PostControllerIntegrationTest {
+
+    @Autowired
+    PostController postController;
+
+    @Autowired
+    private PostService postService;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    DataSource dataSource;
+
+    @Autowired
+    private Flyway flyway;
+
+    MockMvc mockMvc;
+
+    @BeforeEach
+    @DisplayName("Подготовка тестовых постов и очистка базы")
+    void setUp() throws Exception {
+        flyway.clean();
+        flyway.migrate();
+        this.mockMvc = MockMvcBuilders.standaloneSetup(postController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+
+        postService.createPost(new PostCreateRequestDto(
+                "Мой первый пост о Java",
+                "Изучаю Java и Spring Framework.",
+                List.of("java", "spring")
+        ));
+        postService.createPost(new PostCreateRequestDto(
+                "Spring Boot преимущества",
+                "Spring Boot для быстрой разработки.",
+                List.of("spring")
+        ));
+        postService.createPost(new PostCreateRequestDto(
+                "Работа с базами данных",
+                "Пример интеграции с PostgreSQL.",
+                List.of("database")
+        ));
+    }
+
+    /**
+     * Проверяет создание поста через POST-запрос.
+     * Ожидается успешное создание и возврат нового id.
+     */
+    @Test
+    @DisplayName("Создание нового поста")
+    void createPost() throws Exception {
+        mockMvc.perform(post("/api/posts")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                 {
+                                   "title": "Test Post",
+                                   "text": "Тестовое содержимое.",
+                                   "tags": ["test", "example"]
+                                 }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").isNumber())
+                .andExpect(jsonPath("$.title").value("Test Post"))
+                .andExpect(jsonPath("$.tags.length()").value(2));
+    }
+
+    /**
+     * Проверяет получение поста по ID.
+     * Ожидается корректный возврат для существующего поста.
+     */
+    @Test
+    @DisplayName("Получение поста по id=1")
+    void getPostById() throws Exception {
+        mockMvc.perform(get("/api/posts/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.title").value("Мой первый пост о Java"));
+    }
+
+    /**
+     * Проверяет получение постов с поиском по тексту и пагинацией.
+     * Ожидается 1 найденный пост по заданному поисковому слову.
+     */
+    @Test
+    @DisplayName("Пагинация и поиск постов")
+    void getPostsWithPaginationAndSearch() throws Exception {
+        mockMvc.perform(get("/api/posts")
+                        .param("search", "Spring")
+                        .param("pageNumber", "1")
+                        .param("pageSize", "2"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.posts.length()").value(2))
+                .andExpect(jsonPath("$.totalCount").value(2));
+    }
+
+    /**
+     * Проверяет обновление поста по id.
+     * Ожидается, что title и text будут обновлены.
+     */
+    @Test
+    @DisplayName("Обновление поста по id=2")
+    void updatePost() throws Exception {
+        mockMvc.perform(put("/api/posts/2")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "id": 2,
+                                  "title": "Обновленный заголовок",
+                                  "text": "Новый текст",
+                                  "tags": ["spring", "updated"]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(2))
+                .andExpect(jsonPath("$.title").value("Обновленный заголовок"))
+                .andExpect(jsonPath("$.text").value("Новый текст"))
+                .andExpect(jsonPath("$.tags.length()").value(2));
+    }
+
+    /**
+     * Проверяет удаление поста. После этого запрос к этому id вернёт 404.
+     */
+    @Test
+    @DisplayName("Удаление поста по id=3")
+    void deletePost() throws Exception {
+        mockMvc.perform(delete("/api/posts/3"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/posts/3"))
+                .andExpect(status().isNotFound());
+    }
+
+    /**
+     * Проверяет увеличение лайков для поста.
+     * Ожидается увеличение на 1.
+     */
+    @Test
+    @DisplayName("Инкремент лайков для поста id=1")
+    void incrementLikes() throws Exception {
+        mockMvc.perform(post("/api/posts/1/likes"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("1"));
+
+        mockMvc.perform(post("/api/posts/1/likes"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("2"));
+    }
+}

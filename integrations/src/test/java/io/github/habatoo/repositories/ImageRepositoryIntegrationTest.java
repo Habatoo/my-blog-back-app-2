@@ -43,7 +43,7 @@ public class ImageRepositoryIntegrationTest {
      */
     @BeforeEach
     @DisplayName("Подготовка тестовой базы и вставка тестовых постов с метаданными изображений")
-    void setup() {
+    void setUp() {
         flyway.clean();
         flyway.migrate();
 
@@ -66,7 +66,7 @@ public class ImageRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Поиск имени файла изображения по postId (существующее изображение)")
-    void testFindImageFileNameByPostId_existing() {
+    void testFindImageFileNameByPostIdExistingTest() {
         Optional<String> fileName = imageRepository.findImageFileNameByPostId(1L);
         assertThat(fileName).isPresent();
         assertThat(fileName.get()).isEqualTo("original_img1.jpg");
@@ -77,7 +77,7 @@ public class ImageRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Поиск имени файла изображения по postId (изображения нет)")
-    void testFindImageFileNameByPostId_notFound() {
+    void testFindImageFileNameByPostIdNotFoundTest() {
         jdbcTemplate.update(
                 "INSERT INTO post (id, title, text, likes_count, comments_count, created_at, updated_at) VALUES (?, ?, ?, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
                 10L, "Пост без изображения", "Контент");
@@ -91,7 +91,7 @@ public class ImageRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Обновление метаданных изображения существующего поста")
-    void testUpdateImageMetadata_existingPost() {
+    void testUpdateImageMetadataExistingPostTest() {
         imageRepository.updateImageMetadata(
                 1L,
                 "/images/updated_img1.jpg",
@@ -116,7 +116,7 @@ public class ImageRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Обновление метаданных изображения несуществующего поста вызывает исключение")
-    void testUpdateImageMetadata_nonExistingPost() {
+    void testUpdateImageMetadataNonExistingPostTest() {
         assertThatThrownBy(() -> imageRepository.updateImageMetadata(
                 999L,
                 "/images/file.jpg",
@@ -131,7 +131,7 @@ public class ImageRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Обновление метаданных изображения для несуществующего поста — проверка, что данные не обновились")
-    void testUpdateImageMetadata_nonExistingPost_noDataUpdated() {
+    void testUpdateImageMetadataNonExistingPostNoDataUpdatedTest() {
         int countBefore = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM post WHERE image_name IS NOT NULL", Integer.class);
 
@@ -151,7 +151,7 @@ public class ImageRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Проверка существования поста по id (существующий пост)")
-    void testExistsPostById_existing() {
+    void testExistsPostByIdExistingTest() {
         assertThat(imageRepository.existsPostById(1L)).isTrue();
     }
 
@@ -160,7 +160,7 @@ public class ImageRepositoryIntegrationTest {
      */
     @Test
     @DisplayName("Проверка существования поста по id (несуществующий пост)")
-    void testExistsPostById_nonExisting() {
+    void testExistsPostByIdNonExistingTest() {
         assertThat(imageRepository.existsPostById(999L)).isFalse();
     }
 }

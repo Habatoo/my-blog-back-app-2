@@ -52,9 +52,10 @@ class CommentServiceIntegrationTest {
     private Flyway flyway;
 
     @BeforeEach
-    void prepareData() {
+    void setUp() {
         flyway.clean();
         flyway.migrate();
+
         for (int i = 0; i < 3; i++) {
             postService.createPost(new PostCreateRequestDto("Заголовок_ " + i, "Текст_" + i, List.of("tag_1" + i, "tag2" + i)));
         }
@@ -69,7 +70,7 @@ class CommentServiceIntegrationTest {
      */
     @Test
     @DisplayName("Создание комментария через сервис и получение списка комментариев по посту")
-    void testCreateAndGetComments() {
+    void testCreateAndGetCommentsTest() {
         Long postId = 1L;
         CommentCreateRequestDto req = new CommentCreateRequestDto(postId, "Новый комментарий");
         CommentResponseDto saved = commentService.createComment(req);
@@ -91,7 +92,7 @@ class CommentServiceIntegrationTest {
      */
     @Test
     @DisplayName("Обновление комментария через сервис и проверка обновлённого текста")
-    void testUpdateAndGetComments() {
+    void testUpdateAndGetCommentsTest() {
         CommentCreateRequestDto req = new CommentCreateRequestDto(1L, "Новый комментарий");
         CommentResponseDto saved = commentService.createComment(req);
         CommentResponseDto edited = commentService.updateComment(1L, saved.id(), "Обновленный комментарий");
@@ -110,7 +111,7 @@ class CommentServiceIntegrationTest {
      */
     @Test
     @DisplayName("Удаление комментария уменьшает счётчик комментариев у поста и удаляет комментарий")
-    void testDeleteComment() {
+    void testDeleteCommentTest() {
         CommentCreateRequestDto req = new CommentCreateRequestDto(1L, "Удаляемый комментарий");
         CommentResponseDto saved = commentService.createComment(req);
 
@@ -129,7 +130,7 @@ class CommentServiceIntegrationTest {
      */
     @Test
     @DisplayName("При попытке получить комментарии несуществующего поста выбрасывается исключение")
-    void testGetCommentsNonExistingPost() {
+    void testGetCommentsNonExistingPostTest() {
         Long nonExistingPostId = 999L;
         assertThatThrownBy(() -> commentService.getCommentsByPostId(nonExistingPostId))
                 .isInstanceOf(IllegalStateException.class)
@@ -143,7 +144,7 @@ class CommentServiceIntegrationTest {
      */
     @Test
     @DisplayName("При попытке обновить комментарий несуществующего поста выбрасывается исключение")
-    void testUpdateCommentNonExistingPost() {
+    void testUpdateCommentNonExistingPostTest() {
         Long nonExistingPostId = 999L;
         assertThatThrownBy(() -> commentService.updateComment(nonExistingPostId, 1L, "text"))
                 .isInstanceOf(IllegalStateException.class)
@@ -157,7 +158,7 @@ class CommentServiceIntegrationTest {
      */
     @Test
     @DisplayName("При попытке обновить несуществующий комментарий выбрасывается исключение")
-    void testUpdateNonExistingComment() {
+    void testUpdateNonExistingCommentTest() {
         Long postId = 1L;
         CommentCreateRequestDto req = new CommentCreateRequestDto(postId, "Комментарий");
         commentService.createComment(req);
@@ -174,7 +175,7 @@ class CommentServiceIntegrationTest {
      */
     @Test
     @DisplayName("При попытке удалить комментарий несуществующего поста выбрасывается исключение")
-    void testDeleteCommentNonExistingPost() {
+    void testDeleteCommentNonExistingPostTest() {
         Long nonExistingPostId = 999L;
         assertThatThrownBy(() -> commentService.deleteComment(nonExistingPostId, 1L))
                 .isInstanceOf(IllegalStateException.class)
@@ -188,7 +189,7 @@ class CommentServiceIntegrationTest {
      */
     @Test
     @DisplayName("При попытке удалить несуществующий комментарий выбрасывается исключение")
-    void testDeleteNonExistingComment() {
+    void testDeleteNonExistingCommentTest() {
         Long postId = 1L;
         CommentCreateRequestDto req = new CommentCreateRequestDto(postId, "Комментарий");
         CommentResponseDto saved = commentService.createComment(req);

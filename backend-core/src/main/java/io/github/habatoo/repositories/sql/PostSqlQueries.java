@@ -21,15 +21,15 @@ public final class PostSqlQueries {
             """;
 
     public static final String INSERT_INTO_TAG = """
-            MERGE INTO tag (name)
-            KEY(name)
+            INSERT INTO tag (name)
             VALUES (?)
+            ON CONFLICT (name) DO NOTHING;
             """;
 
     public static final String INSERT_INTO_POST_TAG = """
-            MERGE INTO post_tag (post_id, tag_id)
-            KEY (post_id, tag_id)
+            INSERT INTO post_tag (post_id, tag_id)
             VALUES (?, (SELECT id FROM tag WHERE name = ?))
+            ON CONFLICT (post_id, tag_id) DO NOTHING;
             """;
 
     public static final String UPDATE_POST = """

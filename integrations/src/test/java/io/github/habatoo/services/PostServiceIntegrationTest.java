@@ -64,7 +64,7 @@ class PostServiceIntegrationTest {
     private String uploadDir;
 
     @BeforeEach
-    void setup() {
+    void setUp() {
         flyway.clean();
         flyway.migrate();
 
@@ -80,7 +80,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Получение постов с поиском, тегами и пагинацией")
-    void testGetPostsWithSearchAndTagsAndPagination() {
+    void testGetPostsWithSearchAndTagsAndPaginationTest() {
         PostListResponseDto response = postService.getPosts("Text #common", 1, 3);
 
         assertThat(response.posts()).hasSizeLessThanOrEqualTo(3);
@@ -99,7 +99,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Получение поста по ID из кеша")
-    void testGetPostById() {
+    void testGetPostByIdTest() {
         Optional<PostResponseDto> maybePost = postService.getPostById(1L);
 
         assertThat(maybePost).isPresent();
@@ -113,7 +113,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Создание нового поста с обновлением кэша")
-    void testCreatePost() {
+    void testCreatePostTest() {
         PostCreateRequestDto createRequest = new PostCreateRequestDto("New Title", "New text", List.of("newtag"));
         PostResponseDto createdPost = postService.createPost(createRequest);
 
@@ -130,7 +130,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Обновление поста с обновлением кэша")
-    void testUpdatePost() {
+    void testUpdatePostTest() {
         PostRequestDto updateRequest = new PostRequestDto(1L, "Updated Title", "Updated Text", List.of("tag0"));
         PostResponseDto updated = postService.updatePost(updateRequest);
 
@@ -148,7 +148,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Удаление поста, очистка кэша и удаление директории")
-    void testDeletePost() throws IOException {
+    void testDeletePostTest() throws IOException {
         long deleteId = 2L;
 
         postService.deletePost(deleteId);
@@ -171,7 +171,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Инкремент лайков с обновлением кэша")
-    void testIncrementLikes() {
+    void testIncrementLikesTest() {
         int oldLikes = postService.getPostById(1L).map(PostResponseDto::likesCount).orElse(0);
         int newLikes = postService.incrementLikes(1L);
 
@@ -187,7 +187,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Инкремент комментариев с обновлением кэша")
-    void testIncrementCommentsCount() {
+    void testIncrementCommentsCountTest() {
         int before = postService.getPostById(1L).map(PostResponseDto::commentsCount).orElse(0);
         postService.incrementCommentsCount(1L);
         int after = postService.getPostById(1L).map(PostResponseDto::commentsCount).orElse(0);
@@ -200,7 +200,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Декремент комментариев с обновлением кэша, не ниже 0")
-    void testDecrementCommentsCount() {
+    void testDecrementCommentsCountTest() {
         postService.incrementCommentsCount(1L);
 
         int before = postService.getPostById(1L).map(PostResponseDto::commentsCount).orElse(0);
@@ -215,7 +215,7 @@ class PostServiceIntegrationTest {
      */
     @Test
     @DisplayName("Проверка существования поста")
-    void testPostExists() {
+    void testPostExistsTest() {
         assertThat(postService.postExists(1L)).isTrue();
         assertThat(postService.postExists(999L)).isFalse();
     }

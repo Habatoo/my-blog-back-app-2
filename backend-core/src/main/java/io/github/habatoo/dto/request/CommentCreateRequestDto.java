@@ -13,6 +13,5 @@ package io.github.habatoo.dto.request;
 public record CommentCreateRequestDto(
         Long postId,
         String text
-
 ) {
 }

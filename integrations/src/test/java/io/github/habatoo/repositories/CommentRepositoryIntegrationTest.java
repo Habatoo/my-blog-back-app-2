@@ -44,7 +44,7 @@ public class CommentRepositoryIntegrationTest {
      */
     @BeforeEach
     @DisplayName("Подготовка тестовой базы и вставка тестовых постов")
-    void setup() {
+    void setUp() {
         flyway.clean();
         flyway.migrate();
 
