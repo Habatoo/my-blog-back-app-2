@@ -93,12 +93,12 @@ DELETE FROM post;
 DELETE FROM tag;
 
 -- Вставка тегов (с защитой от дубликатов)
-INSERT INTO tag (name, created_at)
+INSERT INTO tag (name)
 SELECT 'java', CURRENT_TIMESTAMP WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'java')
-UNION ALL SELECT 'spring', CURRENT_TIMESTAMP WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'spring')
-UNION ALL SELECT 'programming', CURRENT_TIMESTAMP WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'programming')
-UNION ALL SELECT 'database', CURRENT_TIMESTAMP WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'database')
-UNION ALL SELECT 'tutorial', CURRENT_TIMESTAMP WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'tutorial');
+UNION ALL SELECT 'spring', WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'spring')
+UNION ALL SELECT 'programming', WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'programming')
+UNION ALL SELECT 'database', WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'database')
+UNION ALL SELECT 'tutorial', WHERE NOT EXISTS (SELECT 1 FROM tag WHERE name = 'tutorial');
 
 -- Вставка постов
 INSERT INTO post (title, text, likes_count, comments_count, created_at, updated_at) VALUES
@@ -109,20 +109,20 @@ INSERT INTO post (title, text, likes_count, comments_count, created_at, updated_
 ('Без тегов пример', 'Этот пост создан без тегов для демонстрации.', 1, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 
 -- Связывание постов с тегами (только для первых 4 постов)
-INSERT INTO post_tag (post_id, tag_id, created_at)
-SELECT p.id, t.id, CURRENT_TIMESTAMP FROM post p, tag t
+INSERT INTO post_tag (post_id, tag_id)
+SELECT p.id, t.id FROM post p, tag t
 WHERE p.title = 'Мой первый пост о Java' AND t.name IN ('java', 'spring', 'programming');
 
-INSERT INTO post_tag (post_id, tag_id, created_at)
-SELECT p.id, t.id, CURRENT_TIMESTAMP FROM post p, tag t
+INSERT INTO post_tag (post_id, tag_id)
+SELECT p.id, t.id FROM post p, tag t
 WHERE p.title = 'Spring Boot преимущества' AND t.name IN ('java', 'spring');
 
-INSERT INTO post_tag (post_id, tag_id, created_at)
-SELECT p.id, t.id, CURRENT_TIMESTAMP FROM post p, tag t
+INSERT INTO post_tag (post_id, tag_id)
+SELECT p.id, t.id post p, tag t
 WHERE p.title = 'Работа с базами данных' AND t.name IN ('java', 'database', 'tutorial');
 
-INSERT INTO post_tag (post_id, tag_id, created_at)
-SELECT p.id, t.id, CURRENT_TIMESTAMP FROM post p, tag t
+INSERT INTO post_tag (post_id, tag_id)
+SELECT p.id, t.id post p, tag t
 WHERE p.title = 'Советы по программированию' AND t.name IN ('programming', 'tutorial');
 
 -- Вставка комментариев (не для всех постов)

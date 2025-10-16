@@ -58,12 +58,12 @@ public class PostRepositoryIntegrationTest {
                     id, "Пост " + id, "Контент поста " + id);
         }
 
-        jdbcTemplate.update("INSERT INTO tag (id, name, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)", 1L, "Tag1");
-        jdbcTemplate.update("INSERT INTO tag (id, name, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)", 2L, "Tag2");
+        jdbcTemplate.update("INSERT INTO tag (id, name) VALUES (?, ?)", 1L, "Tag1");
+        jdbcTemplate.update("INSERT INTO tag (id, name) VALUES (?, ?)", 2L, "Tag2");
 
-        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)", 1L, 1L);
-        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)", 1L, 2L);
-        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)", 2L, 1L);
+        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id) VALUES (?, ?)", 1L, 1L);
+        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id) VALUES (?, ?)", 1L, 2L);
+        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id) VALUES (?, ?)", 2L, 1L);
     }
 
     /**
