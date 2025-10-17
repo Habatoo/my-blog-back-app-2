@@ -6,13 +6,9 @@ import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.repositories.mapper.PostListRowMapper;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -58,13 +54,25 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public PostResponseDto createPost(PostCreateRequestDto postCreateRequest) {
         LocalDateTime now = LocalDateTime.now();
-        Long postId = createPost(postCreateRequest.title(), postCreateRequest.text(), now);
+        PostResponseDto postResponse = createPost(
+                postCreateRequest.title(),
+                postCreateRequest.text(),
+                now);
+        Long postId = postResponse.id();
         log.info("Пост успешно создан с id='{}'", postId);
 
         List<String> tags = postCreateRequest.tags();
         updatePostTagsInternal(postId, tags);
+        List<String> tagsForPost = getTagsForPost(postId);
 
-        return selectPostById(postId);
+        return new PostResponseDto(
+                postResponse.id(),
+                postResponse.title(),
+                postResponse.text(),
+                tagsForPost,
+                postResponse.likesCount(),
+                postResponse.commentsCount()
+        );
     }
 
     /**
@@ -73,7 +81,7 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public PostResponseDto updatePost(PostRequestDto postRequest) {
         Long postId = postRequest.id();
-        updatePost(postRequest.title(),
+        PostResponseDto postResponse = updatePost(postRequest.title(),
                 postRequest.text(),
                 LocalDateTime.now(),
                 postId);
@@ -81,7 +89,16 @@ public class PostRepositoryImpl implements PostRepository {
         updatePostTagsInternal(postId, tags);
         log.info("Пост id={} успешно обновлен", postId);
 
-        return selectPostById(postId);
+        List<String> tagsForPost = getTagsForPost(postId);
+
+        return new PostResponseDto(
+                postResponse.id(),
+                postResponse.title(),
+                postResponse.text(),
+                tagsForPost,
+                postResponse.likesCount(),
+                postResponse.commentsCount()
+        );
     }
 
     /**
@@ -156,44 +173,36 @@ public class PostRepositoryImpl implements PostRepository {
     /**
      * Вставляет новый пост в таблицу и возвращает сгенерированный id.
      */
-    private Long createPost(String title, String text, LocalDateTime now) {
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                    CREATE_POST,
-                    new String[]{"id"}
-            );
-            ps.setString(1, title);
-            ps.setString(2, text);
-            ps.setTimestamp(3, Timestamp.valueOf(now));
-            ps.setTimestamp(4, Timestamp.valueOf(now));
-            return ps;
-        }, keyHolder);
-
-        if (keyHolder.getKey() == null) {
-            String msg = "Пост не создан";
-            log.warn(msg);
-            throw new IllegalStateException(msg);
-        }
-
-        return keyHolder.getKey().longValue();
+    private PostResponseDto createPost(
+            String title,
+            String text,
+            LocalDateTime now) {
+        return jdbcTemplate.queryForObject(
+                CREATE_POST,
+                postListRowMapper,
+                title,
+                text,
+                Timestamp.valueOf(now),
+                Timestamp.valueOf(now)
+        );
     }
 
     /**
      * Редактирует существующий пост новый пост в таблице.
      */
-    private void updatePost(String title,
-                            String text,
-                            LocalDateTime now,
-                            Long postId) {
-        int rowsUpdated = jdbcTemplate.update(
+    private PostResponseDto updatePost(
+            String title,
+            String text,
+            LocalDateTime now,
+            Long postId) {
+        return jdbcTemplate.queryForObject(
                 UPDATE_POST,
+                postListRowMapper,
                 title,
                 text,
-                now,
-                postId);
-        final String msg = String.format("Пост с id=%d не найден для обновления", postId);
-        checkIfThrow(rowsUpdated, msg);
+                Timestamp.valueOf(now),
+                postId
+        );
     }
 
     /**
@@ -218,48 +227,36 @@ public class PostRepositoryImpl implements PostRepository {
      * Выполняет пакетную вставку тегов с использованием MERGE.
      */
     private void insertTags(List<String> tags) {
-        for (String tag : tags.stream().distinct().toList()) {
-            try {
-                jdbcTemplate.update(INSERT_INTO_TAG, tag);
-            } catch (DataIntegrityViolationException ignore) {} // Для совместимости с H2
-        }
+        jdbcTemplate.batchUpdate(
+                INSERT_INTO_TAG,
+                tags,
+                tags.size(),
+                (ps, tag) -> ps.setString(1, tag)
+        );
     }
 
     /**
      * Выполняет пакетную вставку связей посты-теги с использованием MERGE.
      */
     private void insertPostTags(Long postId, List<String> tags) {
-        for (String tag : tags.stream().distinct().toList()) {
-            try {
-                jdbcTemplate.update(
-                        INSERT_INTO_POST_TAG,
-                        postId,
-                        tag
-                );
-            } catch (DataIntegrityViolationException ignored) {} // Для совместимости с H2
-        }
-    }
-
-
-    /**
-     * Выбирает пост по id.
-     */
-    private PostResponseDto selectPostById(Long postId) {
-        PostResponseDto post = jdbcTemplate.queryForObject(
-                SELECT_POST_BY_ID,
-                postListRowMapper,
-                postId
+        jdbcTemplate.batchUpdate(
+                INSERT_INTO_POST_TAG,
+                tags,
+                tags.size(),
+                (ps, tag) -> {
+                    ps.setLong(1, postId);
+                    ps.setString(2, tag);
+                }
         );
-        return enrichWithTags(post);
     }
 
     /**
-         * Проверяет ответ после обновления на не нулевое изменение в БД.
-         */
-        private void checkIfThrow ( int parameter, String msg){
-            if (parameter == 0) {
-                log.warn(msg);
-                throw new IllegalStateException(msg);
-            }
+     * Проверяет ответ после обновления на не нулевое изменение в БД.
+     */
+    private void checkIfThrow(int parameter, String msg) {
+        if (parameter == 0) {
+            log.warn(msg);
+            throw new IllegalStateException(msg);
         }
     }
+}

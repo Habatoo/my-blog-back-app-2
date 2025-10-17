@@ -18,6 +18,7 @@ public final class PostSqlQueries {
     public static final String CREATE_POST = """
             INSERT INTO post (title, text, likes_count, comments_count, created_at, updated_at)
             VALUES (?, ?, 0, 0, ?, ?)
+            RETURNING id, title, text, likes_count, comments_cou
             """;
 
     public static final String INSERT_INTO_TAG = """
@@ -36,6 +37,7 @@ public final class PostSqlQueries {
             UPDATE post
             SET title = ?, text = ?, updated_at = ?
             WHERE id = ?
+            RETURNING id, title, text, likes_count, comments_count
             """;
 
     public static final String DELETE_POST = """

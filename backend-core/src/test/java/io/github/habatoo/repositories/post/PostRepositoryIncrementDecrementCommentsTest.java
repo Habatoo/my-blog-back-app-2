@@ -12,15 +12,6 @@ import static org.mockito.Mockito.when;
 /**
  * <h2>Тесты инкремента и декремента счетчика комментариев в PostRepositoryImpl</h2>
  *
- * <p>
- * Класс покрывает корректность работы методов изменения количества комментариев у поста:
- * <ul>
- *     <li>incrementCommentsCount — увеличивает счетчик комментариев поста</li>
- *     <li>decrementCommentsCount — уменьшает счетчик комментариев поста</li>
- * </ul>
- * Для тестирования используется мок JdbcTemplate. Проверяется, что выполняется нужный SQL-запрос,
- * и метод не выбрасывает исключений при штатной ситуации.
- * </p>
  */
 @DisplayName("Тесты метода incrementCommentsCount/decrementCommentsCount изменения количества комментариев.")
 public class PostRepositoryIncrementDecrementCommentsTest extends PostRepositoryTestBase {

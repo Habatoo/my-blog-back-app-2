@@ -64,34 +64,25 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
      */
     @Test
     @DisplayName("Должен обновить пост и вернуть обновленный объект с тегами")
-    void shouldUpdatePostTest() {
-        PostRequestDto updateRequest = new PostRequestDto(POST_ID, "Updated Title", "Updated Text", List.of());
-        List<String> updatedTags = List.of("tag1");
-        PostResponseDto updatedPost = new PostResponseDto(POST_ID, updateRequest.title(), updateRequest.text(), updatedTags, 5, 10);
-        when(jdbcTemplate.update(
-                eq(UPDATE_POST),
-                eq(updateRequest.title()),
-                eq(updateRequest.text()),
-                any(LocalDateTime.class),
-                eq(updateRequest.id())
-        )).thenReturn(1);
-        when(jdbcTemplate.queryForObject(
-                eq(SELECT_POST_BY_ID),
-                any(RowMapper.class),
-                eq(updateRequest.id())
-        )).thenReturn(updatedPost);
-        when(jdbcTemplate.queryForList(
-                eq(GET_TAGS_FOR_POST),
-                eq(String.class),
-                eq(updateRequest.id())
-        )).thenReturn(updatedTags);
+    void updatePostShouldReturnUpdatedPostWithTags() {
+        PostRequestDto requestDto = new PostRequestDto(POST_ID, TITLE, TEXT, TAGS);
+        PostResponseDto postReturned = createPostDto(POST_ID, List.of());
 
-        PostResponseDto result = postRepository.updatePost(updateRequest);
+        when(jdbcTemplate.queryForObject(anyString(), eq(postListRowMapper), any(), any(), any(), any())).thenReturn(postReturned);
+        when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID))).thenReturn(1);
+        when(jdbcTemplate.batchUpdate(eq(INSERT_INTO_TAG), anyList(), anyInt(), any())).thenReturn(new int[][]{});
+        when(jdbcTemplate.batchUpdate(eq(INSERT_INTO_POST_TAG), anyList(), anyInt(), any())).thenReturn(new int[][]{});
+        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID))).thenReturn(TAGS);
 
-        assertEquals(updatedPost, result);
-        assertTrue(result.tags().contains("tag1"));
-        verify(jdbcTemplate).update(eq(UPDATE_POST), any(), any(), any(), any());
-        verify(jdbcTemplate).queryForObject(eq(SELECT_POST_BY_ID), any(RowMapper.class), eq(updateRequest.id()));
+        PostResponseDto result = postRepository.updatePost(requestDto);
+
+        assertNotNull(result);
+        assertEquals(POST_ID, result.id());
+        assertEquals(TAGS, result.tags());
+        verify(jdbcTemplate).queryForObject(anyString(), eq(postListRowMapper), any(), any(), any(), any());
+        verify(jdbcTemplate).batchUpdate(eq(INSERT_INTO_TAG), anyList(), anyInt(), any());
+        verify(jdbcTemplate).batchUpdate(eq(INSERT_INTO_POST_TAG), anyList(), anyInt(), any());
+        verify(jdbcTemplate).queryForList(anyString(), eq(String.class), eq(POST_ID));
     }
 
 

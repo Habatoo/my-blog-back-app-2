@@ -39,5 +39,4 @@ public class PostListRowMapper implements RowMapper<PostResponseDto> {
         if (text.length() <= 128) return text;
         return text.substring(0, 128) + "…";
     }
-
 }

@@ -57,7 +57,7 @@ public interface CommentRepository {
      * @return количество обновленных записей
      * @throws DataAccessException при ошибках обновления в базе данных
      */
-    CommentResponseDto updateText(Long postId, Long commentId, String text);
+    CommentResponseDto update(Long postId, Long commentId, String text);
 
     /**
      * Удаляет комментарий по идентификатору.

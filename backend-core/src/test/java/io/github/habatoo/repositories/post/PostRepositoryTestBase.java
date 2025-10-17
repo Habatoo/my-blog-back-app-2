@@ -2,12 +2,12 @@ package io.github.habatoo.repositories.post;
 
 import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.dto.response.PostResponseDto;
-import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import io.github.habatoo.repositories.mapper.PostListRowMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -27,15 +27,18 @@ abstract class PostRepositoryTestBase {
     @Mock
     protected PostListRowMapper postListRowMapper;
 
-    protected PostRepository postRepository;
+    @InjectMocks
+    protected PostRepositoryImpl postRepository;
 
     protected static final Long POST_ID = 1L;
     protected static final Long NON_EXISTING_POST_ID = 999L;
+    protected static final String TITLE = "Test title";
+    protected static final String TEXT = "Test text";
+    protected static final List<String> TAGS = List.of("tag1", "tag2");
 
-    protected final List<String> tags = List.of("t1", "t2");
-    protected final PostCreateRequestDto createRequest = new PostCreateRequestDto("New Title", "New Text", tags);
-    protected final PostResponseDto createdPost = new PostResponseDto(
-            POST_ID, createRequest.title(), createRequest.text(), List.of(), 0, 0);
+    protected PostResponseDto createPostDto(Long id, List<String> tags) {
+        return new PostResponseDto(id, TITLE, TEXT, tags, 0, 0);
+    }
 
     @BeforeEach
     void setUp() {

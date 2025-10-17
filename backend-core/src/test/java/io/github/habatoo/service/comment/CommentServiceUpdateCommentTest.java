@@ -25,7 +25,7 @@ class CommentServiceUpdateCommentTest extends CommentServiceTestBase {
         CommentResponseDto original = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
         CommentResponseDto updatedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, UPDATED_COMMENT_TEXT);
 
-        when(commentRepository.updateText(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT)).thenReturn(updatedComment);
+        when(commentRepository.update(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT)).thenReturn(updatedComment);
         when(commentRepository.findByPostId(VALID_POST_ID)).thenReturn(List.of(original));
 
         commentService.getCommentsByPostId(VALID_POST_ID);
@@ -34,7 +34,7 @@ class CommentServiceUpdateCommentTest extends CommentServiceTestBase {
 
         assertEquals(UPDATED_COMMENT_TEXT, result.text());
         verify(postService, times(2)).postExists(VALID_POST_ID); // 2 раза т.к. создавали и обновляли
-        verify(commentRepository).updateText(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
+        verify(commentRepository).update(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
 
         Optional<CommentResponseDto> cachedUpdated = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
         assertTrue(cachedUpdated.isPresent());
@@ -47,13 +47,13 @@ class CommentServiceUpdateCommentTest extends CommentServiceTestBase {
     void shouldThrowWhenCommentNotFoundForUpdateTest() {
         when(postService.postExists(VALID_POST_ID)).thenReturn(true);
 
-        when(commentRepository.updateText(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT))
+        when(commentRepository.update(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT))
                 .thenThrow(new EmptyResultDataAccessException(1));
 
         assertThrows(IllegalStateException.class,
                 () -> commentService.updateComment(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT));
         verify(postService).postExists(VALID_POST_ID);
-        verify(commentRepository).updateText(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
+        verify(commentRepository).update(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
     }
 
     @Test

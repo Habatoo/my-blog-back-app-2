@@ -2,31 +2,18 @@ package io.github.habatoo.repositories.post;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.jdbc.core.RowMapper;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 import static io.github.habatoo.repositories.sql.PostSqlQueries.GET_TAGS_FOR_POST;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * <h2>Тесты метода getTagsForPost репозитория постов</h2>
  *
- * <p>
- * Класс покрывает корректность работы метода извлечения тегов по postId:
- * <ul>
- *     <li>Возврат непустого списка тегов при штатной работе jdbcTemplate</li>
- *     <li>Возврат пустого списка при исключениях внутри jdbcTemplate.query</li>
- *     <li>Правильная обработка RowMapper-лямбды, передаваемой в query</li>
- *     <li>Поведение при исключении именно внутри RowMapper</li>
- * </ul>
- * Тесты используют мок JdbcTemplate. Для проверки лямбды используется ArgumentCaptor и мок ResultSet.
- * </p>
  */
 @DisplayName("Тесты метода getTagsForPost извлечения тегов по postId.")
 public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {

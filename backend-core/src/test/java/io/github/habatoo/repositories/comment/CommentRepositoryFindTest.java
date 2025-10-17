@@ -17,16 +17,8 @@ import static org.mockito.Mockito.*;
 
 /**
  * <h2>Тесты методов findByPostId и findByPostIdAndId репозитория комментариев</h2>
+ * Класс проверяет корректность поиска комментариев по postId и по паре postId–commentId.
  *
- * <p>
- * Класс проверяет корректность поиска комментариев по postId и по паре postId–commentId:
- * <ul>
- *     <li>Если в базе есть комментарии с нужным postId — возвращается корректный список</li>
- *     <li>Если есть комментарий с нужными postId и commentId — возвращается Optional с этим комментарием</li>
- *     <li>Если комментария по обоим id нет — возвращается пустой Optional</li>
- * </ul>
- * Используется мок JdbcTemplate и CommentRowMapper.
- * </p>
  */
 @DisplayName("Тесты методов поиска комментариев")
 class CommentRepositoryFindTest extends CommentRepositoryTestBase {

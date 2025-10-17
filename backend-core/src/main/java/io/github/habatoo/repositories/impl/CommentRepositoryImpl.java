@@ -6,11 +6,8 @@ import io.github.habatoo.repositories.CommentRepository;
 import io.github.habatoo.repositories.mapper.CommentRowMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.support.GeneratedKeyHolder;
-import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
-import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -65,22 +62,14 @@ public class CommentRepositoryImpl implements CommentRepository {
     public CommentResponseDto save(CommentCreateRequestDto commentCreateRequest) {
         LocalDateTime now = LocalDateTime.now();
 
-        KeyHolder keyHolder = new GeneratedKeyHolder();
-        jdbcTemplate.update(connection -> {
-            PreparedStatement ps = connection.prepareStatement(
-                    INSERT_COMMENT,
-                    new String[]{"id"}
-            );
-            ps.setLong(1, commentCreateRequest.postId());
-            ps.setString(2, commentCreateRequest.text());
-            ps.setTimestamp(3, Timestamp.valueOf(now));
-            ps.setTimestamp(4, Timestamp.valueOf(now));
-            return ps;
-        }, keyHolder);
-
-        Long commentId = keyHolder.getKey().longValue();
-
-        return findById(commentId).orElseThrow(() -> new IllegalStateException("Комментарий не сохранен"));
+        return jdbcTemplate.queryForObject(
+                INSERT_COMMENT,
+                commentRowMapper,
+                commentCreateRequest.postId(),
+                commentCreateRequest.text(),
+                Timestamp.valueOf(now),
+                Timestamp.valueOf(now)
+        );
     }
 
 
@@ -88,17 +77,14 @@ public class CommentRepositoryImpl implements CommentRepository {
      * {@inheritDoc}
      */
     @Override
-    public CommentResponseDto updateText(Long postId, Long commentId, String text) {
-        int updatedRows = jdbcTemplate.update(
+    public CommentResponseDto update(Long postId, Long commentId, String text) {
+        return jdbcTemplate.queryForObject(
                 UPDATE_COMMENT_TEXT,
+                commentRowMapper,
                 text,
                 Timestamp.valueOf(LocalDateTime.now()),
-                commentId);
-        if (updatedRows == 0) {
-            throw new IllegalStateException("Комментарий с id=" + commentId + " не найден для обновления");
-        }
-
-        return jdbcTemplate.query(FIND_BY_ID, commentRowMapper, commentId).stream().findFirst().orElseThrow(() -> new IllegalStateException("Комментарий не обновлен"));
+                commentId
+        );
     }
 
     /**

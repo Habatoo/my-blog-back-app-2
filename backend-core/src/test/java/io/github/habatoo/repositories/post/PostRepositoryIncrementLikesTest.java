@@ -11,15 +11,6 @@ import static org.mockito.Mockito.when;
 /**
  * <h2>Тесты метода incrementLikes в PostRepositoryImpl</h2>
  *
- * <p>
- * Класс покрывает корректное поведение метода увеличения счетчика лайков у поста:
- * <ul>
- *     <li>Увеличение лайков с успешным результатом</li>
- *     <li>Выброс исключения, если пост с заданным id не найден (т.е. update вернул 0 строк)</li>
- * </ul>
- * Для тестирования используется мок JdbcTemplate; проверяется как успешный сценарий,
- * так и обработка ошибки, когда поста нет в базе.
- * </p>
  */
 @DisplayName("Тесты метода incrementLikes изменения количества лайков.")
 public class PostRepositoryIncrementLikesTest extends PostRepositoryTestBase {

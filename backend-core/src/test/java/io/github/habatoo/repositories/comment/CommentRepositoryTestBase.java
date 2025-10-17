@@ -7,9 +7,12 @@ import io.github.habatoo.repositories.impl.CommentRepositoryImpl;
 import io.github.habatoo.repositories.mapper.CommentRowMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import java.time.LocalDateTime;
 
 /**
  * Базовый класс для тестирования CommentRepositoryImpl.
@@ -20,14 +23,16 @@ abstract class CommentRepositoryTestBase {
     @Mock
     protected JdbcTemplate jdbcTemplate;
 
-    protected CommentRowMapper commentRowMapper = new CommentRowMapper();
+    @Mock
+    protected CommentRowMapper commentRowMapper;
 
-    protected CommentRepository commentRepository;
+    @InjectMocks
+    protected CommentRepositoryImpl commentRepository;
 
-    protected final Long POST_ID = 1L;
-    protected final Long COMMENT_ID = 2L;
-    protected final String COMMENT_TEXT = "Test comment";
-    protected final String COMMENT_NEW_TEXT = "New test comment";
+    protected static final Long COMMENT_ID = 1L;
+    protected static final Long POST_ID = 10L;
+    protected static final String COMMENT_TEXT = "Some comment text";
+    protected static final String UPDATED_TEXT = "Updated comment text";
 
     @BeforeEach
     void setUp() {

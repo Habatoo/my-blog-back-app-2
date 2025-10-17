@@ -31,12 +31,14 @@ public final class CommentSqlQueries {
     public static final String INSERT_COMMENT = """
             INSERT INTO comment (post_id, text, created_at, updated_at)
             VALUES (?, ?, ?, ?)
+            RETURNING id, text, post_id
             """;
 
     public static final String UPDATE_COMMENT_TEXT = """
             UPDATE comment
             SET text = ?, updated_at = ?
             WHERE id = ?
+            RETURNING id, text, post_id
             """;
 
     public static final String DELETE_COMMENT = """
