@@ -1,48 +1,58 @@
 ## Быстрый старт
 
+0. **Секреты**
+   <br> Обеспечить наличие секртетов в `./env/.env` 
+   <br> Содержимое файла `.env`
+```text
+SPRING_DATASOURCE_URL=jdbc:postgresql://blog_db_con:5432/blog_db
+SPRING_DATASOURCE_USERNAME=blog_admin
+SPRING_DATASOURCE_PASSWORD=blog_password
+POSTGRES_DB=blog_db
+POSTGRES_USER=blog_admin
+POSTGRES_PASSWORD=blog_password
+FLYWAY_URL=jdbc:postgresql://blog_db_con:5432/blog_db
+FLYWAY_USER=blog_admin
+FLYWAY_PASSWORD=blog_password
+```
+
 1. **Собрать фронтенд**
-    - Соберите клиентское приложение обычным способом; положите production-билд в папку `./frontend`.
+   <br> Соберите клиентское приложение обычным способом; положите production-билд в папку `./frontend`.
 
 2. **Собрать backend**
-    - В root проекта выполните:
-      ```
-      mvnw.cmd clean install
-      ```
-      или
-         ```
-      mvnw clean install
-      ```
-   После сборки гарантируется появление файлов
-    - `./api/target/api-1.0-SNAPSHOT.war`.
-    - `./backend-core/target/backend-core-1.0-SNAPSHOT.jar`.
-   Файл backend-1.0-SNAPSHOT.war содержит все нужные зависимости из модуля backend-core
+   <br> Проект поставляется с wrapperю Установка Maven не требуется. В root проекта выполните:
+```
+mvnw.cmd clean install
+```
+или
+```
+mvnw clean install
+```
+
+После сборки гарантируется появление файлов <br>
+    - `./api/target/api-1.0-SNAPSHOT.war` <br>
+    - `./backend-core/target/backend-core-1.0-SNAPSHOT.jar`
+   <br> Файл `api-1.0-SNAPSHOT.war` содержит все нужные зависимости из модуля `backend-core`.
 
 3. **Подготовить миграции Flyway и настроить переменные БД**
-    - Миграции должны лежать в `./api/src/main/resources/db/migrations/`
+   <br> Миграции должны лежать в `./api/src/main/resources/db/migrations/`
     - .env файл — в нем заданы параметры БД.
 
 4. **Собрать и запустить Docker-кластер**
-    - Указать путь до .m2 
-      `echo 'export M2_PATH=/home/lsy/.m2' >> ~/.bashrc`
-      `source ~/.bashrc`
-      Либо
-      `sudo M2_PATH=$M2_PATH docker compose build`
-
 
 После успешной сборки образов с помощью
 ```bash
-sudo M2_PATH=$M2_PATH docker compose build
+docker compose build
 ````
 следующий шаг — запустить сервисы, описанные в docker-compose.yml. Вы уже сделали это командой:
 ```bash
-sudo M2_PATH=$M2_PATH docker compose up -d
+docker compose up -d
 ```
 - Проверка запущенных контейнеров
-Команда:
 ```bash
 docker compose ps
 ```
 покажет статус сервисов. Убедитесь, что контейнеры my-blog-backend, my-blog-front-app, db, flyway успешно работают.
+
 - Управление
   Для остановки всех сервисов:
 ```bash
@@ -50,12 +60,8 @@ docker compose down
 ```
   Для пересборки всех сервисов:
 ```bash
-sudo M2_PATH=$M2_PATH docker compose up -d --build
+docker compose up -d --build
 ```
-
-- Доступ к приложениям
-    Фронтенд: откройте браузер по адресу http://localhost или http://127.0.0.1 (порт 80), он проксируется в nginx контейнер my-blog-front-app.
-    Бэкенд: http://localhost:8080 — приложение на Tomcat с вашим backend.
 
 - Логирование
 Для просмотра логов используйте:
@@ -90,3 +96,14 @@ docker exec -it blog_db_con psql -U blog_admin -d blog_db
 и Enter.
 
 ---
+
+- Доступ к приложениям
+  Фронтенд: откройте браузер по адресу 
+http://localhost 
+или 
+http://127.0.0.1 
+(порт 80), он проксируется в nginx контейнер my-blog-front-app.
+
+- Бэкенд: 
+http://localhost:8080 
+ приложение на Tomcat с вашим backend.

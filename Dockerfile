@@ -3,7 +3,7 @@ FROM maven:3.9.11-ibm-semeru-21-noble AS build
 WORKDIR /build
 COPY . .
 COPY ./env/settings.xml /root/.m2/settings.xml
-RUN mvn clean package -DskipTests
+RUN mvn clean package -DskipTests=true -Dmaven.test.skip=true
 
 # Деплой WAR в Tomcat
 FROM tomcat:jdk21-openjdk-slim

@@ -5,7 +5,10 @@
 
 ## О проекте
 
-**my-blog-back-app** — это учебный блоговый проект, реализованный на базе Java (Spring), PostgreSQL, Docker, Tomcat и современных frontend-технологий. Цель — продемонстрировать микросервисное развёртывание с помощью Docker, централизованные миграции Flyway и модульное покрытие unit-тестами с Jacoco.
+**my-blog-back-app** — это учебный блоговый проект, реализованный на базе Java (Spring), PostgreSQL, Docker, Tomcat 
+и современных frontend-технологий. 
+Цель — продемонстрировать микросервисное развёртывание с помощью Docker, централизованные миграции 
+Flyway и модульное покрытие unit-тестами с Jacoco.
 
 ---
 
@@ -32,7 +35,7 @@
 
 - **Java 17** (Spring MVC, Spring Data JPA)
 - **PostgreSQL 17** (alpine образ)
-- **Flyway** — миграции БД (описано в [documentation/flyway-migrations.md](./documentation/flyway-migrations.md))
+- **Flyway** — миграции БД
 - **Docker/Docker Compose** — весь стек развертывается одной командой
 - **Tomcat 9** — контейнер для деплоя .war backend
 - **Nginx** — для фронтенда, проксирования статических файлов
