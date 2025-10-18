@@ -38,7 +38,7 @@ class FileNameGeneratorGenerateFileNameTest extends FileNameGeneratorTestBase {
     @DisplayName("Должен использовать расширение по умолчанию для файлов без расширения")
     @ParameterizedTest
     @NullAndEmptySource
-    @ValueSource(strings = {"file", "file.", "FILE", "  "})
+    @ValueSource(strings = {"file", "file.", "F ILE", "  ", "ы", " h л "})
     void shouldUseDefaultExtensionForFilesWithoutExtensionTest(String originalFilename) {
         String result = fileNameGenerator.generateFileName(originalFilename);
 
@@ -48,7 +48,7 @@ class FileNameGeneratorGenerateFileNameTest extends FileNameGeneratorTestBase {
 
     @DisplayName("Должен использовать расширение по умолчанию для файлов с пустым расширением")
     @ParameterizedTest
-    @ValueSource(strings = {"file.", "image.", "test."})
+    @ValueSource(strings = {"file.", "image.", "test.", "F ILE", "  ", "ы", " h л "})
     void shouldUseDefaultExtensionForEmptyExtensionTest(String originalFilename) {
         String result = fileNameGenerator.generateFileName(originalFilename);
 

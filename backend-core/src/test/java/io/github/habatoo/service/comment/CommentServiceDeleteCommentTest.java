@@ -13,11 +13,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 /**
- * Тесты метода deleteComment класса CommentServiceImpl
+ * Юнит-тесты для проверки метода удаления комментария в CommentService:
+ * успешное удаление, обновление кеша и обработки ошибок.
  */
 @DisplayName("Тесты метода deleteComment")
 class CommentServiceDeleteCommentTest extends CommentServiceTestBase {
 
+    /**
+     * Проверяет, что комментарий успешно удаляется, кеш обновляется, post обновляет счетчик комментариев,
+     * и что после удаления комментарий отсутствует в кешированной выдаче.
+     */
     @Test
     @DisplayName("Должен удалить комментарий и обновить кеш")
     void shouldDeleteCommentAndUpdateCacheAndPostTest() {
@@ -38,6 +43,10 @@ class CommentServiceDeleteCommentTest extends CommentServiceTestBase {
         assertTrue(cachedComment.isEmpty());
     }
 
+    /**
+     * Проверяет, что при попытке удалить несуществующий комментарий выбрасывается EmptyResultDataAccessException
+     * и никакие операции над post не выполняются.
+     */
     @Test
     @DisplayName("Должен выбрасывать исключение при удалении несуществующего комментария")
     void shouldThrowWhenCommentNotFoundForDeleteTest() {
@@ -52,6 +61,10 @@ class CommentServiceDeleteCommentTest extends CommentServiceTestBase {
         verify(postService, never()).decrementCommentsCount(anyLong());
     }
 
+    /**
+     * Проверяет, что попытка удалить комментарий у несуществующего post приводит к IllegalStateException,
+     * и репозиторий комментариев не вызывается.
+     */
     @Test
     @DisplayName("Должен выбрасывать исключение, если пост не существует")
     void shouldThrowIfPostDoesNotExistTest() {

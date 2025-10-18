@@ -35,7 +35,7 @@ class FileStorageServiceSaveImageFileTest extends FileStorageServiceTestBase {
 
         String result = fileStorageService.saveImageFile(VALID_POST_ID, file);
 
-        assertEquals(VALID_POST_ID + "/" + generatedName, result);
+        assertEquals(generatedName, result);
         assertTrue(fileExists(expectedFilePath));
     }
 
@@ -55,7 +55,6 @@ class FileStorageServiceSaveImageFileTest extends FileStorageServiceTestBase {
 
         String result = fileStorageService.saveImageFile(postId, file);
 
-        assertTrue(result.contains(postId.toString()));
         assertTrue(fileExists(filePath));
     }
 

@@ -13,11 +13,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * Тесты метода getCommentByPostIdAndId класса CommentServiceImpl
+ * Юнит-тесты метода получения комментария по postId и commentId в CommentService:
+ * проверка поиска по кешу и по репозиторию, а также сценария отсутствия данных.
  */
 @DisplayName("Тесты метода getCommentByPostIdAndId")
 class CommentServiceGetCommentByPostIdAndIdTest extends CommentServiceTestBase {
 
+    /**
+     * Проверяет, что если нужный комментарий уже есть в кеше, он возвращается без обращения к репозиторию.
+     */
     @Test
     @DisplayName("Должен возвращать комментарий из кеша при наличии")
     void shouldReturnCommentFromCacheIfPresentTest() {
@@ -32,6 +36,9 @@ class CommentServiceGetCommentByPostIdAndIdTest extends CommentServiceTestBase {
         assertEquals(VALID_COMMENT_ID, result.get().id());
     }
 
+    /**
+     * Проверяет, что если в кеше нет комментария, сервис запрашивает его из репозитория.
+     */
     @Test
     @DisplayName("Должен возвращать комментарий из репозитория, если кеш пуст")
     void shouldReturnCommentFromRepositoryIfNotCachedTest() {
@@ -45,6 +52,10 @@ class CommentServiceGetCommentByPostIdAndIdTest extends CommentServiceTestBase {
         verify(commentRepository).findByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
     }
 
+    /**
+     * Проверяет, что если комментарий не найден ни в кеше, ни в репозитории,
+     * возвращается пустой Optional.
+     */
     @Test
     @DisplayName("Должен возвращать пустой Optional если комментарий не найден")
     void shouldReturnEmptyIfCommentNotFoundTest() {

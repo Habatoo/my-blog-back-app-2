@@ -36,9 +36,9 @@ class ImageRepositoryUpdateImageMetadataTest extends ImageRepositoryTestBase {
     void shouldUpdateImageMetadataSuccessfullyTest() {
         when(jdbcTemplate.update(anyString(), anyString(), anyLong(), anyString(), anyLong())).thenReturn(1);
 
-        assertDoesNotThrow(() -> imageRepository.updateImageMetadata(existingPostId, imageName, "original.jpg", 12345L));
+        assertDoesNotThrow(() -> imageRepository.updateImageMetadata(EXISTING_POST_ID, IMAGE_NAME, IMAGE_SIZE, URL));
 
-        verify(jdbcTemplate).update(UPDATE_POST_IMAGE, "original.jpg", 12345L, imageName, existingPostId);
+        verify(jdbcTemplate).update(eq(UPDATE_POST_IMAGE), eq(IMAGE_NAME), eq(IMAGE_SIZE), eq(URL), eq(EXISTING_POST_ID));
     }
 
     /**
@@ -52,10 +52,10 @@ class ImageRepositoryUpdateImageMetadataTest extends ImageRepositoryTestBase {
         when(jdbcTemplate.update(anyString(), anyString(), anyLong(), anyString(), anyLong())).thenReturn(0);
 
         EmptyResultDataAccessException ex = assertThrows(EmptyResultDataAccessException.class,
-                () -> imageRepository.updateImageMetadata(existingPostId, imageName, "original.jpg", 12345L));
+                () -> imageRepository.updateImageMetadata(EXISTING_POST_ID, IMAGE_NAME, IMAGE_SIZE, URL));
 
         assertTrue(ex.getMessage().contains("Post not found with id"));
-        verify(jdbcTemplate).update(UPDATE_POST_IMAGE, "original.jpg", 12345L, imageName, existingPostId);
+        verify(jdbcTemplate).update(eq(UPDATE_POST_IMAGE), eq(IMAGE_NAME), eq(IMAGE_SIZE), eq(URL), eq(EXISTING_POST_ID));
     }
 
     /**
@@ -65,17 +65,12 @@ class ImageRepositoryUpdateImageMetadataTest extends ImageRepositoryTestBase {
     @Test
     @DisplayName("Должен выбрасывать EmptyResultDataAccessException если updateImageMetadata обновляет 0 строк")
     void shouldThrowEmptyResultDataAccessExceptionWhenNoRowsUpdatedTest() {
-        Long postId = 123L;
-        String fileName = "file.jpg";
-        String originalName = "original.jpg";
-        long size = 100L;
-
         when(jdbcTemplate.update(anyString(), anyString(), anyLong(), anyString(), anyLong())).thenReturn(0);
 
         EmptyResultDataAccessException ex = assertThrows(EmptyResultDataAccessException.class, () ->
-                imageRepository.updateImageMetadata(postId, fileName, originalName, size));
+                imageRepository.updateImageMetadata(NON_EXISTING_POST_ID, IMAGE_NAME, IMAGE_SIZE, URL));
 
         assertTrue(ex.getMessage().contains("Post not found with id"));
-        verify(jdbcTemplate).update(UPDATE_POST_IMAGE, originalName, size, fileName, postId);
+        verify(jdbcTemplate).update(eq(UPDATE_POST_IMAGE), eq(IMAGE_NAME), eq(IMAGE_SIZE), eq(URL), eq(NON_EXISTING_POST_ID));
     }
 }

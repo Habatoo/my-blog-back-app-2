@@ -39,6 +39,7 @@ abstract class ImageServiceTestBase {
     protected static final Long INVALID_POST_ID = 999L;
     protected static final String IMAGE_FILENAME = "stored_image.jpg";
     protected static final String ORIGINAL_FILENAME = "original_image.jpg";
+    protected static final String URL = String.format("%s%s%s", VALID_POST_ID, System.getProperty("file.separator"), IMAGE_FILENAME);
     protected static final long IMAGE_SIZE = 123456L;
 
     protected static final byte[] IMAGE_DATA = new byte[]{1, 2, 3, 4, 5};

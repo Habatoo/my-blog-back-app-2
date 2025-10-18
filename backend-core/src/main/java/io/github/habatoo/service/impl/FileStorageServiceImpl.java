@@ -56,7 +56,7 @@ public class FileStorageServiceImpl implements FileStorageService {
         file.transferTo(filePath);
         log.info("Файл '{}' сохранён по пути '{}'", fileName, filePath);
 
-        return String.format("%s/%s", postId, fileName);
+        return fileName;
     }
 
     /**

@@ -129,7 +129,7 @@ public class CommentController {
             @PathVariable("commentId") Long commentId,
             @RequestBody CommentRequestDto commentRequest) {
         log.info("Запрос на обновление комментария id={} для поста id={}", commentId, postId);
-        CommentResponseDto result = commentService.updateComment(postId, commentId, commentRequest.text());
+        CommentResponseDto result = commentService.updateComment(commentRequest);
 
         return ResponseEntity.ok(result);
     }

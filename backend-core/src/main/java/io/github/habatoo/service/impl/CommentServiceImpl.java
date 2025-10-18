@@ -1,6 +1,7 @@
 package io.github.habatoo.service.impl;
 
 import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.request.CommentRequestDto;
 import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.repositories.CommentRepository;
 import io.github.habatoo.service.CommentService;
@@ -102,15 +103,19 @@ public class CommentServiceImpl implements CommentService {
      * {@inheritDoc}
      */
     @Override
-    public CommentResponseDto updateComment(Long postId, Long commentId, String text) {
+    public CommentResponseDto updateComment(CommentRequestDto commentRequest) {
+        Long postId = commentRequest.postId();
+        Long commentId = commentRequest.id();
+        String text = commentRequest.text();
         log.info("Обновление комментария id={} для поста id={}", commentId, postId);
+
         checkPostIsExist(postId);
         CommentResponseDto updatedComment;
         try {
             updatedComment = commentRepository.update(postId, commentId, text);
         } catch (EmptyResultDataAccessException e) {
             log.warn("Комментарий id={} не найден для обновления", commentId);
-            throw new IllegalStateException("Comment not found for update with id " + commentId, e);
+            throw new IllegalStateException("Комментарий не найден для обновления id " + commentId, e);
         }
 
         commentsCache.computeIfPresent(postId, (pid, comments) -> {

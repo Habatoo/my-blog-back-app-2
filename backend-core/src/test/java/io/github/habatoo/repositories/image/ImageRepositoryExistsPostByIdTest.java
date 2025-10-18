@@ -34,10 +34,10 @@ public class ImageRepositoryExistsPostByIdTest extends ImageRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть true если пост с заданным id существует")
     void shouldReturnTrueIfPostExistsTest() {
-        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(existingPostId))).thenReturn(1);
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(EXISTING_POST_ID))).thenReturn(1);
 
-        assertTrue(imageRepository.existsPostById(existingPostId));
-        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, existingPostId);
+        assertTrue(imageRepository.existsPostById(EXISTING_POST_ID));
+        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, EXISTING_POST_ID);
     }
 
     /**
@@ -46,10 +46,10 @@ public class ImageRepositoryExistsPostByIdTest extends ImageRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть false если пост с заданным id не существует  ответ не null")
     void shouldReturnFalseIfPostDoesNotExistTest() {
-        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(nonExistingPostId))).thenReturn(0);
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(NON_EXISTING_POST_ID))).thenReturn(0);
 
-        assertFalse(imageRepository.existsPostById(nonExistingPostId));
-        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, nonExistingPostId);
+        assertFalse(imageRepository.existsPostById(NON_EXISTING_POST_ID));
+        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, NON_EXISTING_POST_ID);
     }
 
     /**
@@ -58,9 +58,9 @@ public class ImageRepositoryExistsPostByIdTest extends ImageRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть false если пост с заданным id не существует и ответ null")
     void shouldReturnFalseIfPostDoesNotExistNullAnswerTest() {
-        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(nonExistingPostId))).thenReturn(null);
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(NON_EXISTING_POST_ID))).thenReturn(null);
 
-        assertFalse(imageRepository.existsPostById(nonExistingPostId));
-        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, nonExistingPostId);
+        assertFalse(imageRepository.existsPostById(NON_EXISTING_POST_ID));
+        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, NON_EXISTING_POST_ID);
     }
 }

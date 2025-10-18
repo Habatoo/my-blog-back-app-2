@@ -10,11 +10,16 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Тесты метода getCommentsByPostId класса CommentServiceImpl
+ * Юнит-тесты для метода получения списка комментариев по postId в CommentService:
+ * проверка обращения к кешу и корректной обработки несуществующего поста.
  */
 @DisplayName("Тесты метода getCommentsByPostId")
 class CommentServiceGetCommentsByPostIdTest extends CommentServiceTestBase {
 
+    /**
+     * Проверяет, что комментарии для поста возвращаются из кеша, если они уже были загружены,
+     * и запрос к репозиторию происходит только один раз.
+     */
     @Test
     @DisplayName("Должен возвращать комментарии из кеша при наличии")
     void shouldReturnCommentsFromCacheIfExistTest() {
@@ -31,6 +36,10 @@ class CommentServiceGetCommentsByPostIdTest extends CommentServiceTestBase {
         verify(commentRepository, times(1)).findByPostId(VALID_POST_ID);
     }
 
+    /**
+     * Проверяет, что попытка получить комментарии для несуществующего поста вызывает IllegalStateException,
+     * и запрос к репозиторию не выполняется.
+     */
     @Test
     @DisplayName("Должен выбрасывать исключение при несуществующем посте")
     void shouldThrowExceptionIfPostDoesNotExistTest() {

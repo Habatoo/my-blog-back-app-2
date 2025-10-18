@@ -18,7 +18,6 @@ public class ImageValidatorImpl implements ImageValidator {
      */
     @Override
     public void validateImageUpdate(Long postId, MultipartFile image) {
-        validatePostId(postId);
         if (image == null || image.isEmpty()) {
             log.warn("Попытка обновить изображение для postId={}, но файл отсутствует или пуст", postId);
             throw new IllegalStateException("Image file cannot be null or empty");

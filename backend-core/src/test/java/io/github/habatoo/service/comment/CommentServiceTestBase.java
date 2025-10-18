@@ -1,6 +1,7 @@
 package io.github.habatoo.service.comment;
 
 import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.request.CommentRequestDto;
 import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.repositories.CommentRepository;
 import io.github.habatoo.service.CommentService;
@@ -45,5 +46,13 @@ abstract class CommentServiceTestBase {
 
     protected CommentCreateRequestDto createCommentCreateRequest(String text, Long postId) {
         return new CommentCreateRequestDto(postId, text);
+    }
+
+    protected CommentRequestDto createCommentRequestDto() {
+        return new CommentRequestDto(VALID_COMMENT_ID, COMMENT_TEXT, VALID_POST_ID);
+    }
+
+    protected CommentRequestDto createUpdatedCommentRequestDto() {
+        return new CommentRequestDto(VALID_COMMENT_ID, UPDATED_COMMENT_TEXT, VALID_POST_ID);
     }
 }

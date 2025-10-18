@@ -2,8 +2,11 @@ package io.github.habatoo.repositories.post;
 
 import io.github.habatoo.dto.request.PostRequestDto;
 import io.github.habatoo.dto.response.PostResponseDto;
+import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.springframework.jdbc.core.RowMapper;
 
 import java.time.LocalDateTime;

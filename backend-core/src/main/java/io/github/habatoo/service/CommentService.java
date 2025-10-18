@@ -1,6 +1,7 @@
 package io.github.habatoo.service;
 
 import io.github.habatoo.dto.request.CommentCreateRequestDto;
+import io.github.habatoo.dto.request.CommentRequestDto;
 import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.repositories.CommentRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,13 +50,11 @@ public interface CommentService {
     /**
      * Обновить текст существующего комментария.
      *
-     * @param postId идентификатор поста, к которому относится комментарий
-     * @param commentId идентификатор обновляемого комментария
-     * @param text новый текст комментария
+     * @param commentRequest DTO c postId, commentId, text
      * @return обновлённый CommentResponseDto
      * @throws IllegalStateException если комментарий с указанными id не найден
      */
-    CommentResponseDto updateComment(Long postId, Long commentId, String text);
+    CommentResponseDto updateComment(CommentRequestDto commentRequest);
 
     /**
      * Удалить комментарий по идентификаторам поста и комментария.

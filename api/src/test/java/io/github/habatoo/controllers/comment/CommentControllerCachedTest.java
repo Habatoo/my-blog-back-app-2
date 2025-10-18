@@ -19,7 +19,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -63,7 +63,7 @@ class CommentControllerCachedTest {
         mockComment1 = new CommentResponseDto(1L, "Первый комментарий", 1L);
         mockComment2 = new CommentResponseDto(2L, "Второй комментарий", 1L);
 
-        mockCreateRequest = new CommentCreateRequestDto( 1L,"Новый комментарий");
+        mockCreateRequest = new CommentCreateRequestDto(1L, "Новый комментарий");
         mockUpdateRequest = new CommentRequestDto(1L, "Обновленный комментарий", 1L);
     }
 
@@ -213,7 +213,7 @@ class CommentControllerCachedTest {
         Long commentId = 2L;
         CommentResponseDto updatedComment = new CommentResponseDto(2L, "Обновленный комментарий", 1L);
 
-        when(commentService.updateComment(anyLong(), anyLong(), anyString()))
+        when(commentService.updateComment(any()))
                 .thenReturn(updatedComment);
 
         MvcResult result = mockMvc.perform(MockMvcRequestBuilders.put("/api/posts/{postId}/comments/{commentId}", postId, commentId)
@@ -231,7 +231,7 @@ class CommentControllerCachedTest {
         assertEquals(updatedComment.text(), responseComment.text());
         assertEquals("Обновленный комментарий", responseComment.text());
 
-        verify(commentService, times(1)).updateComment(postId, commentId, mockUpdateRequest.text());
+        verify(commentService, times(1)).updateComment(mockUpdateRequest);
     }
 
     /**

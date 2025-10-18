@@ -19,9 +19,11 @@ abstract class ImageRepositoryTestBase {
 
     protected ImageRepository imageRepository;
 
-    protected final Long existingPostId = 1L;
-    protected final Long nonExistingPostId = 999L;
-    protected final String imageName = "image_file.jpg";
+    protected final Long EXISTING_POST_ID = 1L;
+    protected final Long NON_EXISTING_POST_ID = 999L;
+    protected final String IMAGE_NAME = "image_file.jpg";
+    protected final long IMAGE_SIZE = 22L;
+    protected final String URL = String.format("%s/%s", EXISTING_POST_ID, IMAGE_NAME);
 
     @BeforeEach
     void setUp() {

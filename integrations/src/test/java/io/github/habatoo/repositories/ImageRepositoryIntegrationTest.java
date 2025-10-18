@@ -2,6 +2,7 @@ package io.github.habatoo.repositories;
 
 import io.github.habatoo.configurations.TestDataSourceConfiguration;
 import io.github.habatoo.configurations.repositories.ImageRepositoryConfiguration;
+import io.github.habatoo.utils.TestDataBase;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -13,6 +14,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.Optional;
 
+import static io.github.habatoo.utils.TestDataBase.preparePostsWithImages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
@@ -46,19 +48,7 @@ public class ImageRepositoryIntegrationTest {
     void setUp() {
         flyway.clean();
         flyway.migrate();
-
-        for (long id = 1; id <= 4; id++) {
-            jdbcTemplate.update(
-                    "INSERT INTO post (id, title, text, likes_count, comments_count, image_url, image_name, image_size, created_at, updated_at) " +
-                            "VALUES (?, ?, ?, 0, 0, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                    id,
-                    "Тестовый пост " + id,
-                    "Содержимое " + id,
-                    "/images/img" + id + ".jpg",
-                    "original_img" + id + ".jpg",
-                    10000 + id * 1000
-            );
-        }
+        preparePostsWithImages(jdbcTemplate);
     }
 
     /**
@@ -94,9 +84,9 @@ public class ImageRepositoryIntegrationTest {
     void testUpdateImageMetadataExistingPostTest() {
         imageRepository.updateImageMetadata(
                 1L,
-                "/images/updated_img1.jpg",
-                "updated_original1.jpg",
-                54321L
+                "updated_img1.jpg",
+                54321L,
+                "/images/updated_img1.jpg"
         );
 
         String updatedOriginalName = jdbcTemplate.queryForObject(
@@ -106,7 +96,7 @@ public class ImageRepositoryIntegrationTest {
         String updatedUrl = jdbcTemplate.queryForObject(
                 "SELECT image_url FROM post WHERE id = ?", String.class, 1L);
 
-        assertThat(updatedOriginalName).isEqualTo("updated_original1.jpg");
+        assertThat(updatedOriginalName).isEqualTo("updated_img1.jpg");
         assertThat(updatedSize).isEqualTo(54321);
         assertThat(updatedUrl).isEqualTo("/images/updated_img1.jpg");
     }
@@ -119,9 +109,11 @@ public class ImageRepositoryIntegrationTest {
     void testUpdateImageMetadataNonExistingPostTest() {
         assertThatThrownBy(() -> imageRepository.updateImageMetadata(
                 999L,
-                "/images/file.jpg",
-                "original.jpg",
-                123L))
+                "file.jpg",
+                123L,
+                "/images/file.jpg"
+                )
+        )
                 .isInstanceOf(EmptyResultDataAccessException.class)
                 .hasMessageContaining("Post not found");
     }
@@ -136,7 +128,12 @@ public class ImageRepositoryIntegrationTest {
                 "SELECT COUNT(*) FROM post WHERE image_name IS NOT NULL", Integer.class);
 
         try {
-            imageRepository.updateImageMetadata(999L, "/images/file.jpg", "original.jpg", 123L);
+            imageRepository.updateImageMetadata(
+                    999L,
+                    "file.jpg",
+                    123L,
+                    "/images/file.jpg"
+                    );
         } catch (EmptyResultDataAccessException ignored) {
         }
 

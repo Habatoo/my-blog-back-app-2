@@ -42,9 +42,9 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         when(imageRepository.existsPostById(VALID_POST_ID)).thenReturn(true);
         when(imageRepository.findImageFileNameByPostId(VALID_POST_ID)).thenReturn(Optional.of(IMAGE_FILENAME));
         when(fileStorageService.saveImageFile(VALID_POST_ID, imageFile)).thenReturn(IMAGE_FILENAME);
-        doNothing().when(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, ORIGINAL_FILENAME, IMAGE_SIZE);
+        doNothing().when(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, IMAGE_SIZE, URL);
         doNothing().when(fileStorageService).deleteImageFile(IMAGE_FILENAME);
-        when(fileStorageService.loadImageFile(IMAGE_FILENAME)).thenReturn(IMAGE_DATA);
+        when(fileStorageService.loadImageFile(URL)).thenReturn(IMAGE_DATA);
         when(contentTypeDetector.detect(IMAGE_DATA)).thenReturn(MEDIA_TYPE);
 
         imageService.updatePostImage(VALID_POST_ID, imageFile);
@@ -58,8 +58,8 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         assertSame(firstCall, secondCall, "Изображения должны быть получены из кеша и совпадать по ссылке");
 
         verify(fileStorageService, times(1)).saveImageFile(VALID_POST_ID, imageFile);
-        verify(fileStorageService, times(1)).loadImageFile(IMAGE_FILENAME);
-        verify(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, ORIGINAL_FILENAME, IMAGE_SIZE);
+        verify(fileStorageService, times(1)).loadImageFile(URL);
+        verify(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, IMAGE_SIZE, URL);
         verify(fileStorageService).deleteImageFile(IMAGE_FILENAME);
     }
 
@@ -109,26 +109,6 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
     }
 
     /**
-     * Проверяет, что при отсутствии изображения для существующего поста выбрасывается IllegalStateException.
-     */
-    @Test
-    @DisplayName("Должен выбросить исключение при отсутствии изображения для поста")
-    void shouldThrowIfImageNotFoundTest() {
-        doNothing().when(imageValidator).validatePostId(VALID_POST_ID);
-        when(imageRepository.existsPostById(VALID_POST_ID)).thenReturn(true);
-        when(imageRepository.findImageFileNameByPostId(VALID_POST_ID)).thenReturn(Optional.empty());
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> imageService.getPostImage(VALID_POST_ID));
-        assertTrue(ex.getMessage().contains("Image not found for post id"));
-
-        verify(imageValidator).validatePostId(VALID_POST_ID);
-        verify(imageRepository).existsPostById(VALID_POST_ID);
-        verify(imageRepository).findImageFileNameByPostId(VALID_POST_ID);
-        verifyNoInteractions(fileStorageService);
-    }
-
-    /**
      * Проверяет, что при ошибке чтения файла (например, IOException) выбрасывается IllegalStateException с корректным сообщением.
      */
     @Test
@@ -159,18 +139,17 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
 
         when(imageRepository.existsPostById(VALID_POST_ID)).thenReturn(true);
         when(imageRepository.findImageFileNameByPostId(VALID_POST_ID)).thenReturn(Optional.empty());
-        when(fileStorageService.saveImageFile(eq(VALID_POST_ID), eq(imageFile))).thenReturn("newfile.jpg");
-        when(imageFile.getOriginalFilename()).thenReturn("orig.jpg");
-        when(imageFile.getSize()).thenReturn(123L);
-        byte[] imageData = new byte[]{1, 2, 3};
-        when(fileStorageService.loadImageFile("newfile.jpg")).thenReturn(imageData);
-        when(contentTypeDetector.detect(imageData)).thenReturn(MediaType.IMAGE_JPEG);
+        when(fileStorageService.saveImageFile(VALID_POST_ID, imageFile)).thenReturn(IMAGE_FILENAME);
+        when(imageFile.getOriginalFilename()).thenReturn(ORIGINAL_FILENAME);
+        when(imageFile.getSize()).thenReturn(IMAGE_SIZE);
+        when(fileStorageService.loadImageFile(URL)).thenReturn(IMAGE_DATA);
+        when(contentTypeDetector.detect(IMAGE_DATA)).thenReturn(MediaType.IMAGE_JPEG);
 
         imageService.updatePostImage(VALID_POST_ID, imageFile);
 
         verify(fileStorageService, never()).deleteImageFile(anyString());
         verify(fileStorageService).saveImageFile(VALID_POST_ID, imageFile);
-        verify(imageRepository).updateImageMetadata(eq(VALID_POST_ID), eq("newfile.jpg"), eq("orig.jpg"), eq(123L));
+        verify(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, IMAGE_SIZE, URL);
     }
 }
 

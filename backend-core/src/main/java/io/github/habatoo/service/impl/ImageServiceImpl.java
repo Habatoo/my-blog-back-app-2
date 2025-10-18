@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -26,6 +28,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 @Service
 public class ImageServiceImpl implements ImageService {
+
+    private static final String SEPARATOR = FileSystems.getDefault().getSeparator();
+
+    /**
+     * Получить URL для изображения поста.
+     * @param postId идентификатор поста
+     * @param newFileName имя нового файла изображения
+     * @return строка вида "postId{separator}newFileName"
+     */
+    private static String buildImageUrl(Long postId, String newFileName) {
+        return String.format("%s%s%s", postId, SEPARATOR, newFileName);
+    }
 
     private final ImageRepository imageRepository;
     private final FileStorageService fileStorageService;
@@ -65,14 +79,17 @@ public class ImageServiceImpl implements ImageService {
         try {
             String newFileName = fileStorageService.saveImageFile(postId, image);
             log.info("Файл изображения '{}' сохранён для поста id={}", newFileName, postId);
-            imageRepository.updateImageMetadata(postId, newFileName, image.getOriginalFilename(), image.getSize());
+
+            String url = buildImageUrl(postId, newFileName);
+            long size = image.getSize();
+            imageRepository.updateImageMetadata(postId, newFileName, size, url);
 
             if (oldFileName != null) {
                 log.info("Удаление старого изображения '{}' для поста id={}", oldFileName, postId);
                 fileStorageService.deleteImageFile(oldFileName);
             }
 
-            byte[] imageData = fileStorageService.loadImageFile(newFileName);
+            byte[] imageData = fileStorageService.loadImageFile(url);
             MediaType mediaType = contentTypeDetector.detect(imageData);
 
             imageCache.put(postId, new ImageResponseDto(imageData, mediaType));
@@ -103,19 +120,23 @@ public class ImageServiceImpl implements ImageService {
             return cached;
         }
 
-        String fileName = imageRepository.findImageFileNameByPostId(postId)
-                .orElseThrow(() -> {
-                    log.warn("Изображение для поста id={} не найдено в БД", postId);
-                    return new IllegalStateException("Image not found for post id: " + postId);
-                });
+        Optional<String> fileName = imageRepository.findImageFileNameByPostId(postId);
+        byte[] imageData;
+        MediaType mediaType;
 
         try {
-            byte[] imageData = fileStorageService.loadImageFile(fileName);
-            MediaType mediaType = contentTypeDetector.detect(imageData);
+            if (fileName.isEmpty()) {
+                imageData = new byte[]{};
+                mediaType = MediaType.APPLICATION_OCTET_STREAM;
+            } else {
+                imageData = fileStorageService.loadImageFile(fileName.get());
+                mediaType = contentTypeDetector.detect(imageData);
+            }
 
             ImageResponseDto imageResponse = new ImageResponseDto(imageData, mediaType);
             imageCache.put(postId, imageResponse);
             log.info("Изображение для поста id={} загружено и кэшировано", postId);
+
             return imageResponse;
         } catch (IOException e) {
             log.error("Ошибка при загрузке изображения '{}' для поста id={}: {}", fileName, postId, e.getMessage(), e);

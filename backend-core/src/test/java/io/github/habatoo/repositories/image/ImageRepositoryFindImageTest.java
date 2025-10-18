@@ -37,14 +37,14 @@ public class ImageRepositoryFindImageTest extends ImageRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть имя файла изображения, если пост существует")
     void shouldReturnImageFileNameIfPostExistsTest() {
-        when(jdbcTemplate.queryForObject(anyString(), eq(String.class), eq(existingPostId))).thenReturn(imageName);
+        when(jdbcTemplate.queryForObject(anyString(), eq(String.class), eq(EXISTING_POST_ID))).thenReturn(IMAGE_NAME);
 
-        Optional<String> result = imageRepository.findImageFileNameByPostId(existingPostId);
+        Optional<String> result = imageRepository.findImageFileNameByPostId(EXISTING_POST_ID);
 
         assertTrue(result.isPresent());
-        assertEquals(imageName, result.get());
+        assertEquals(IMAGE_NAME, result.get());
 
-        verify(jdbcTemplate).queryForObject(GET_IMAGE_FILE_NAME, String.class, existingPostId);
+        verify(jdbcTemplate).queryForObject(GET_IMAGE_FILE_NAME, String.class, EXISTING_POST_ID);
     }
 
     /**
@@ -54,12 +54,12 @@ public class ImageRepositoryFindImageTest extends ImageRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть пустой Optional, если пост не найден")
     void shouldReturnEmptyOptionalIfPostNotFoundTest() {
-        when(jdbcTemplate.queryForObject(anyString(), eq(String.class), eq(nonExistingPostId)))
+        when(jdbcTemplate.queryForObject(anyString(), eq(String.class), eq(NON_EXISTING_POST_ID)))
                 .thenThrow(new EmptyResultDataAccessException(1));
 
-        Optional<String> result = imageRepository.findImageFileNameByPostId(nonExistingPostId);
+        Optional<String> result = imageRepository.findImageFileNameByPostId(NON_EXISTING_POST_ID);
 
         assertTrue(result.isEmpty());
-        verify(jdbcTemplate).queryForObject(GET_IMAGE_FILE_NAME, String.class, nonExistingPostId);
+        verify(jdbcTemplate).queryForObject(GET_IMAGE_FILE_NAME, String.class, NON_EXISTING_POST_ID);
     }
 }

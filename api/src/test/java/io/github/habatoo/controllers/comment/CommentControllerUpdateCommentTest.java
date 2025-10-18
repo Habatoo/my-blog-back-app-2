@@ -27,7 +27,7 @@ class CommentControllerUpdateCommentTest extends CommentControllerTestBase {
         CommentRequestDto updateRequest = createCommentRequest(VALID_COMMENT_ID, UPDATED_COMMENT_TEXT, VALID_POST_ID);
         CommentResponseDto expectedResponse = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, UPDATED_COMMENT_TEXT);
 
-        when(commentService.updateComment(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT))
+        when(commentService.updateComment(updateRequest))
                 .thenReturn(expectedResponse);
 
         ResponseEntity<CommentResponseDto> response = commentController.updateComment(
@@ -35,7 +35,7 @@ class CommentControllerUpdateCommentTest extends CommentControllerTestBase {
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedResponse, response.getBody());
-        verify(commentService).updateComment(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
+        verify(commentService).updateComment(updateRequest);
     }
 
     @Test
@@ -43,13 +43,13 @@ class CommentControllerUpdateCommentTest extends CommentControllerTestBase {
     void shouldThrowExceptionWhenUpdatingNonExistentCommentTest() {
         CommentRequestDto updateRequest = createCommentRequest(NON_EXISTENT_COMMENT_ID, UPDATED_COMMENT_TEXT, VALID_POST_ID);
 
-        when(commentService.updateComment(VALID_POST_ID, NON_EXISTENT_COMMENT_ID, UPDATED_COMMENT_TEXT))
+        when(commentService.updateComment(updateRequest))
                 .thenThrow(new EmptyResultDataAccessException("Комментарий не найден", 1));
 
         assertThrows(EmptyResultDataAccessException.class, () ->
                 commentController.updateComment(VALID_POST_ID, NON_EXISTENT_COMMENT_ID, updateRequest));
 
-        verify(commentService).updateComment(VALID_POST_ID, NON_EXISTENT_COMMENT_ID, UPDATED_COMMENT_TEXT);
+        verify(commentService).updateComment(updateRequest);
     }
 
     @DisplayName("Должен корректно обновлять комментарии с различными текстами")
@@ -64,13 +64,13 @@ class CommentControllerUpdateCommentTest extends CommentControllerTestBase {
         CommentRequestDto updateRequest = createCommentRequest(commentId, newText, postId);
         CommentResponseDto expectedResponse = createCommentResponse(commentId, postId, newText);
 
-        when(commentService.updateComment(postId, commentId, newText))
+        when(commentService.updateComment(updateRequest))
                 .thenReturn(expectedResponse);
 
         ResponseEntity<CommentResponseDto> response = commentController.updateComment(postId, commentId, updateRequest);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(newText, response.getBody().text());
-        verify(commentService).updateComment(postId, commentId, newText);
+        verify(commentService).updateComment(updateRequest);
     }
 }

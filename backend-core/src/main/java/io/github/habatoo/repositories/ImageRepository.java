@@ -43,16 +43,16 @@ public interface ImageRepository {
      * оригинальное имя и размер. Выполняется в транзакции для обеспечения
      * целостности данных.</p>
      *
-     * @param postId       идентификатор поста для обновления
-     * @param fileName     имя сохраненного файла изображения
-     * @param originalName оригинальное имя файла от пользователя
-     * @param size         размер файла в байтах
+     * @param postId   идентификатор поста для обновления
+     * @param fileName имя сохраненного файла изображения
+     * @param size     размер файла в байтах
+     * @param url      url сохраненного файла изображения
      * @throws IllegalArgumentException       если любой из параметров невалиден
      * @throws EmptyResultDataAccessException если пост с указанным ID не найден
      * @throws DataAccessException            при ошибках обновления в базе данных
      */
     @Transactional
-    void updateImageMetadata(Long postId, String fileName, String originalName, long size);
+    void updateImageMetadata(Long postId, String fileName, long size, String url);
 
     /**
      * Проверяет существование поста по идентификатору.

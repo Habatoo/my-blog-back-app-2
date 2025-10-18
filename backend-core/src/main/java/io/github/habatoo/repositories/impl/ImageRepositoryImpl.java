@@ -49,9 +49,9 @@ public class ImageRepositoryImpl implements ImageRepository {
      */
     @Override
     @Transactional
-    public void updateImageMetadata(Long postId, String fileName, String originalName, long size) {
-        log.info("Обновление метаданных изображения для поста id={} (fileName={}, originalName={}, size={})", postId, fileName, originalName, size);
-        int updatedRows = jdbcTemplate.update(UPDATE_POST_IMAGE, originalName, size, fileName, postId);
+    public void updateImageMetadata(Long postId, String fileName, long size, String url) {
+        log.info("Обновление метаданных изображения для поста id={} (fileName={}, size={}, url={})", postId, fileName, size, url);
+        int updatedRows = jdbcTemplate.update(UPDATE_POST_IMAGE, fileName, size, url, postId);
 
         if (updatedRows == 0) {
             log.warn("Пост с id={} не найден при обновлении изображения", postId);
