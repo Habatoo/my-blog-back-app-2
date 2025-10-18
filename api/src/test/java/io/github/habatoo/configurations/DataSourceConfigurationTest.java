@@ -23,10 +23,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = DataSourceConfiguration.class)
 @TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb",
-        "spring.datasource.driver-class-name=org.h2.Driver",
-        "spring.datasource.username=sa",
-        "spring.datasource.password=",
+        "spring.datasource.url=jdbc:postgresql://localhost:5432/blog_db",
+        "spring.datasource.username=blog_admin",
+        "spring.datasource.password=blog_password",
+        "spring.datasource.driver-class-name=org.postgresql.Driver",
         "spring.datasource.maximum-pool-size=10",
         "spring.datasource.connection-timeout=30000",
         "spring.flyway.locations=classpath:db/migration",

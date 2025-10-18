@@ -2,17 +2,23 @@ package io.github.habatoo.repositories.post;
 
 import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.dto.response.PostResponseDto;
+import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import io.github.habatoo.repositories.mapper.PostListRowMapper;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
+import org.springframework.jdbc.core.ParameterizedPreparedStatementSetter;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
-import static io.github.habatoo.repositories.sql.PostSqlQueries.INSERT_INTO_POST_TAG;
-import static io.github.habatoo.repositories.sql.PostSqlQueries.INSERT_INTO_TAG;
+import static io.github.habatoo.repositories.sql.PostSqlQueries.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -106,5 +112,79 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         assertEquals(List.of(), actual.tags());
         assertEquals(0, actual.likesCount());
         assertEquals(0, actual.commentsCount());
+    }
+
+    /**
+     * Проверяет, что при создании поста используются корректные лямбды для batchUpdate.
+     *
+     * <p>
+     * Тест захватывает переданные в batchUpdate лямбды-обработчики PreparedStatement,
+     * и проверяет, что они правильно выставляют параметры в PreparedStatement для каждого тега.
+     * Это обеспечивает правильное формирование параметров batchUpdate на уровне джибкейнов.
+     * </p>
+     *
+     * @throws SQLException в случае ошибок взаимодействия с PreparedStatement при проверке лямбд.
+     */
+    @Test
+    @DisplayName("Должны использоваться корректные лямбды batchUpdate при создании поста")
+    void batchUpdateLambdasTest() throws SQLException {
+        PostCreateRequestDto createRequest = new PostCreateRequestDto(TITLE, TEXT, TAGS);
+        PostResponseDto response = createPostDto(POST_ID, List.of());
+
+        when(jdbcTemplate.queryForObject(
+                eq(CREATE_POST),
+                eq(postListRowMapper),
+                eq(TITLE),
+                eq(TEXT),
+                any(Timestamp.class),
+                any(Timestamp.class)
+        )).thenReturn(response);
+
+        when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID)))
+                .thenReturn(1);
+
+        doReturn(new int[][]{new int[createRequest.tags().size()]})
+                .when(jdbcTemplate).batchUpdate(
+                        eq(INSERT_INTO_TAG),
+                        eq(createRequest.tags()),
+                        eq(createRequest.tags().size()),
+                        any(ParameterizedPreparedStatementSetter.class)
+                );
+
+        doReturn(new int[][]{new int[createRequest.tags().size()]})
+                .when(jdbcTemplate).batchUpdate(
+                        eq(INSERT_INTO_POST_TAG),
+                        eq(createRequest.tags()),
+                        eq(createRequest.tags().size()),
+                        any(ParameterizedPreparedStatementSetter.class)
+                );
+
+        postRepository = Mockito.spy(new PostRepositoryImpl(jdbcTemplate, postListRowMapper));
+        postRepository.createPost(createRequest);
+
+        ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> tagSetterCaptor =
+                ArgumentCaptor.forClass(ParameterizedPreparedStatementSetter.class);
+        verify(jdbcTemplate).batchUpdate(
+                eq(INSERT_INTO_TAG),
+                eq(createRequest.tags()),
+                eq(createRequest.tags().size()),
+                tagSetterCaptor.capture());
+
+        PreparedStatement psTag = mock(PreparedStatement.class);
+        tagSetterCaptor.getValue().setValues(psTag, "tag1");
+        verify(psTag).setString(1, "tag1");
+
+        ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> postTagSetterCaptor =
+                ArgumentCaptor.forClass(ParameterizedPreparedStatementSetter.class);
+        verify(jdbcTemplate).batchUpdate(
+                eq(INSERT_INTO_POST_TAG),
+                eq(createRequest.tags()),
+                eq(createRequest.tags().size()),
+                postTagSetterCaptor.capture());
+
+        PreparedStatement psPostTag = mock(PreparedStatement.class);
+        postTagSetterCaptor.getValue().setValues(psPostTag, "tag1");
+        verify(psPostTag).setLong(1, 1L);
+        verify(psPostTag).setString(2, "tag1");
     }
 }

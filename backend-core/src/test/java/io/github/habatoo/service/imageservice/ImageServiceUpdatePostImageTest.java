@@ -2,6 +2,7 @@ package io.github.habatoo.service.imageservice;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -61,7 +62,7 @@ class ImageServiceUpdatePostImageTest extends ImageServiceTestBase {
     }
 
     /**
-     * Проверяет выброс IllegalStateException, если в репозитории не найден пост с указанным id.
+     * Проверяет выброс EmptyResultDataAccessException, если в репозитории не найден пост с указанным id.
      */
     @Test
     @DisplayName("Должен выбросить исключение если пост не найден")
@@ -72,7 +73,7 @@ class ImageServiceUpdatePostImageTest extends ImageServiceTestBase {
         doNothing().when(imageValidator).validateImageUpdate(INVALID_POST_ID, imageFile);
         when(imageRepository.existsPostById(INVALID_POST_ID)).thenReturn(false);
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
+        EmptyResultDataAccessException ex = assertThrows(EmptyResultDataAccessException.class,
                 () -> imageService.updatePostImage(INVALID_POST_ID, imageFile));
 
         assertTrue(ex.getMessage().contains("Post not found with id"));

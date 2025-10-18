@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -23,6 +24,7 @@ import static org.mockito.Mockito.*;
  *   <li>Загрузка и кеширование изображений при их отсутствии в кеше</li>
  *   <li>Обработка ошибок: отсутствие поста, отсутствие изображения, ошибка загрузки файла</li>
  *   <li>Ветвление обновления изображения: случай отсутствия старого файла</li>
+ *   <li>Обработку поста без картинки</li>
  * </ul>
  * </p>
  */
@@ -137,7 +139,7 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
      */
     @Test
     @DisplayName("Не должен вызывать удаление файла, если старого файла нет")
-    void shouldNotCallDeleteIfOldFileIsNull() throws IOException {
+    void shouldNotCallDeleteIfOldFileIsNullTest() throws IOException {
         MultipartFile imageFile = createMultipartFile(false, ORIGINAL_FILENAME, IMAGE_SIZE);
 
         when(imageRepository.existsPostById(VALID_POST_ID)).thenReturn(true);
@@ -153,6 +155,26 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         verify(fileStorageService, never()).deleteImageFile(anyString());
         verify(fileStorageService).saveImageFile(VALID_POST_ID, imageFile);
         verify(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, IMAGE_SIZE, URL);
+    }
+
+    /**
+     * Проверяет, что при отсутствии имени файла изображения для поста
+     * сервис возвращает пустые данные и тип mediaType APPLICATION_OCTET_STREAM.
+     */
+    @Test
+    @DisplayName("Пустой ответ при отсутствии изображения: массив byte[] пуст, mediaType=APPLICATION_OCTET_STREAM")
+    void getPostImageWhenNoImageFileTest() throws IOException {
+        when(imageRepository.existsPostById(VALID_POST_ID)).thenReturn(true);
+        when(imageRepository.findImageFileNameByPostId(VALID_POST_ID)).thenReturn(Optional.empty());
+
+        ImageResponseDto result = imageService.getPostImage(VALID_POST_ID);
+
+        assertThat(result.data()).isEmpty();
+        assertThat(result.mediaType()).isEqualTo(MediaType.APPLICATION_OCTET_STREAM);
+
+        verify(imageRepository).findImageFileNameByPostId(VALID_POST_ID);
+        verify(fileStorageService, never()).loadImageFile(anyString());
+        verify(contentTypeDetector, never()).detect(any());
     }
 }
 

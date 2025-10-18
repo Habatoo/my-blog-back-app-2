@@ -67,38 +67,17 @@ public class ImageServiceImpl implements ImageService {
     public void updatePostImage(Long postId, MultipartFile image) {
         log.info("Запрос обновления изображения для поста id={}, оригинальное имя '{}', размер {} байт",
                 postId, image.getOriginalFilename(), image.getSize());
-        imageValidator.validatePostId(postId);
-        imageValidator.validateImageUpdate(postId, image);
+        validateUpdate(postId, image);
 
-        if (!imageRepository.existsPostById(postId)) {
-            log.warn("Пост id={} не найден при обновлении изображения", postId);
-            throw new IllegalStateException("Post not found with id: " + postId);
-        }
-
-        String oldFileName = imageRepository.findImageFileNameByPostId(postId).orElse(null);
+        String oldFileName = getOldFileName(postId);
 
         try {
-            String newFileName = fileStorageService.saveImageFile(postId, image);
-            log.info("Файл изображения '{}' сохранён для поста id={}", newFileName, postId);
-
-            String url = buildImageUrl(postId, newFileName);
-            long size = image.getSize();
-            imageRepository.updateImageMetadata(postId, newFileName, size, url);
-
-            if (oldFileName != null) {
-                log.info("Удаление старого изображения '{}' для поста id={}", oldFileName, postId);
-                fileStorageService.deleteImageFile(oldFileName);
-            }
-
-            byte[] imageData = fileStorageService.loadImageFile(url);
-            MediaType mediaType = contentTypeDetector.detect(imageData);
-
-            imageCache.put(postId, new ImageResponseDto(imageData, mediaType));
-            log.info("Кэшировано новое изображение для поста id={}", postId);
-
+            String newFileName = storeImageFile(postId, image);
+            updateImageMetadata(postId, newFileName, image.getSize());
+            deleteOldFileIfExists(postId, oldFileName);
+            cacheImage(postId, newFileName);
         } catch (IOException e) {
-            log.error("Ошибка при обработке изображения для поста id={}: {}", postId, e.getMessage(), e);
-            throw new IllegalStateException("Failed to process image file", e);
+            handleProcessingError(postId, e);
         }
     }
 
@@ -108,23 +87,68 @@ public class ImageServiceImpl implements ImageService {
     @Override
     public ImageResponseDto getPostImage(Long postId) {
         log.debug("Запрос на получение изображения для поста id={}", postId);
-        imageValidator.validatePostId(postId);
-
-        if (!imageRepository.existsPostById(postId)) {
-            log.warn("Пост id={} не найден при запросе изображения", postId);
-            throw new EmptyResultDataAccessException("Post not found with id: " + postId, 1);
-        }
+        validateGet(postId);
 
         ImageResponseDto cached = imageCache.get(postId);
         if (cached != null) {
             log.debug("Изображение для поста id={} получено из кэша", postId);
             return cached;
         }
+        return loadAndCacheImage(postId);
+    }
 
+    private void validateUpdate(Long postId, MultipartFile image) {
+        imageValidator.validateImageUpdate(postId, image);
+        validateGet(postId);
+    }
+
+    private void validateGet(Long postId) {
+        imageValidator.validatePostId(postId);
+        if (!imageRepository.existsPostById(postId)) {
+            log.warn("Пост id={} не найден при запросе изображения", postId);
+            throw new EmptyResultDataAccessException("Post not found with id: " + postId, 1);
+        }
+    }
+
+    private String getOldFileName(Long postId) {
+        return imageRepository.findImageFileNameByPostId(postId).orElse(null);
+    }
+
+    private String storeImageFile(Long postId, MultipartFile image) throws IOException {
+        String newFileName = fileStorageService.saveImageFile(postId, image);
+        log.info("Файл изображения '{}' сохранён для поста id={}", newFileName, postId);
+        return newFileName;
+    }
+
+    private void updateImageMetadata(Long postId, String newFileName, long size) {
+        String url = buildImageUrl(postId, newFileName);
+        imageRepository.updateImageMetadata(postId, newFileName, size, url);
+    }
+
+    private void deleteOldFileIfExists(Long postId, String oldFileName) throws IOException {
+        if (oldFileName != null) {
+            log.info("Удаление старого изображения '{}' для поста id={}", oldFileName, postId);
+            fileStorageService.deleteImageFile(oldFileName);
+        }
+    }
+
+    private void cacheImage(Long postId, String fileName) throws IOException {
+        String url = buildImageUrl(postId, fileName);
+        byte[] imageData = fileStorageService.loadImageFile(url);
+        MediaType mediaType = contentTypeDetector.detect(imageData);
+        imageCache.put(postId, new ImageResponseDto(imageData, mediaType));
+        log.info("Кэшировано новое изображение для поста id={}", postId);
+    }
+
+    private void handleProcessingError(Long postId, IOException e) {
+        log.error("Ошибка при обработке изображения для поста id={}: {}", postId, e.getMessage(), e);
+        throw new IllegalStateException("Failed to process image file", e);
+    }
+
+    private ImageResponseDto loadAndCacheImage(Long postId) {
         Optional<String> fileName = imageRepository.findImageFileNameByPostId(postId);
         byte[] imageData;
         MediaType mediaType;
-
         try {
             if (fileName.isEmpty()) {
                 imageData = new byte[]{};
@@ -134,11 +158,9 @@ public class ImageServiceImpl implements ImageService {
                 imageData = fileStorageService.loadImageFile(url);
                 mediaType = contentTypeDetector.detect(imageData);
             }
-
             ImageResponseDto imageResponse = new ImageResponseDto(imageData, mediaType);
             imageCache.put(postId, imageResponse);
             log.info("Изображение для поста id={} загружено и кэшировано", postId);
-
             return imageResponse;
         } catch (IOException e) {
             log.error("Ошибка при загрузке изображения '{}' для поста id={}: {}", fileName, postId, e.getMessage(), e);

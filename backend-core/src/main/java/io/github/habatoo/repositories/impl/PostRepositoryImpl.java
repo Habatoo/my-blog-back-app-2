@@ -224,7 +224,7 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     /**
-     * Выполняет пакетную вставку тегов с использованием MERGE.
+     * Выполняет пакетную вставку тегов с использованием batchUpdate.
      */
     private void insertTags(List<String> tags) {
         jdbcTemplate.batchUpdate(
@@ -236,7 +236,7 @@ public class PostRepositoryImpl implements PostRepository {
     }
 
     /**
-     * Выполняет пакетную вставку связей посты-теги с использованием MERGE.
+     * Выполняет пакетную вставку связей посты-теги с использованием batchUpdate.
      */
     private void insertPostTags(Long postId, List<String> tags) {
         jdbcTemplate.batchUpdate(

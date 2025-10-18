@@ -94,10 +94,4 @@ public class CommentRepositoryImpl implements CommentRepository {
     public int deleteById(Long commentId) {
         return jdbcTemplate.update(DELETE_COMMENT, commentId);
     }
-
-    private Optional<CommentResponseDto> findById(Long commentId) {
-        log.debug("Выполняется поиск комментария id={}", commentId);
-
-        return jdbcTemplate.query(FIND_BY_ID, commentRowMapper, commentId).stream().findFirst();
-    }
 }
