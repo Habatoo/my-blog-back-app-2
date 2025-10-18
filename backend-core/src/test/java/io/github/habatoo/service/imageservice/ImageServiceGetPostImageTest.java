@@ -75,7 +75,7 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         doNothing().when(imageValidator).validatePostId(VALID_POST_ID);
         when(imageRepository.existsPostById(VALID_POST_ID)).thenReturn(true);
         when(imageRepository.findImageFileNameByPostId(VALID_POST_ID)).thenReturn(Optional.of(IMAGE_FILENAME));
-        when(fileStorageService.loadImageFile(IMAGE_FILENAME)).thenReturn(IMAGE_DATA);
+        when(fileStorageService.loadImageFile(URL)).thenReturn(IMAGE_DATA);
         when(contentTypeDetector.detect(IMAGE_DATA)).thenReturn(MEDIA_TYPE);
 
         ImageResponseDto result = imageService.getPostImage(VALID_POST_ID);
@@ -86,7 +86,7 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         verify(imageValidator).validatePostId(VALID_POST_ID);
         verify(imageRepository).existsPostById(VALID_POST_ID);
         verify(imageRepository).findImageFileNameByPostId(VALID_POST_ID);
-        verify(fileStorageService).loadImageFile(IMAGE_FILENAME);
+        verify(fileStorageService).loadImageFile(URL);
         verify(contentTypeDetector).detect(IMAGE_DATA);
     }
 
@@ -117,7 +117,7 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         doNothing().when(imageValidator).validatePostId(VALID_POST_ID);
         when(imageRepository.existsPostById(VALID_POST_ID)).thenReturn(true);
         when(imageRepository.findImageFileNameByPostId(VALID_POST_ID)).thenReturn(Optional.of(IMAGE_FILENAME));
-        when(fileStorageService.loadImageFile(IMAGE_FILENAME)).thenThrow(new IOException("Load failed"));
+        when(fileStorageService.loadImageFile(URL)).thenThrow(new IOException("Load failed"));
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> imageService.getPostImage(VALID_POST_ID));
@@ -126,7 +126,7 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         verify(imageValidator).validatePostId(VALID_POST_ID);
         verify(imageRepository).existsPostById(VALID_POST_ID);
         verify(imageRepository).findImageFileNameByPostId(VALID_POST_ID);
-        verify(fileStorageService).loadImageFile(IMAGE_FILENAME);
+        verify(fileStorageService).loadImageFile(URL);
     }
 
     /**

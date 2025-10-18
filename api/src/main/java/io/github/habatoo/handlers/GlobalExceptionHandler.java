@@ -7,18 +7,35 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Map;
 
 /**
- * Глобальный перехватчик исключений.
+ * Глобальный перехватчик исключений - для обработки ошибок на разных этапах работы приложения.
+ * Для сведения обработки в единую точку оббработки.
  */
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     /**
-     * Обработка случаев когда сущность не найдена в базе данных
+     * Обрабатывает ошибки преобразования аргументов запроса, возникающие
+     * при невозможности привести path variable или query parameter к ожидаемому типу.
+     * Возвращает статус 400 Bad Request и подробное сообщение об ошибке в формате JSON.
+     *
+     * @param e исключение MethodArgumentTypeMismatchException, с деталями ошибки преобразования параметра
+     * @return объект ResponseEntity с ошибкой и статусом 400 Bad Request
+     */
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<Map<String, String>> handleArgumentTypeMismatch(MethodArgumentTypeMismatchException e) {
+        log.warn("Invalid path or query parameter: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", "Invalid path or query parameter: " + e.getValue()));
+    }
+
+    /**
+     * Обработка случаев когда сущность не найдена в базе данных.
      */
     @ExceptionHandler(EmptyResultDataAccessException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(EmptyResultDataAccessException e) {
@@ -28,7 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Обработка невалидных аргументов (валидация входных данных)
+     * Обработка невалидных аргументов (валидация входных данных).
      */
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException e) {
@@ -38,7 +55,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Обработка ошибок доступа к базе данных
+     * Обработка ошибок доступа к базе данных.
      */
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<Map<String, String>> handleDataAccessException(DataAccessException e) {
@@ -48,7 +65,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * Обработка всех непредвиденных исключений
+     * Обработка всех непредвиденных исключений.
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGenericException(Exception e) {

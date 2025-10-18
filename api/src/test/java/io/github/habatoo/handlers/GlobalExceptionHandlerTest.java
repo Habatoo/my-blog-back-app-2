@@ -61,6 +61,17 @@ class GlobalExceptionHandlerTest {
     }
 
     /**
+     * Проверяет, что эндпоинт /api/posts/invalid вызывает MethodArgumentTypeMismatchException
+     * и возвращает статус 400 с корректным текстом ошибки.
+     */
+    @Test
+    void invalidEndpointShouldReturnBadRequestAndErrorJson() throws Exception {
+        mockMvc.perform(get("/invalid"))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("{\"error\":\"Invalid path or query parameter: abc\"}"));
+    }
+
+    /**
      * <p>
      * Проверяет корректную обработку и возврат ответа для исключения {@link org.springframework.dao.EmptyResultDataAccessException}.
      * Ожидается статус 404 и JSON: {"error": "Resource not found"}

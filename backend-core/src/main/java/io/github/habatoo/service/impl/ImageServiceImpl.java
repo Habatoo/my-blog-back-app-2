@@ -129,7 +129,8 @@ public class ImageServiceImpl implements ImageService {
                 imageData = new byte[]{};
                 mediaType = MediaType.APPLICATION_OCTET_STREAM;
             } else {
-                imageData = fileStorageService.loadImageFile(fileName.get());
+                String url = buildImageUrl(postId, fileName.get());
+                imageData = fileStorageService.loadImageFile(url);
                 mediaType = contentTypeDetector.detect(imageData);
             }
 
