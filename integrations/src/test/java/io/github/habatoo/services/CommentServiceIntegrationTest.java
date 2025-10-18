@@ -5,10 +5,11 @@ import io.github.habatoo.configurations.repositories.CommentRepositoryConfigurat
 import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
 import io.github.habatoo.configurations.services.ServiceTestConfiguration;
 import io.github.habatoo.dto.request.CommentCreateRequestDto;
-import io.github.habatoo.dto.request.PostCreateRequestDto;
+import io.github.habatoo.dto.request.CommentRequestDto;
 import io.github.habatoo.dto.response.CommentResponseDto;
 import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
+import io.github.habatoo.utils.TestDataProvider;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
         CommentRepositoryConfiguration.class})
 @Transactional
 @DisplayName("Интеграционные тесты CommentServiceImpl")
-class CommentServiceIntegrationTest {
+class CommentServiceIntegrationTest extends TestDataProvider {
 
     @Autowired
     private CommentService commentService;
@@ -55,10 +56,7 @@ class CommentServiceIntegrationTest {
     void setUp() {
         flyway.clean();
         flyway.migrate();
-
-        for (int i = 0; i < 3; i++) {
-            postService.createPost(new PostCreateRequestDto("Заголовок_ " + i, "Текст_" + i, List.of("tag_1" + i, "tag2" + i)));
-        }
+        preparePosts(postService);
     }
 
     /**
@@ -95,7 +93,8 @@ class CommentServiceIntegrationTest {
     void testUpdateAndGetCommentsTest() {
         CommentCreateRequestDto req = new CommentCreateRequestDto(1L, "Новый комментарий");
         CommentResponseDto saved = commentService.createComment(req);
-        CommentResponseDto edited = commentService.updateComment(1L, saved.id(), "Обновленный комментарий");
+        CommentRequestDto reqUpdated = new CommentRequestDto(saved.id(), "Обновленный комментарий", saved.postId());
+        CommentResponseDto edited = commentService.updateComment(reqUpdated);
 
         assertThat(edited.id()).isPositive();
         assertThat(edited.text()).isEqualTo("Обновленный комментарий");
@@ -146,7 +145,7 @@ class CommentServiceIntegrationTest {
     @DisplayName("При попытке обновить комментарий несуществующего поста выбрасывается исключение")
     void testUpdateCommentNonExistingPostTest() {
         Long nonExistingPostId = 999L;
-        assertThatThrownBy(() -> commentService.updateComment(nonExistingPostId, 1L, "text"))
+        assertThatThrownBy(() -> commentService.updateComment(new CommentRequestDto(1L, "text", nonExistingPostId)))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("Post not found");
     }
@@ -163,9 +162,10 @@ class CommentServiceIntegrationTest {
         CommentCreateRequestDto req = new CommentCreateRequestDto(postId, "Комментарий");
         commentService.createComment(req);
         Long nonExistingCommentId = 999L;
-        assertThatThrownBy(() -> commentService.updateComment(postId, nonExistingCommentId, "Обновление текста"))
+        CommentRequestDto reqUpdated = new CommentRequestDto(nonExistingCommentId, "Обновление текста", nonExistingCommentId);
+        assertThatThrownBy(() -> commentService.updateComment(reqUpdated))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Комментарий с id=" + nonExistingCommentId + " не найден для обновления");
+                .hasMessageContaining("Post not found with id " + nonExistingCommentId);
     }
 
     /**

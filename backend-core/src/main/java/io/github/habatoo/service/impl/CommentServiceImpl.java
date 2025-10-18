@@ -115,7 +115,7 @@ public class CommentServiceImpl implements CommentService {
             updatedComment = commentRepository.update(postId, commentId, text);
         } catch (EmptyResultDataAccessException e) {
             log.warn("Комментарий id={} не найден для обновления", commentId);
-            throw new IllegalStateException("Комментарий не найден для обновления id " + commentId, e);
+            throw e;
         }
 
         commentsCache.computeIfPresent(postId, (pid, comments) -> {

@@ -7,6 +7,7 @@ import io.github.habatoo.service.ImageService;
 import io.github.habatoo.service.ImageValidator;
 import io.github.habatoo.service.dto.ImageResponseDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -111,7 +112,7 @@ public class ImageServiceImpl implements ImageService {
 
         if (!imageRepository.existsPostById(postId)) {
             log.warn("Пост id={} не найден при запросе изображения", postId);
-            throw new IllegalStateException("Post not found with id: " + postId);
+            throw new EmptyResultDataAccessException("Post not found with id: " + postId, 1);
         }
 
         ImageResponseDto cached = imageCache.get(postId);

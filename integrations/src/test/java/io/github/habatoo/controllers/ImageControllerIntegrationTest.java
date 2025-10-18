@@ -38,22 +38,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ImageControllerIntegrationTest {
 
     @Autowired
-    ImageController imageController;
+    private ImageController imageController;
 
     @Autowired
-    ImageService imageService;
+    private ImageService imageService;
 
     @Autowired
-    ImageRepository imageRepository;
+    private ImageRepository imageRepository;
 
     @Autowired
-    FileStorageService fileStorageService;
+    private FileStorageService fileStorageService;
 
     @Autowired
-    ImageValidator imageValidator;
+    private ImageValidator imageValidator;
 
     @Autowired
-    ImageContentTypeDetector contentTypeDetector;
+    private ImageContentTypeDetector contentTypeDetector;
 
     @Autowired
     private PostService postService;
@@ -62,12 +62,12 @@ class ImageControllerIntegrationTest {
     private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    DataSource dataSource;
+    private DataSource dataSource;
 
     @Autowired
-    Flyway flyway;
+    private Flyway flyway;
 
-    MockMvc mockMvc;
+    private MockMvc mockMvc;
 
     /**
      * Перед каждым тестом база очищается и заново создаётся тестовый пост,
@@ -116,8 +116,19 @@ class ImageControllerIntegrationTest {
     @Test
     @DisplayName("Получение изображения для postId=1")
     void getPostImage() throws Exception {
+        byte[] jpegHeader = new byte[]{
+                (byte) 0xFF, (byte) 0xD8, // SOI marker
+                (byte) 0xFF, (byte) 0xE0, // Application marker
+                0x00, 0x10, // Header length
+                'J', 'F', 'I', 'F', 0x00, // 'JFIF' ID
+                0x01, 0x01, // Version
+                0x00, // Units
+                0x00, 0x01, 0x00, 0x01, // Xdensity, Ydensity
+                0x00, 0x00 // XThumbnail, YThumbnail
+        };
+
         MockMultipartFile multipartFile = new MockMultipartFile(
-                "image", "example.jpg", "image/jpeg", "image-byte-content".getBytes()
+                "image", "example.jpg", "image/jpeg", jpegHeader
         );
 
         mockMvc.perform(multipart("/api/posts/1/image")
@@ -131,7 +142,7 @@ class ImageControllerIntegrationTest {
         mockMvc.perform(get("/api/posts/1/image"))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Type", "image/jpeg"))
-                .andExpect(content().bytes("image-byte-content".getBytes()));
+                .andExpect(content().bytes(jpegHeader));
     }
 
     /**
@@ -160,6 +171,6 @@ class ImageControllerIntegrationTest {
                             request.setMethod("PUT");
                             return request;
                         }))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().is5xxServerError());
     }
 }

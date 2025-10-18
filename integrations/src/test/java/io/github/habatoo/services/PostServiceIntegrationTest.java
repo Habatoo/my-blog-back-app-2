@@ -9,12 +9,16 @@ import io.github.habatoo.dto.request.PostRequestDto;
 import io.github.habatoo.dto.response.PostListResponseDto;
 import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
+import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.PostService;
+import io.github.habatoo.utils.TestDataProvider;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -43,10 +47,13 @@ import static org.assertj.core.api.Assertions.assertThat;
         ServiceTestConfiguration.class})
 @Transactional
 @DisplayName("Интеграционные тесты PostServiceImpl")
-class PostServiceIntegrationTest {
+class PostServiceIntegrationTest extends TestDataProvider {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private CommentService commentService;
 
     @Autowired
     private PostRepository postRepository;
@@ -67,31 +74,38 @@ class PostServiceIntegrationTest {
     void setUp() {
         flyway.clean();
         flyway.migrate();
-
-        for (int i = 1; i <= 5; i++) {
-            postService.createPost(new PostCreateRequestDto(
-                    "Title " + i, "Text content " + i, List.of("tag" + (i % 2), "common")));
-        }
+        preparePostAndComments(postService, commentService);
     }
 
     /**
-     * Проверяет получение списка постов с фильтрацией по тексту и тегам,
-     * корректную работу пагинации, а также отсутствие ошибок при пустом поисковом запросе.
+     * Проверяет получение списка постов с поиском, тегами и разными размерами страниц.
+     * Фильтрация по "Spring" вынесена в отдельную функцию.
      */
-    @Test
-    @DisplayName("Получение постов с поиском, тегами и пагинацией")
-    void testGetPostsWithSearchAndTagsAndPaginationTest() {
-        PostListResponseDto response = postService.getPosts("Text #common", 1, 3);
+    @ParameterizedTest(name = "search=\"{0}\", page={1}, size={2}")
+    @MethodSource("provideAllParams")
+    @DisplayName("Валидация поиска и пагинации постов (размеры страницы: 1,5,10,20,50)")
+    void getPostsFullTest(String search, int pageNumber, int pageSize) {
+        PostListResponseDto response = postService.getPosts(search, pageNumber, pageSize);
 
-        assertThat(response.posts()).hasSizeLessThanOrEqualTo(3);
-        assertThat(response.posts()).allMatch(p -> p.title().contains("Title") || p.text().contains("Text"));
-        assertThat(response.hasPrev()).isFalse();   // нет предыдущей страницы для первой
-        assertThat(response.hasNext()).isTrue();    // есть следующая страница, т.к. всего 5 постов, показываем по 3
+        assertThat(response.posts()).hasSizeLessThanOrEqualTo(pageSize);
+        if (!search.isBlank()) {
+            assertThat(response.posts()).allMatch(this::matchesSpring);
+        }
+        if (pageNumber == 1) {
+            assertThat(response.hasPrev()).isFalse();
+        } else {
+            assertThat(response.hasPrev()).isTrue();
+        }
 
-        PostListResponseDto responsePage2 = postService.getPosts("Text #common", 2, 3);
-        assertThat(responsePage2.posts()).isNotEmpty();
-        assertThat(responsePage2.hasPrev()).isTrue();
-        assertThat(responsePage2.hasNext()).isFalse(); // конец списка, следующей страницы нет
+        int totalFiltered = (int) TEST_POSTS.stream()
+                .filter(p -> search.isBlank() || matchesSpring(toPostResponseDto(p)))
+                .count();
+        int maxPage = (int) Math.ceil((double) totalFiltered / pageSize);
+        if (pageNumber < maxPage) {
+            assertThat(response.hasNext()).isTrue();
+        } else {
+            assertThat(response.hasNext()).isFalse();
+        }
     }
 
     /**
@@ -105,7 +119,9 @@ class PostServiceIntegrationTest {
         assertThat(maybePost).isPresent();
         PostResponseDto post = maybePost.get();
         assertThat(post.id()).isEqualTo(1L);
-        assertThat(post.tags()).contains("common");
+        assertThat(post.tags()).contains("java");
+        assertThat(post.tags()).contains("spring");
+        assertThat(post.tags()).contains("programming");
     }
 
     /**
@@ -243,5 +259,25 @@ class PostServiceIntegrationTest {
                 }
             });
         }
+    }
+
+    /**
+     * Преобразование PostCreateRequestDto → PostResponseDto для тестовых данных
+     */
+    private PostResponseDto toPostResponseDto(PostCreateRequestDto request) {
+        return new PostResponseDto(
+                1L, // Fake id
+                request.title(),
+                request.text(),
+                request.tags(),
+                0,
+                0);
+    }
+
+    /**
+     * Фильтрация для поиска "Spring"
+     */
+    private boolean matchesSpring(PostResponseDto p) {
+        return (p.title().contains("Spring") || p.text().contains("Spring")) && p.tags().contains("spring");
     }
 }

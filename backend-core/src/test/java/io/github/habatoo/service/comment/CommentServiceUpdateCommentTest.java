@@ -47,7 +47,7 @@ class CommentServiceUpdateCommentTest extends CommentServiceTestBase {
     }
 
     /**
-     * Проверяет, что попытка обновить несуществующий комментарий вызывает IllegalStateException,
+     * Проверяет, что попытка обновить несуществующий комментарий вызывает EmptyResultDataAccessException,
      * а репозиторий бросает EmptyResultDataAccessException.
      */
     @Test
@@ -58,7 +58,7 @@ class CommentServiceUpdateCommentTest extends CommentServiceTestBase {
         when(commentRepository.update(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT))
                 .thenThrow(new EmptyResultDataAccessException(1));
 
-        assertThrows(IllegalStateException.class,
+        assertThrows(EmptyResultDataAccessException.class,
                 () -> commentService.updateComment(createUpdatedCommentRequestDto()));
         verify(postService).postExists(VALID_POST_ID);
         verify(commentRepository).update(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);

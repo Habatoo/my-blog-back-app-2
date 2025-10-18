@@ -2,7 +2,7 @@ package io.github.habatoo.repositories;
 
 import io.github.habatoo.configurations.TestDataSourceConfiguration;
 import io.github.habatoo.configurations.repositories.ImageRepositoryConfiguration;
-import io.github.habatoo.utils.TestDataBase;
+import io.github.habatoo.utils.TestDataProvider;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -14,7 +14,6 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 import java.util.Optional;
 
-import static io.github.habatoo.utils.TestDataBase.preparePostsWithImages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
@@ -27,7 +26,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
  */
 @SpringJUnitConfig(classes = {TestDataSourceConfiguration.class, ImageRepositoryConfiguration.class})
 @DisplayName("Интеграционные тесты ImageRepository")
-public class ImageRepositoryIntegrationTest {
+public class ImageRepositoryIntegrationTest extends TestDataProvider {
 
     @Autowired
     private ImageRepository imageRepository;
@@ -108,10 +107,10 @@ public class ImageRepositoryIntegrationTest {
     @DisplayName("Обновление метаданных изображения несуществующего поста вызывает исключение")
     void testUpdateImageMetadataNonExistingPostTest() {
         assertThatThrownBy(() -> imageRepository.updateImageMetadata(
-                999L,
-                "file.jpg",
-                123L,
-                "/images/file.jpg"
+                        999L,
+                        "file.jpg",
+                        123L,
+                        "/images/file.jpg"
                 )
         )
                 .isInstanceOf(EmptyResultDataAccessException.class)
@@ -133,7 +132,7 @@ public class ImageRepositoryIntegrationTest {
                     "file.jpg",
                     123L,
                     "/images/file.jpg"
-                    );
+            );
         } catch (EmptyResultDataAccessException ignored) {
         }
 

@@ -1,11 +1,16 @@
 package io.github.habatoo.repositories;
 
 import io.github.habatoo.configurations.TestDataSourceConfiguration;
+import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
 import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
+import io.github.habatoo.configurations.services.ServiceTestConfiguration;
 import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.dto.request.PostRequestDto;
 import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.impl.PostRepositoryImpl;
+import io.github.habatoo.service.CommentService;
+import io.github.habatoo.service.PostService;
+import io.github.habatoo.utils.TestDataProvider;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -27,12 +32,22 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
  * и работу с тегами. Также проверяются граничные случаи и ошибки.
  * </p>
  */
-@SpringJUnitConfig(classes = {TestDataSourceConfiguration.class, PostRepositoryConfiguration.class})
+@SpringJUnitConfig(classes = {
+        TestDataSourceConfiguration.class,
+        CommentRepositoryConfiguration.class,
+        PostRepositoryConfiguration.class,
+        ServiceTestConfiguration.class})
 @DisplayName("Интеграционные тесты PostRepository")
-public class PostRepositoryIntegrationTest {
+public class PostRepositoryIntegrationTest extends TestDataProvider {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private PostService postService;
+
+    @Autowired
+    private CommentService commentService;
 
     @Autowired
     private Flyway flyway;
@@ -50,20 +65,7 @@ public class PostRepositoryIntegrationTest {
     void setUp() {
         flyway.clean();
         flyway.migrate();
-
-        for (long id = 1; id <= 3; id++) {
-            jdbcTemplate.update(
-                    "INSERT INTO post (id, title, text, likes_count, comments_count, image_url, image_name, image_size, created_at, updated_at) " +
-                            "VALUES (?, ?, ?, 0, 0, NULL, NULL, NULL, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                    id, "Пост " + id, "Контент поста " + id);
-        }
-
-        jdbcTemplate.update("INSERT INTO tag (id, name) VALUES (?, ?)", 1L, "Tag1");
-        jdbcTemplate.update("INSERT INTO tag (id, name) VALUES (?, ?)", 2L, "Tag2");
-
-        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id) VALUES (?, ?)", 1L, 1L);
-        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id) VALUES (?, ?)", 1L, 2L);
-        jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id) VALUES (?, ?)", 2L, 1L);
+        preparePostAndComments(postService, commentService);
     }
 
     /**
@@ -79,8 +81,8 @@ public class PostRepositoryIntegrationTest {
         List<PostResponseDto> posts = postRepository.findAllPosts();
 
         assertThat(posts).isNotEmpty();
-        assertThat(posts).anyMatch(p -> p.tags().contains("Tag1"));
-        assertThat(posts).anyMatch(p -> p.tags().contains("Tag2"));
+        assertThat(posts).anyMatch(p -> p.tags().contains("java"));
+        assertThat(posts).anyMatch(p -> p.tags().contains("spring"));
     }
 
     /**
@@ -163,7 +165,7 @@ public class PostRepositoryIntegrationTest {
     @DisplayName("Получение тегов для существующего поста")
     void testGetTagsForPostExistingTest() {
         List<String> tags = postRepository.getTagsForPost(1L);
-        assertThat(tags).containsExactlyInAnyOrder("Tag1", "Tag2");
+        assertThat(tags).containsExactlyInAnyOrder("java", "spring", "programming");
     }
 
     /**

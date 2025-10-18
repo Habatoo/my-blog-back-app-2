@@ -3,6 +3,7 @@ package io.github.habatoo.service.imageservice;
 import io.github.habatoo.service.dto.ImageResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -91,7 +92,8 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
     }
 
     /**
-     * Проверяет, что при отсутствии поста вызывается и выбрасывается IllegalStateException с корректным сообщением.
+     * Проверяет, что при отсутствии поста вызывается и выбрасывается EmptyResultDataAccessException
+     * с корректным сообщением.
      */
     @Test
     @DisplayName("Должен выбросить исключение при отсутствии поста")
@@ -99,7 +101,7 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         doNothing().when(imageValidator).validatePostId(INVALID_POST_ID);
         when(imageRepository.existsPostById(INVALID_POST_ID)).thenReturn(false);
 
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
+        EmptyResultDataAccessException ex = assertThrows(EmptyResultDataAccessException.class,
                 () -> imageService.getPostImage(INVALID_POST_ID));
         assertTrue(ex.getMessage().contains("Post not found with id"));
 
@@ -109,7 +111,8 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
     }
 
     /**
-     * Проверяет, что при ошибке чтения файла (например, IOException) выбрасывается IllegalStateException с корректным сообщением.
+     * Проверяет, что при ошибке чтения файла (например, IOException) выбрасывается
+     * IllegalStateException с корректным сообщением.
      */
     @Test
     @DisplayName("Должен выбросить исключение при ошибке загрузки файла")

@@ -19,6 +19,7 @@
             <groupId>io.github.habatoo</groupId>
             <artifactId>api</artifactId>
             <version>${project.version}</version>
+            <classifier>classes</classifier>
             <scope>test</scope>
         </dependency>
         <dependency>

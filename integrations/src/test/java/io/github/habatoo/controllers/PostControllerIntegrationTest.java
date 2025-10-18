@@ -2,9 +2,10 @@ package io.github.habatoo.controllers;
 
 import io.github.habatoo.configurations.TestDataSourceConfiguration;
 import io.github.habatoo.configurations.controllers.PostControllerConfiguration;
-import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.handlers.GlobalExceptionHandler;
+import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
+import io.github.habatoo.utils.TestDataProvider;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,7 +21,6 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import javax.sql.DataSource;
-import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -36,13 +36,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Testcontainers
 @ContextConfiguration(classes = {PostControllerConfiguration.class, TestDataSourceConfiguration.class})
 @DisplayName("Интеграционные тесты PostController")
-class PostControllerIntegrationTest {
+class PostControllerIntegrationTest extends TestDataProvider {
 
     @Autowired
     PostController postController;
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    CommentService commentService;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -57,28 +60,13 @@ class PostControllerIntegrationTest {
 
     @BeforeEach
     @DisplayName("Подготовка тестовых постов и очистка базы")
-    void setUp() throws Exception {
+    void setUp() {
         flyway.clean();
         flyway.migrate();
         this.mockMvc = MockMvcBuilders.standaloneSetup(postController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
-
-        postService.createPost(new PostCreateRequestDto(
-                "Мой первый пост о Java",
-                "Изучаю Java и Spring Framework.",
-                List.of("java", "spring")
-        ));
-        postService.createPost(new PostCreateRequestDto(
-                "Spring Boot преимущества",
-                "Spring Boot для быстрой разработки.",
-                List.of("spring")
-        ));
-        postService.createPost(new PostCreateRequestDto(
-                "Работа с базами данных",
-                "Пример интеграции с PostgreSQL.",
-                List.of("database")
-        ));
+        preparePostAndComments(postService, commentService);
     }
 
     /**
@@ -129,7 +117,9 @@ class PostControllerIntegrationTest {
                         .param("pageSize", "2"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.posts.length()").value(2))
-                .andExpect(jsonPath("$.totalCount").value(2));
+                .andExpect(jsonPath("$.hasPrev").value(false))
+                .andExpect(jsonPath("$.hasNext").value(true))
+                .andExpect(jsonPath("$.lastPage").value(3));
     }
 
     /**

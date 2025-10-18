@@ -2,14 +2,20 @@ package io.github.habatoo.repositories;
 
 import io.github.habatoo.configurations.TestDataSourceConfiguration;
 import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
+import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
+import io.github.habatoo.configurations.services.ServiceTestConfiguration;
 import io.github.habatoo.dto.request.CommentCreateRequestDto;
 import io.github.habatoo.dto.response.CommentResponseDto;
+import io.github.habatoo.service.CommentService;
+import io.github.habatoo.service.PostService;
+import io.github.habatoo.utils.TestDataProvider;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
@@ -26,12 +32,22 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
  * Также учитываются варианты с несуществующими данными и проверяется корректность обработки ошибок.
  * </p>
  */
-@SpringJUnitConfig(classes = {TestDataSourceConfiguration.class, CommentRepositoryConfiguration.class})
+@SpringJUnitConfig(classes = {
+        TestDataSourceConfiguration.class,
+        CommentRepositoryConfiguration.class,
+        PostRepositoryConfiguration.class,
+        ServiceTestConfiguration.class})
 @DisplayName("Интеграционные тесты CommentRepository")
-public class CommentRepositoryIntegrationTest {
+public class CommentRepositoryIntegrationTest extends TestDataProvider {
 
     @Autowired
     private CommentRepository commentRepository;
+
+    @Autowired
+    private PostService postService;
+
+    @Autowired
+    private CommentService commentService;
 
     @Autowired
     private Flyway flyway;
@@ -47,15 +63,7 @@ public class CommentRepositoryIntegrationTest {
     void setUp() {
         flyway.clean();
         flyway.migrate();
-
-        for (long id = 1; id <= 4; id++) {
-            jdbcTemplate.update(
-                    "INSERT INTO post (id, title, text, likes_count, comments_count, created_at, updated_at) " +
-                            "VALUES (?, ?, ?, 0, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
-                    id,
-                    "Тестовый пост " + id,
-                    "Содержимое " + id);
-        }
+        preparePostAndComments(postService, commentService);
     }
 
     /**
@@ -108,7 +116,7 @@ public class CommentRepositoryIntegrationTest {
         CommentCreateRequestDto newComment = new CommentCreateRequestDto(3L, "Старый текст");
         CommentResponseDto saved = commentRepository.save(newComment);
 
-        CommentResponseDto updated = commentRepository.update(saved.postId(), saved.id(),"Новый текст");
+        CommentResponseDto updated = commentRepository.update(saved.postId(), saved.id(), "Новый текст");
         assertThat(updated.text()).isEqualTo("Новый текст");
     }
 
@@ -119,8 +127,7 @@ public class CommentRepositoryIntegrationTest {
     @DisplayName("Обновление текста комментария (не существующий комментарий)")
     void testUpdateNonExistingTest() {
         assertThatThrownBy(() -> commentRepository.update(1L, 999L, "Новый текст"))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("не найден для обновления");
+                .isInstanceOf(EmptyResultDataAccessException.class);
     }
 
     /**
