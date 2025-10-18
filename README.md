@@ -5,29 +5,29 @@
 
 ## О проекте
 
-**my-blog-back-app** — это учебный блоговый проект, реализованный на базе Java (Spring), PostgreSQL, Docker, Tomcat 
-и современных frontend-технологий. 
-Цель — продемонстрировать микросервисное развёртывание с помощью Docker, централизованные миграции 
-Flyway и модульное покрытие unit-тестами с Jacoco.
-
+**my-blog-back-app** <br>
+Бэкенд многомодульного блог-приложения на Java/Spring (Maven, Tomcat, Postgres, Flyway, Jacoco).
+Поддержка миграций, автотестов, интеграции, docker-compose для легкой разработки и деплоя.
 ---
 
 ## Структура проекта
 ```declarative;
-├── api/ # контроллеры и конфигурация приложения
-│ ├── target/backend.war # сборка backend для деплоя в Tomcat
-├── backend-core/ # core блок с основной бизнес логикой.
-├── frontend/ # Исходный код frontend, конечное приложение - сюда копируется build фронта
-├── integrationtests / интеграционные тесты по проекту
-├── report / # pom для генерации отчетеа jacoco в многомодульном проекте
-├── documentation/ # Документация, инструкции, примеры миграций и тестирования
+my-blog-back-app/           # ROOT проекта 
+├── api/                    # Контроллеры и конфигурация приложения
+│ ├── target/backend.war    # Сборка backend для деплоя в Tomcat/Jetty
+│ └── db/migrations/        # Миграции Flyway (V1__init_schema.sql)
+├── backend-core/           # Core блок с основной бизнес логикой.
+├── frontend/               # Исходный код frontend, конечное приложение - сюда копируется build фронта
+├── integrationtests /      # Интеграционные тесты по проекту
+├── report /                # Pom для генерации отчетеа jacoco в многомодульном проекте
+├── documentation/          # Документация, инструкции, примеры миграций и тестирования
 │ ├── database.md
-│ ├── flyway-migrations.md
 │ ├── deploy.md
 │ ├── jacoco.md
 │ └── faq.md
-├── docker-compose.yml # Главный файл оркестрации Docker сервисов
-├── .env # Переменные среды (НЕ храните в репозитории)
+├── Dockerfilel
+├── docker-compose.yml      # Главный файл оркестрации Docker сервисов
+├── .env                    # Переменные среды (НЕ храните в репозитории)
 ├── README.md
 ```
 ---
@@ -41,6 +41,59 @@ Flyway и модульное покрытие unit-тестами с Jacoco.
 - **Nginx** — для фронтенда, проксирования статических файлов
 - **Jacoco** — для сбора unit/integration coverage ([как смотреть отчёты](./documentation/jacoco.md))
 - **Maven** — сборка проекта, выполнение тестов
+
+
+## Быстрый старт
+
+1. **Подготовка**
+```bash
+git clone -b feature/module_one_sprint_three_branch https://github.com/Habatoo/my-blog-back-app.git
+cd my-blog-back-app
+```
+
+2. **Настройка базы Postgres**
+
+- Параметры по умолчанию:  
+  `DB_NAME=blog_db`  
+  `USER=blog_admin`  
+  `PASSWORD=blog_password`  
+  (см. `.env` в папке env)
+
+- Миграции хранятся здесь:  
+  `api/src/main/resources/db/migrations/V1__init_schema.sql`
+
+3. **Запуск через Docker Compose**
+```bash
+docker compose up --build
+```
+- Контейнеры: backend (Tomcat + WAR), frontend (NGINX), база, Flyway миграции.
+
+4. **Сборка и деплой бэкенда вручную**
+- Сборка WAR:
+```
+./mvnw clean package -DskipTests=true -Dmaven.test.skip=true
+ ```
+- Деплой:
+  - Скопируйте файл `api/target/api-1.0-SNAPSHOT.war` в `webapps/ROOT.war` вашего Tomcat.
+
+5. **Запуск/тесты**
+  - Юнит и интеграционные тесты:
+```bash
+./mvnw test           # только тесты
+./mvnw verify         # тесты + проверка через Jacoco
+ ```
+
+6. **Отчёты Jacoco**
+  - Генерация:
+```bash
+./mvnw jacoco:report
+ ```
+  - Смотрите HTML-отчёты в  
+  `report/target/site/jacoco/index.html`  
+  (может отличаться по модулю – см. doc/jacoco.md)
+
+---
+
 
 ## Доступы и взаимодействие сервисов
 
@@ -57,7 +110,7 @@ Flyway и модульное покрытие unit-тестами с Jacoco.
 
 ## Более расширенные инструкции
 
-- [Работа с БД и миграциями Flyway](./documentation/flyway-migrations.md)
+- [Работа с БД и миграциями Flyway](./documentation/database.md)
 - [Руководство по деплою и настройкам](./documentation/deploy.md)
-- [Удаление базы, пользователя, схемы вручную (Postgres)](./documentation/database.md)
+- [Получение отчетов jacoco](./documentation/database.md)
 ---

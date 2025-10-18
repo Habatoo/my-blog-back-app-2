@@ -35,16 +35,12 @@ mvnw clean install
 
 3. **Подготовить миграции Flyway и настроить переменные БД**
    <br> Миграции должны лежать в `./api/src/main/resources/db/migrations/`
-    - .env файл — в нем заданы параметры БД.
 
 4. **Собрать и запустить Docker-кластер**
 
-После успешной сборки образов с помощью
+После успешной сборки образов и запуск с помощью
 ```bash
 docker compose build
-````
-следующий шаг — запустить сервисы, описанные в docker-compose.yml. Вы уже сделали это командой:
-```bash
 docker compose up -d
 ```
 - Проверка запущенных контейнеров
@@ -96,14 +92,3 @@ docker exec -it blog_db_con psql -U blog_admin -d blog_db
 и Enter.
 
 ---
-
-- Доступ к приложениям
-  Фронтенд: откройте браузер по адресу 
-http://localhost 
-или 
-http://127.0.0.1 
-(порт 80), он проксируется в nginx контейнер my-blog-front-app.
-
-- Бэкенд: 
-http://localhost:8080 
- приложение на Tomcat с вашим backend.
