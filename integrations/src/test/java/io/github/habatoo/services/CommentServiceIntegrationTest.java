@@ -24,6 +24,8 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Интеграционные тесты CommentServiceImpl.
@@ -125,15 +127,16 @@ class CommentServiceIntegrationTest extends TestDataProvider {
     /**
      * Тестирование поведения при попытке получить комментарии несуществующего поста.
      * <p>
-     * Проверяется, что вызывается исключение IllegalStateException с сообщением о несуществующем посте.
+     * Проверяет, что при отсутствии комментариев возвращается пустой список,
+     * а не выбрасывается исключение.
      */
     @Test
-    @DisplayName("При попытке получить комментарии несуществующего поста выбрасывается исключение")
+    @DisplayName("При отсутствии комментариев для поста возвращается пустой список")
     void testGetCommentsNonExistingPostTest() {
         Long nonExistingPostId = 999L;
-        assertThatThrownBy(() -> commentService.getCommentsByPostId(nonExistingPostId))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Post not found");
+        List<CommentResponseDto> result = commentService.getCommentsByPostId(nonExistingPostId);
+        assertNotNull(result, "Результат не должен быть null");
+        assertTrue(result.isEmpty(), "Список должен быть пустым, если комментарии не найдены");
     }
 
     /**
@@ -146,8 +149,8 @@ class CommentServiceIntegrationTest extends TestDataProvider {
     void testUpdateCommentNonExistingPostTest() {
         Long nonExistingPostId = 999L;
         assertThatThrownBy(() -> commentService.updateComment(new CommentRequestDto(1L, "text", nonExistingPostId)))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Post not found");
+                .isInstanceOf(EmptyResultDataAccessException.class)
+                .hasMessageContaining("Комментарий не найден");
     }
 
     /**
@@ -164,8 +167,8 @@ class CommentServiceIntegrationTest extends TestDataProvider {
         Long nonExistingCommentId = 999L;
         CommentRequestDto reqUpdated = new CommentRequestDto(nonExistingCommentId, "Обновление текста", nonExistingCommentId);
         assertThatThrownBy(() -> commentService.updateComment(reqUpdated))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Post not found with id " + nonExistingCommentId);
+                .isInstanceOf(EmptyResultDataAccessException.class)
+                .hasMessageContaining("Комментарий не найден");
     }
 
     /**
@@ -178,8 +181,8 @@ class CommentServiceIntegrationTest extends TestDataProvider {
     void testDeleteCommentNonExistingPostTest() {
         Long nonExistingPostId = 999L;
         assertThatThrownBy(() -> commentService.deleteComment(nonExistingPostId, 1L))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("Post not found");
+                .isInstanceOf(EmptyResultDataAccessException.class)
+                .hasMessageContaining("Комментарий не найден");
     }
 
     /**

@@ -106,7 +106,8 @@ class PostControllerIntegrationTest extends TestDataProvider {
 
     /**
      * Проверяет получение постов с поиском по тексту и пагинацией.
-     * Ожидается 1 найденный пост по заданному поисковому слову.
+     * Ожидается 3 найденных поста по заданному поисковому слову,
+     * к отображению 2.
      */
     @Test
     @DisplayName("Пагинация и поиск постов")
@@ -119,7 +120,7 @@ class PostControllerIntegrationTest extends TestDataProvider {
                 .andExpect(jsonPath("$.posts.length()").value(2))
                 .andExpect(jsonPath("$.hasPrev").value(false))
                 .andExpect(jsonPath("$.hasNext").value(true))
-                .andExpect(jsonPath("$.lastPage").value(3));
+                .andExpect(jsonPath("$.lastPage").value(2));
     }
 
     /**

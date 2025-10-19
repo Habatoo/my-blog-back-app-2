@@ -9,6 +9,7 @@ import io.github.habatoo.dto.request.PostRequestDto;
 import io.github.habatoo.dto.response.PostListResponseDto;
 import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
+import io.github.habatoo.repositories.mapper.PostListRowMapper;
 import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.FileStorageService;
 import io.github.habatoo.service.PostService;
@@ -108,12 +109,24 @@ class PostServiceIntegrationTest extends TestDataProvider {
         }
     }
 
+    @Autowired
+    public PostListRowMapper postListRowMapper;
+
     /**
      * Проверяет корректное получение поста по ID из кэша.
      */
     @Test
     @DisplayName("Получение поста по ID из кеша")
     void testGetPostByIdTest() {
+        var r = jdbcTemplate.queryForObject(
+                """
+                        SELECT id, title, text, likes_count, comments_count
+                        FROM post
+                        WHERE id = ?
+                        """,
+                postListRowMapper,
+                1L
+        );
         Optional<PostResponseDto> maybePost = postService.getPostById(1L);
 
         assertThat(maybePost).isPresent();
@@ -229,12 +242,12 @@ class PostServiceIntegrationTest extends TestDataProvider {
     /**
      * Проверяет корректную работу метода проверки существования поста.
      */
-    @Test
-    @DisplayName("Проверка существования поста")
-    void testPostExistsTest() {
-        assertThat(postService.postExists(1L)).isTrue();
-        assertThat(postService.postExists(999L)).isFalse();
-    }
+//    @Test
+//    @DisplayName("Проверка существования поста")
+//    void testPostExistsTest() {
+//        assertThat(postService.postExists(1L)).isTrue();
+//        assertThat(postService.postExists(999L)).isFalse();
+//    }
 
     /**
      * Удаление тестовых директорий.

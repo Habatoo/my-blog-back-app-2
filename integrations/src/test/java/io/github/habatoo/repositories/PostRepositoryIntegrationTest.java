@@ -78,8 +78,7 @@ public class PostRepositoryIntegrationTest extends TestDataProvider {
     @Test
     @DisplayName("Получение всех постов с тегами")
     void testFindAllPoststTest() {
-        List<PostResponseDto> posts = postRepository.findAllPosts();
-
+        List<PostResponseDto> posts = postRepository.findPosts("", List.of("java", "spring"), 1, 5);
         assertThat(posts).isNotEmpty();
         assertThat(posts).anyMatch(p -> p.tags().contains("java"));
         assertThat(posts).anyMatch(p -> p.tags().contains("spring"));
