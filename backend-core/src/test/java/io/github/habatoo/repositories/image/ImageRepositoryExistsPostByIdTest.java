@@ -3,7 +3,6 @@ package io.github.habatoo.repositories.image;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static io.github.habatoo.repositories.sql.ImageSqlQueries.CHECK_POST_EXISTS;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,7 +36,14 @@ public class ImageRepositoryExistsPostByIdTest extends ImageRepositoryTestBase {
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(EXISTING_POST_ID))).thenReturn(1);
 
         assertTrue(imageRepository.existsPostById(EXISTING_POST_ID));
-        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, EXISTING_POST_ID);
+        verify(jdbcTemplate).queryForObject(
+                """
+                        SELECT COUNT(1)
+                        FROM post
+                        WHERE id = ?
+                        """,
+                Integer.class,
+                EXISTING_POST_ID);
     }
 
     /**
@@ -49,7 +55,15 @@ public class ImageRepositoryExistsPostByIdTest extends ImageRepositoryTestBase {
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(NON_EXISTING_POST_ID))).thenReturn(0);
 
         assertFalse(imageRepository.existsPostById(NON_EXISTING_POST_ID));
-        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, NON_EXISTING_POST_ID);
+        verify(jdbcTemplate).queryForObject(
+                """
+                        SELECT COUNT(1)
+                        FROM post
+                        WHERE id = ?
+                        """,
+                Integer.class,
+                NON_EXISTING_POST_ID
+        );
     }
 
     /**
@@ -61,6 +75,14 @@ public class ImageRepositoryExistsPostByIdTest extends ImageRepositoryTestBase {
         when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq(NON_EXISTING_POST_ID))).thenReturn(null);
 
         assertFalse(imageRepository.existsPostById(NON_EXISTING_POST_ID));
-        verify(jdbcTemplate).queryForObject(CHECK_POST_EXISTS, Integer.class, NON_EXISTING_POST_ID);
+        verify(jdbcTemplate).queryForObject(
+                """
+                        SELECT COUNT(1)
+                        FROM post
+                        WHERE id = ?
+                        """,
+                Integer.class,
+                NON_EXISTING_POST_ID
+        );
     }
 }

@@ -6,7 +6,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.EmptyResultDataAccessException;
 
-import static io.github.habatoo.repositories.sql.ImageSqlQueries.UPDATE_POST_IMAGE;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -38,7 +37,17 @@ class ImageRepositoryUpdateImageMetadataTest extends ImageRepositoryTestBase {
 
         assertDoesNotThrow(() -> imageRepository.updateImageMetadata(EXISTING_POST_ID, IMAGE_NAME, IMAGE_SIZE, URL));
 
-        verify(jdbcTemplate).update(eq(UPDATE_POST_IMAGE), eq(IMAGE_NAME), eq(IMAGE_SIZE), eq(URL), eq(EXISTING_POST_ID));
+        verify(jdbcTemplate).update(
+                eq("""
+                        UPDATE post
+                        SET image_name = ?, image_size = ?, image_url = ?
+                        WHERE id = ?
+                        """),
+                eq(IMAGE_NAME),
+                eq(IMAGE_SIZE),
+                eq(URL),
+                eq(EXISTING_POST_ID)
+        );
     }
 
     /**
@@ -55,7 +64,17 @@ class ImageRepositoryUpdateImageMetadataTest extends ImageRepositoryTestBase {
                 () -> imageRepository.updateImageMetadata(EXISTING_POST_ID, IMAGE_NAME, IMAGE_SIZE, URL));
 
         assertTrue(ex.getMessage().contains("Post not found with id"));
-        verify(jdbcTemplate).update(eq(UPDATE_POST_IMAGE), eq(IMAGE_NAME), eq(IMAGE_SIZE), eq(URL), eq(EXISTING_POST_ID));
+        verify(jdbcTemplate).update(
+                eq("""
+                        UPDATE post
+                        SET image_name = ?, image_size = ?, image_url = ?
+                        WHERE id = ?
+                        """),
+                eq(IMAGE_NAME),
+                eq(IMAGE_SIZE),
+                eq(URL),
+                eq(EXISTING_POST_ID)
+        );
     }
 
     /**
@@ -71,6 +90,15 @@ class ImageRepositoryUpdateImageMetadataTest extends ImageRepositoryTestBase {
                 imageRepository.updateImageMetadata(NON_EXISTING_POST_ID, IMAGE_NAME, IMAGE_SIZE, URL));
 
         assertTrue(ex.getMessage().contains("Post not found with id"));
-        verify(jdbcTemplate).update(eq(UPDATE_POST_IMAGE), eq(IMAGE_NAME), eq(IMAGE_SIZE), eq(URL), eq(NON_EXISTING_POST_ID));
+        verify(jdbcTemplate).update(
+                eq("""
+                        UPDATE post
+                        SET image_name = ?, image_size = ?, image_url = ?
+                        WHERE id = ?
+                        """),
+                eq(IMAGE_NAME),
+                eq(IMAGE_SIZE),
+                eq(URL),
+                eq(NON_EXISTING_POST_ID));
     }
 }

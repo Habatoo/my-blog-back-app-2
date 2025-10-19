@@ -2,17 +2,11 @@ package io.github.habatoo.repositories.post;
 
 import io.github.habatoo.dto.request.PostRequestDto;
 import io.github.habatoo.dto.response.PostResponseDto;
-import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.springframework.jdbc.core.RowMapper;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
-import static io.github.habatoo.repositories.sql.PostSqlQueries.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -46,8 +40,19 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
                 new PostResponseDto(2L, "Title2", "Text2", List.of(), 0, 0)
         );
         List<String> tags = List.of("tagA", "tagB");
-        when(jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper)).thenReturn(postsWithoutTags);
-        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), any())).thenReturn(tags);
+        when(jdbcTemplate.query(
+                """
+                        SELECT p.id, p.title, p.text, p.likes_count, p.comments_count
+                        FROM post p
+                        ORDER BY p.created_at DESC
+                        """,
+                postListRowMapper
+        )).thenReturn(postsWithoutTags);
+        when(jdbcTemplate.queryForList(eq("""
+                SELECT t.name FROM tag t
+                JOIN post_tag pt ON t.id = pt.tag_id
+                WHERE pt.post_id = ?
+                """), eq(String.class), any())).thenReturn(tags);
 
         List<PostResponseDto> result = postRepository.findAllPosts();
 
@@ -56,9 +61,31 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
             assertEquals(List.of("tagA", "tagB"), post.tags());
         }
 
-        verify(jdbcTemplate).query(FIND_ALL_POSTS, postListRowMapper);
-        verify(jdbcTemplate).queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(1L));
-        verify(jdbcTemplate).queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(2L));
+        verify(jdbcTemplate).query(
+                """
+                        SELECT p.id, p.title, p.text, p.likes_count, p.comments_count
+                        FROM post p
+                        ORDER BY p.created_at DESC
+                        """,
+                postListRowMapper
+        );
+        verify(jdbcTemplate).queryForList(eq("""
+                        SELECT t.name FROM tag t
+                        JOIN post_tag pt ON t.id = pt.tag_id
+                        WHERE pt.post_id = ?
+                        """),
+                eq(String.class),
+                eq(1L)
+        );
+        verify(jdbcTemplate).queryForList(
+                eq("""
+                        SELECT t.name FROM tag t
+                        JOIN post_tag pt ON t.id = pt.tag_id
+                        WHERE pt.post_id = ?
+                        """),
+                eq(String.class),
+                eq(2L)
+        );
     }
 
     /**
@@ -72,10 +99,41 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
         PostResponseDto postReturned = createPostDto(POST_ID, List.of());
 
         when(jdbcTemplate.queryForObject(anyString(), eq(postListRowMapper), any(), any(), any(), any())).thenReturn(postReturned);
-        when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID))).thenReturn(1);
-        when(jdbcTemplate.batchUpdate(eq(INSERT_INTO_TAG), anyList(), anyInt(), any())).thenReturn(new int[][]{});
-        when(jdbcTemplate.batchUpdate(eq(INSERT_INTO_POST_TAG), anyList(), anyInt(), any())).thenReturn(new int[][]{});
-        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID))).thenReturn(TAGS);
+        when(jdbcTemplate.update(
+                eq("""
+                        DELETE FROM post_tag WHERE post_id = ?
+                        """),
+                eq(POST_ID)
+        )).thenReturn(1);
+        when(jdbcTemplate.batchUpdate(
+                eq("""
+                        INSERT INTO tag (name)
+                        VALUES (?)
+                        ON CONFLICT (name) DO NOTHING;
+                        """),
+                anyList(),
+                anyInt(),
+                any())
+        ).thenReturn(new int[][]{});
+        when(jdbcTemplate.batchUpdate(
+                eq("""
+                        INSERT INTO post_tag (post_id, tag_id)
+                        VALUES (?, (SELECT id FROM tag WHERE name = ?))
+                        ON CONFLICT (post_id, tag_id) DO NOTHING;
+                        """),
+                anyList(),
+                anyInt(),
+                any())
+        ).thenReturn(new int[][]{});
+        when(jdbcTemplate.queryForList(
+                eq("""
+                        SELECT t.name FROM tag t
+                        JOIN post_tag pt ON t.id = pt.tag_id
+                        WHERE pt.post_id = ?
+                        """),
+                eq(String.class),
+                eq(POST_ID)
+        )).thenReturn(TAGS);
 
         PostResponseDto result = postRepository.updatePost(requestDto);
 
@@ -83,8 +141,26 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
         assertEquals(POST_ID, result.id());
         assertEquals(TAGS, result.tags());
         verify(jdbcTemplate).queryForObject(anyString(), eq(postListRowMapper), any(), any(), any(), any());
-        verify(jdbcTemplate).batchUpdate(eq(INSERT_INTO_TAG), anyList(), anyInt(), any());
-        verify(jdbcTemplate).batchUpdate(eq(INSERT_INTO_POST_TAG), anyList(), anyInt(), any());
+        verify(jdbcTemplate).batchUpdate(
+                eq("""
+                        INSERT INTO tag (name)
+                        VALUES (?)
+                        ON CONFLICT (name) DO NOTHING;
+                        """),
+                anyList(),
+                anyInt(),
+                any()
+        );
+        verify(jdbcTemplate).batchUpdate(
+                eq("""
+                        INSERT INTO post_tag (post_id, tag_id)
+                        VALUES (?, (SELECT id FROM tag WHERE name = ?))
+                        ON CONFLICT (post_id, tag_id) DO NOTHING;
+                        """),
+                anyList(),
+                anyInt(),
+                any()
+        );
         verify(jdbcTemplate).queryForList(anyString(), eq(String.class), eq(POST_ID));
     }
 
@@ -96,11 +172,21 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен удалить пост успешно")
     void shouldDeletePostSuccessfullyTest() {
-        when(jdbcTemplate.update(DELETE_POST, POST_ID)).thenReturn(1);
+        when(jdbcTemplate.update(
+                """
+                        DELETE FROM post WHERE id = ?
+                        """,
+                POST_ID)
+        ).thenReturn(1);
 
         assertDoesNotThrow(() -> postRepository.deletePost(POST_ID));
 
-        verify(jdbcTemplate).update(DELETE_POST, POST_ID);
+        verify(jdbcTemplate).update(
+                """
+                        DELETE FROM post WHERE id = ?
+                        """,
+                POST_ID
+        );
     }
 
     /**
@@ -109,8 +195,12 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен выбросить IllegalStateException при удалении несуществующего поста")
     void shouldThrowWhenDeleteNonExistingPostTest() {
-        when(jdbcTemplate.update(DELETE_POST, NON_EXISTING_POST_ID))
-                .thenReturn(0);
+        when(jdbcTemplate.update(
+                """
+                        DELETE FROM post WHERE id = ?
+                        """,
+                NON_EXISTING_POST_ID
+        )).thenReturn(0);
 
         IllegalStateException ex = assertThrows(
                 IllegalStateException.class,
@@ -118,6 +208,11 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
 
         assertTrue(ex.getMessage().contains("Пост не найден для удаления"));
 
-        verify(jdbcTemplate).update(DELETE_POST, NON_EXISTING_POST_ID);
+        verify(jdbcTemplate).update(
+                """
+                        DELETE FROM post WHERE id = ?
+                        """,
+                NON_EXISTING_POST_ID
+        );
     }
 }

@@ -3,7 +3,6 @@ package io.github.habatoo.repositories.post;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static io.github.habatoo.repositories.sql.PostSqlQueries.INCREMENT_LIKES;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -22,11 +21,20 @@ public class PostRepositoryIncrementLikesTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен успешно увеличить счетчик лайков")
     void shouldIncrementLikesTest() {
-        when(jdbcTemplate.update(INCREMENT_LIKES, POST_ID)).thenReturn(1);
+        when(jdbcTemplate.update(
+                """
+                        UPDATE post SET likes_count = likes_count + 1 WHERE id = ?
+                        """,
+                POST_ID
+        )).thenReturn(1);
 
         assertDoesNotThrow(() -> postRepository.incrementLikes(POST_ID));
 
-        verify(jdbcTemplate).update(INCREMENT_LIKES, POST_ID);
+        verify(jdbcTemplate).update("""
+                        UPDATE post SET likes_count = likes_count + 1 WHERE id = ?
+                        """,
+                POST_ID
+        );
     }
 
     /**
@@ -36,12 +44,22 @@ public class PostRepositoryIncrementLikesTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен выбросить EmptyResultDataAccessException если пост не найден при увеличении лайков")
     void shouldThrowWhenIncrementLikesNoPostTest() {
-        when(jdbcTemplate.update(INCREMENT_LIKES, POST_ID)).thenReturn(0);
+        when(jdbcTemplate.update(
+                """
+                        UPDATE post SET likes_count = likes_count + 1 WHERE id = ?
+                        """,
+                POST_ID
+        )).thenReturn(0);
 
         IllegalStateException ex = assertThrows(IllegalStateException.class,
                 () -> postRepository.incrementLikes(POST_ID));
         assertTrue(ex.getMessage().contains("Пост не найден при увеличении лайков"));
 
-        verify(jdbcTemplate).update(INCREMENT_LIKES, POST_ID);
+        verify(jdbcTemplate).update(
+                """
+                        UPDATE post SET likes_count = likes_count + 1 WHERE id = ?
+                        """,
+                POST_ID
+        );
     }
 }

@@ -8,7 +8,6 @@ import org.springframework.jdbc.core.RowMapper;
 
 import java.sql.Timestamp;
 
-import static io.github.habatoo.repositories.sql.CommentSqlQueries.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -31,7 +30,11 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
         CommentResponseDto expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, COMMENT_TEXT);
 
         when(jdbcTemplate.queryForObject(
-                eq(INSERT_COMMENT),
+                eq("""
+                        INSERT INTO comment (post_id, text, created_at, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        RETURNING id, text, post_id
+                        """),
                 any(RowMapper.class),
                 eq(createRequest.postId()),
                 eq(createRequest.text()),
@@ -43,7 +46,11 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
 
         assertEquals(expectedResponse, result);
         verify(jdbcTemplate).queryForObject(
-                eq(INSERT_COMMENT),
+                eq("""
+                        INSERT INTO comment (post_id, text, created_at, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        RETURNING id, text, post_id
+                        """),
                 any(RowMapper.class),
                 eq(createRequest.postId()),
                 eq(createRequest.text()),
@@ -62,7 +69,12 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
         CommentResponseDto expectedResponse = createCommentResponse(COMMENT_ID, POST_ID, UPDATED_TEXT);
 
         when(jdbcTemplate.queryForObject(
-                eq(UPDATE_COMMENT_TEXT),
+                eq("""
+                        UPDATE comment
+                        SET text = ?, updated_at = ?
+                        WHERE id = ?
+                        RETURNING id, text, post_id
+                        """),
                 any(RowMapper.class),
                 eq(UPDATED_TEXT),
                 any(Timestamp.class),
@@ -73,7 +85,12 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
 
         assertEquals(expectedResponse, result);
         verify(jdbcTemplate).queryForObject(
-                eq(UPDATE_COMMENT_TEXT),
+                eq("""
+                        UPDATE comment
+                        SET text = ?, updated_at = ?
+                        WHERE id = ?
+                        RETURNING id, text, post_id
+                        """),
                 any(RowMapper.class),
                 eq(UPDATED_TEXT),
                 any(Timestamp.class),
@@ -84,11 +101,21 @@ class CommentRepositoryModifyTest extends CommentRepositoryTestBase {
     @Test
     @DisplayName("Должен удалить комментарий по id и вернуть количество удалённых строк")
     void shouldDeleteCommentByIdTest() {
-        when(jdbcTemplate.update(eq(DELETE_COMMENT), eq(COMMENT_ID))).thenReturn(1);
+        when(jdbcTemplate.update(
+                eq("""
+                        DELETE FROM comment WHERE id = ?
+                        """),
+                eq(COMMENT_ID)
+        )).thenReturn(1);
 
         int deletedRows = commentRepository.deleteById(COMMENT_ID);
 
         assertEquals(1, deletedRows);
-        verify(jdbcTemplate).update(DELETE_COMMENT, COMMENT_ID);
+        verify(jdbcTemplate).update(
+                """
+                        DELETE FROM comment WHERE id = ?
+                        """,
+                COMMENT_ID
+        );
     }
 }

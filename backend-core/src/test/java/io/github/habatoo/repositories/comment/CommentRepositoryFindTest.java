@@ -9,8 +9,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static io.github.habatoo.repositories.sql.CommentSqlQueries.FIND_BY_POST_ID;
-import static io.github.habatoo.repositories.sql.CommentSqlQueries.FIND_BY_POST_ID_AND_ID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
@@ -40,7 +38,16 @@ class CommentRepositoryFindTest extends CommentRepositoryTestBase {
         List<CommentResponseDto> result = commentRepository.findByPostId(POST_ID);
 
         assertEquals(expectedComments, result);
-        verify(jdbcTemplate).query(FIND_BY_POST_ID, commentRowMapper, POST_ID);
+        verify(jdbcTemplate).query(
+                """
+                        SELECT id, text, post_id
+                        FROM comment
+                        WHERE post_id = ?
+                        ORDER BY created_at ASC
+                        """,
+                commentRowMapper,
+                POST_ID
+        );
     }
 
     /**
@@ -60,7 +67,16 @@ class CommentRepositoryFindTest extends CommentRepositoryTestBase {
 
         assertTrue(result.isPresent());
         assertEquals(COMMENT_ID, result.get().id());
-        verify(jdbcTemplate).query(FIND_BY_POST_ID_AND_ID, commentRowMapper, POST_ID, COMMENT_ID);
+        verify(jdbcTemplate).query(
+                """
+                        SELECT id, text, post_id
+                        FROM comment
+                        WHERE post_id = ? AND id = ?
+                        """,
+                commentRowMapper,
+                POST_ID,
+                COMMENT_ID
+        );
     }
 
     /**

@@ -3,8 +3,6 @@ package io.github.habatoo.repositories.post;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static io.github.habatoo.repositories.sql.PostSqlQueries.DECREMENT_COMMENTS_COUNT;
-import static io.github.habatoo.repositories.sql.PostSqlQueries.INCREMENT_COMMENTS_COUNT;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -23,11 +21,21 @@ public class PostRepositoryIncrementDecrementCommentsTest extends PostRepository
     @Test
     @DisplayName("Должен увеличить счетчик комментариев")
     void shouldIncrementCommentsCountTest() {
-        when(jdbcTemplate.update(INCREMENT_COMMENTS_COUNT, POST_ID)).thenReturn(1);
+        when(jdbcTemplate.update(
+                """
+                        UPDATE post SET comments_count = comments_count + 1 WHERE id = ?
+                        """,
+                POST_ID
+        )).thenReturn(1);
 
         assertDoesNotThrow(() -> postRepository.incrementCommentsCount(POST_ID));
 
-        verify(jdbcTemplate).update(INCREMENT_COMMENTS_COUNT, POST_ID);
+        verify(jdbcTemplate).update(
+                """
+                        UPDATE post SET comments_count = comments_count + 1 WHERE id = ?
+                        """,
+                POST_ID
+        );
     }
 
     /**
@@ -37,10 +45,24 @@ public class PostRepositoryIncrementDecrementCommentsTest extends PostRepository
     @Test
     @DisplayName("Должен уменьшить счетчик комментариев")
     void shouldDecrementCommentsCountTest() {
-        when(jdbcTemplate.update(DECREMENT_COMMENTS_COUNT, POST_ID)).thenReturn(1);
+        when(jdbcTemplate.update(
+                """
+                        UPDATE post
+                        SET comments_count = CASE WHEN comments_count > 0 THEN comments_count - 1 ELSE 0 END
+                        WHERE id = ?
+                        """,
+                POST_ID
+        )).thenReturn(1);
 
         assertDoesNotThrow(() -> postRepository.decrementCommentsCount(POST_ID));
 
-        verify(jdbcTemplate).update(DECREMENT_COMMENTS_COUNT, POST_ID);
+        verify(jdbcTemplate).update(
+                """
+                        UPDATE post
+                        SET comments_count = CASE WHEN comments_count > 0 THEN comments_count - 1 ELSE 0 END
+                        WHERE id = ?
+                        """,
+                POST_ID
+        );
     }
 }

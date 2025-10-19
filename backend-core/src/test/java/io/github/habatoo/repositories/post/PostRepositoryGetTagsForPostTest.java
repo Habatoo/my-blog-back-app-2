@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static io.github.habatoo.repositories.sql.PostSqlQueries.GET_TAGS_FOR_POST;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
@@ -25,15 +24,30 @@ public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть список тегов для поста")
     void shouldReturnTagsForPostTest() {
-        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID)))
-                .thenReturn(List.of("tagX", "tagY"));
+        when(jdbcTemplate.queryForList(
+                eq("""
+                        SELECT t.name FROM tag t
+                        JOIN post_tag pt ON t.id = pt.tag_id
+                        WHERE pt.post_id = ?
+                        """),
+                eq(String.class),
+                eq(POST_ID))
+        ).thenReturn(List.of("tagX", "tagY"));
 
         List<String> tags = postRepository.getTagsForPost(POST_ID);
 
         assertEquals(2, tags.size());
         assertTrue(tags.containsAll(List.of("tagX", "tagY")));
 
-        verify(jdbcTemplate).queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID));
+        verify(jdbcTemplate).queryForList(
+                eq("""
+                        SELECT t.name FROM tag t
+                        JOIN post_tag pt ON t.id = pt.tag_id
+                        WHERE pt.post_id = ?
+                        """),
+                eq(String.class),
+                eq(POST_ID)
+        );
     }
 
     /**
@@ -43,15 +57,30 @@ public class PostRepositoryGetTagsForPostTest extends PostRepositoryTestBase {
     @Test
     @DisplayName("Должен вернуть пустой список тегов при исключении")
     void shouldReturnEmptyTagsListOnExceptionTest() {
-        when(jdbcTemplate.queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID)))
-                .thenThrow(RuntimeException.class);
+        when(jdbcTemplate.queryForList(
+                eq("""
+                        SELECT t.name FROM tag t
+                        JOIN post_tag pt ON t.id = pt.tag_id
+                        WHERE pt.post_id = ?
+                        """),
+                eq(String.class),
+                eq(POST_ID)
+        )).thenThrow(RuntimeException.class);
 
         List<String> tags = postRepository.getTagsForPost(POST_ID);
 
         assertNotNull(tags);
         assertTrue(tags.isEmpty());
 
-        verify(jdbcTemplate).queryForList(eq(GET_TAGS_FOR_POST), eq(String.class), eq(POST_ID));
+        verify(jdbcTemplate).queryForList(
+                eq("""
+                        SELECT t.name FROM tag t
+                        JOIN post_tag pt ON t.id = pt.tag_id
+                        WHERE pt.post_id = ?
+                        """),
+                eq(String.class),
+                eq(POST_ID)
+        );
     }
 
     /**

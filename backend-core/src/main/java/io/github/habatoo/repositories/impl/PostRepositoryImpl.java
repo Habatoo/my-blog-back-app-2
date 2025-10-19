@@ -13,8 +13,6 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static io.github.habatoo.repositories.sql.PostSqlQueries.*;
-
 /**
  * Реализация репозитория для работы с постами блога.
  * Обеспечивает доступ к данным постов с использованием JDBC Template
@@ -41,7 +39,14 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public List<PostResponseDto> findAllPosts() {
-        List<PostResponseDto> posts = jdbcTemplate.query(FIND_ALL_POSTS, postListRowMapper);
+        List<PostResponseDto> posts = jdbcTemplate.query(
+                """
+                        SELECT p.id, p.title, p.text, p.likes_count, p.comments_count
+                        FROM post p
+                        ORDER BY p.created_at DESC
+                        """,
+                postListRowMapper
+        );
 
         return posts.stream()
                 .map(this::enrichWithTags)
@@ -106,7 +111,12 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void deletePost(Long postId) {
-        int deletedRows = jdbcTemplate.update(DELETE_POST, postId);
+        int deletedRows = jdbcTemplate.update(
+                """
+                        DELETE FROM post WHERE id = ?
+                        """,
+                postId
+        );
         String msg = String.format("Пост не найден для удаления id==%d", postId);
         checkIfThrow(deletedRows, msg);
     }
@@ -116,7 +126,12 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void incrementLikes(Long postId) {
-        int updatedRows = jdbcTemplate.update(INCREMENT_LIKES, postId);
+        int updatedRows = jdbcTemplate.update(
+                """
+                        UPDATE post SET likes_count = likes_count + 1 WHERE id = ?
+                        """,
+                postId
+        );
         String msg = String.format("Пост не найден при увеличении лайков id=%d", postId);
         checkIfThrow(updatedRows, msg);
     }
@@ -126,7 +141,12 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void incrementCommentsCount(Long postId) {
-        int updatedRows = jdbcTemplate.update(INCREMENT_COMMENTS_COUNT, postId);
+        int updatedRows = jdbcTemplate.update(
+                """
+                        UPDATE post SET comments_count = comments_count + 1 WHERE id = ?
+                        """,
+                postId
+        );
         String msg = String.format("Пост не найден при увеличении лайков id=%d", postId);
         checkIfThrow(updatedRows, msg);
     }
@@ -136,7 +156,14 @@ public class PostRepositoryImpl implements PostRepository {
      */
     @Override
     public void decrementCommentsCount(Long postId) {
-        int updatedRows = jdbcTemplate.update(DECREMENT_COMMENTS_COUNT, postId);
+        int updatedRows = jdbcTemplate.update(
+                """
+                        UPDATE post
+                        SET comments_count = CASE WHEN comments_count > 0 THEN comments_count - 1 ELSE 0 END
+                        WHERE id = ?
+                        """,
+                postId
+        );
         String msg = String.format("Пост не найден при уменьшении лайков id=%d", postId);
         checkIfThrow(updatedRows, msg);
     }
@@ -147,7 +174,15 @@ public class PostRepositoryImpl implements PostRepository {
     @Override
     public List<String> getTagsForPost(Long postId) {
         try {
-            return jdbcTemplate.queryForList(GET_TAGS_FOR_POST, String.class, postId);
+            return jdbcTemplate.queryForList(
+                    """
+                            SELECT t.name FROM tag t
+                            JOIN post_tag pt ON t.id = pt.tag_id
+                            WHERE pt.post_id = ?
+                            """,
+                    String.class,
+                    postId
+            );
         } catch (Exception e) {
             final String msg = String.format("Ошибка при получении тегов для поста id=%d", postId);
             log.warn(msg, e);
@@ -178,7 +213,11 @@ public class PostRepositoryImpl implements PostRepository {
             String text,
             LocalDateTime now) {
         return jdbcTemplate.queryForObject(
-                CREATE_POST,
+                """
+                        INSERT INTO post (title, text, likes_count, comments_count, created_at, updated_at)
+                        VALUES (?, ?, 0, 0, ?, ?)
+                        RETURNING id, title, text, likes_count, comments_count
+                        """,
                 postListRowMapper,
                 title,
                 text,
@@ -196,7 +235,12 @@ public class PostRepositoryImpl implements PostRepository {
             LocalDateTime now,
             Long postId) {
         return jdbcTemplate.queryForObject(
-                UPDATE_POST,
+                """
+                        UPDATE post
+                        SET title = ?, text = ?, updated_at = ?
+                        WHERE id = ?
+                        RETURNING id, title, text, likes_count, comments_count
+                        """,
                 postListRowMapper,
                 title,
                 text,
@@ -220,7 +264,12 @@ public class PostRepositoryImpl implements PostRepository {
      * Выполняет удаление тэгов.
      */
     private void deleteTags(Long postId) {
-        jdbcTemplate.update(DELETE_POST_TAGS, postId);
+        jdbcTemplate.update(
+                """
+                        DELETE FROM post_tag WHERE post_id = ?
+                        """,
+                postId
+        );
     }
 
     /**
@@ -228,7 +277,11 @@ public class PostRepositoryImpl implements PostRepository {
      */
     private void insertTags(List<String> tags) {
         jdbcTemplate.batchUpdate(
-                INSERT_INTO_TAG,
+                """
+                        INSERT INTO tag (name)
+                        VALUES (?)
+                        ON CONFLICT (name) DO NOTHING;
+                        """,
                 tags,
                 tags.size(),
                 (ps, tag) -> ps.setString(1, tag)
@@ -240,7 +293,11 @@ public class PostRepositoryImpl implements PostRepository {
      */
     private void insertPostTags(Long postId, List<String> tags) {
         jdbcTemplate.batchUpdate(
-                INSERT_INTO_POST_TAG,
+                """
+                        INSERT INTO post_tag (post_id, tag_id)
+                        VALUES (?, (SELECT id FROM tag WHERE name = ?))
+                        ON CONFLICT (post_id, tag_id) DO NOTHING;
+                        """,
                 tags,
                 tags.size(),
                 (ps, tag) -> {

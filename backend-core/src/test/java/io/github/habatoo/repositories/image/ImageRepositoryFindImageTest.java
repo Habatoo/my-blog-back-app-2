@@ -6,7 +6,6 @@ import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.Optional;
 
-import static io.github.habatoo.repositories.sql.ImageSqlQueries.GET_IMAGE_FILE_NAME;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -44,7 +43,15 @@ public class ImageRepositoryFindImageTest extends ImageRepositoryTestBase {
         assertTrue(result.isPresent());
         assertEquals(IMAGE_NAME, result.get());
 
-        verify(jdbcTemplate).queryForObject(GET_IMAGE_FILE_NAME, String.class, EXISTING_POST_ID);
+        verify(jdbcTemplate).queryForObject(
+                """
+                        SELECT image_name
+                        FROM post
+                        WHERE id = ?
+                        """,
+                String.class,
+                EXISTING_POST_ID
+        );
     }
 
     /**
@@ -60,6 +67,13 @@ public class ImageRepositoryFindImageTest extends ImageRepositoryTestBase {
         Optional<String> result = imageRepository.findImageFileNameByPostId(NON_EXISTING_POST_ID);
 
         assertTrue(result.isEmpty());
-        verify(jdbcTemplate).queryForObject(GET_IMAGE_FILE_NAME, String.class, NON_EXISTING_POST_ID);
+        verify(jdbcTemplate).queryForObject(
+                """
+                        SELECT image_name
+                        FROM post
+                        WHERE id = ?
+                        """,
+                String.class,
+                NON_EXISTING_POST_ID);
     }
 }

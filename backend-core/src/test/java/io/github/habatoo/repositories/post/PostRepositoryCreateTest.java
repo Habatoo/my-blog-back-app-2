@@ -18,7 +18,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.List;
 
-import static io.github.habatoo.repositories.sql.PostSqlQueries.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
@@ -62,8 +61,25 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         assertEquals(expected.commentsCount(), actual.commentsCount());
 
         if (tagsPresent) {
-            verify(jdbcTemplate, times(1)).batchUpdate(eq(INSERT_INTO_TAG), eq(input.tags()), eq(input.tags().size()), any());
-            verify(jdbcTemplate, times(1)).batchUpdate(eq(INSERT_INTO_POST_TAG), eq(input.tags()), eq(input.tags().size()), any());
+            verify(jdbcTemplate, times(1)).batchUpdate(
+                    eq("""
+                            INSERT INTO tag (name)
+                            VALUES (?)
+                            ON CONFLICT (name) DO NOTHING;
+                            """),
+                    eq(input.tags()),
+                    eq(input.tags().size()),
+                    any()
+            );
+            verify(jdbcTemplate, times(1)).batchUpdate(
+                    eq("""
+                            INSERT INTO post_tag (post_id, tag_id)
+                            VALUES (?, (SELECT id FROM tag WHERE name = ?))
+                            ON CONFLICT (post_id, tag_id) DO NOTHING;
+                            """),
+                    eq(input.tags()),
+                    eq(input.tags().size()),
+                    any());
         } else {
             verify(jdbcTemplate, never()).batchUpdate(eq("INSERT_INTO_TAG"), anyList(), anyInt(), any());
             verify(jdbcTemplate, never()).batchUpdate(eq("INSERT_INTO_POST_TAG"), anyList(), anyInt(), any());
@@ -132,7 +148,11 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         PostResponseDto response = createPostDto(POST_ID, List.of());
 
         when(jdbcTemplate.queryForObject(
-                eq(CREATE_POST),
+                eq("""
+                        INSERT INTO post (title, text, likes_count, comments_count, created_at, updated_at)
+                        VALUES (?, ?, 0, 0, ?, ?)
+                        RETURNING id, title, text, likes_count, comments_count
+                        """),
                 eq(postListRowMapper),
                 eq(TITLE),
                 eq(TEXT),
@@ -140,12 +160,20 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
                 any(Timestamp.class)
         )).thenReturn(response);
 
-        when(jdbcTemplate.update(eq(DELETE_POST_TAGS), eq(POST_ID)))
-                .thenReturn(1);
+        when(jdbcTemplate.update(eq(
+                        """
+                                DELETE FROM post_tag WHERE post_id = ?
+                                """),
+                eq(POST_ID)
+        )).thenReturn(1);
 
         doReturn(new int[][]{new int[createRequest.tags().size()]})
                 .when(jdbcTemplate).batchUpdate(
-                        eq(INSERT_INTO_TAG),
+                        eq("""
+                                INSERT INTO tag (name)
+                                VALUES (?)
+                                ON CONFLICT (name) DO NOTHING;
+                                """),
                         eq(createRequest.tags()),
                         eq(createRequest.tags().size()),
                         any(ParameterizedPreparedStatementSetter.class)
@@ -153,7 +181,11 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
 
         doReturn(new int[][]{new int[createRequest.tags().size()]})
                 .when(jdbcTemplate).batchUpdate(
-                        eq(INSERT_INTO_POST_TAG),
+                        eq("""
+                                INSERT INTO post_tag (post_id, tag_id)
+                                VALUES (?, (SELECT id FROM tag WHERE name = ?))
+                                ON CONFLICT (post_id, tag_id) DO NOTHING;
+                                """),
                         eq(createRequest.tags()),
                         eq(createRequest.tags().size()),
                         any(ParameterizedPreparedStatementSetter.class)
@@ -165,7 +197,11 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> tagSetterCaptor =
                 ArgumentCaptor.forClass(ParameterizedPreparedStatementSetter.class);
         verify(jdbcTemplate).batchUpdate(
-                eq(INSERT_INTO_TAG),
+                eq("""
+                        INSERT INTO tag (name)
+                        VALUES (?)
+                        ON CONFLICT (name) DO NOTHING;
+                        """),
                 eq(createRequest.tags()),
                 eq(createRequest.tags().size()),
                 tagSetterCaptor.capture());
@@ -177,10 +213,15 @@ public class PostRepositoryCreateTest extends PostRepositoryTestBase {
         ArgumentCaptor<ParameterizedPreparedStatementSetter<String>> postTagSetterCaptor =
                 ArgumentCaptor.forClass(ParameterizedPreparedStatementSetter.class);
         verify(jdbcTemplate).batchUpdate(
-                eq(INSERT_INTO_POST_TAG),
+                eq("""
+                        INSERT INTO post_tag (post_id, tag_id)
+                        VALUES (?, (SELECT id FROM tag WHERE name = ?))
+                        ON CONFLICT (post_id, tag_id) DO NOTHING;
+                        """),
                 eq(createRequest.tags()),
                 eq(createRequest.tags().size()),
-                postTagSetterCaptor.capture());
+                postTagSetterCaptor.capture()
+        );
 
         PreparedStatement psPostTag = mock(PreparedStatement.class);
         postTagSetterCaptor.getValue().setValues(psPostTag, "tag1");

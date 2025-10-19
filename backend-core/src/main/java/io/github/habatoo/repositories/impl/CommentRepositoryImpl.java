@@ -13,8 +13,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static io.github.habatoo.repositories.sql.CommentSqlQueries.*;
-
 /**
  * Реализация репозитория для работы с комментариями блога.
  * Обеспечивает доступ к данным комментариев с использованием JDBC Template.
@@ -42,7 +40,16 @@ public class CommentRepositoryImpl implements CommentRepository {
      */
     @Override
     public List<CommentResponseDto> findByPostId(Long postId) {
-        return jdbcTemplate.query(FIND_BY_POST_ID, commentRowMapper, postId);
+        return jdbcTemplate.query(
+                """
+                        SELECT id, text, post_id
+                        FROM comment
+                        WHERE post_id = ?
+                        ORDER BY created_at ASC
+                        """,
+                commentRowMapper,
+                postId
+        );
     }
 
     /**
@@ -50,7 +57,16 @@ public class CommentRepositoryImpl implements CommentRepository {
      */
     @Override
     public Optional<CommentResponseDto> findByPostIdAndId(Long postId, Long commentId) {
-        List<CommentResponseDto> comments = jdbcTemplate.query(FIND_BY_POST_ID_AND_ID, commentRowMapper, postId, commentId);
+        List<CommentResponseDto> comments = jdbcTemplate.query(
+                """
+                        SELECT id, text, post_id
+                        FROM comment
+                        WHERE post_id = ? AND id = ?
+                        """,
+                commentRowMapper,
+                postId,
+                commentId
+        );
 
         return comments.stream().findFirst();
     }
@@ -63,7 +79,11 @@ public class CommentRepositoryImpl implements CommentRepository {
         LocalDateTime now = LocalDateTime.now();
 
         return jdbcTemplate.queryForObject(
-                INSERT_COMMENT,
+                """
+                        INSERT INTO comment (post_id, text, created_at, updated_at)
+                        VALUES (?, ?, ?, ?)
+                        RETURNING id, text, post_id
+                        """,
                 commentRowMapper,
                 commentCreateRequest.postId(),
                 commentCreateRequest.text(),
@@ -79,7 +99,12 @@ public class CommentRepositoryImpl implements CommentRepository {
     @Override
     public CommentResponseDto update(Long postId, Long commentId, String text) {
         return jdbcTemplate.queryForObject(
-                UPDATE_COMMENT_TEXT,
+                """
+                        UPDATE comment
+                        SET text = ?, updated_at = ?
+                        WHERE id = ?
+                        RETURNING id, text, post_id
+                        """,
                 commentRowMapper,
                 text,
                 Timestamp.valueOf(LocalDateTime.now()),
@@ -92,6 +117,11 @@ public class CommentRepositoryImpl implements CommentRepository {
      */
     @Override
     public int deleteById(Long commentId) {
-        return jdbcTemplate.update(DELETE_COMMENT, commentId);
+        return jdbcTemplate.update(
+                """
+                        DELETE FROM comment WHERE id = ?
+                        """,
+                commentId
+        );
     }
 }

@@ -9,8 +9,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-import static io.github.habatoo.repositories.sql.ImageSqlQueries.*;
-
 /**
  * Реализация репозитория для работы с метаданными изображений постов.
  *
@@ -34,7 +32,15 @@ public class ImageRepositoryImpl implements ImageRepository {
     public Optional<String> findImageFileNameByPostId(Long postId) {
         log.debug("Поиск имени файла изображения для поста id={}", postId);
         try {
-            String fileName = jdbcTemplate.queryForObject(GET_IMAGE_FILE_NAME, String.class, postId);
+            String fileName = jdbcTemplate.queryForObject(
+                    """
+                            SELECT image_name
+                            FROM post
+                            WHERE id = ?
+                            """,
+                    String.class,
+                    postId
+            );
 
             return Optional.ofNullable(fileName);
         } catch (EmptyResultDataAccessException e) {
@@ -51,7 +57,17 @@ public class ImageRepositoryImpl implements ImageRepository {
     @Transactional
     public void updateImageMetadata(Long postId, String fileName, long size, String url) {
         log.info("Обновление метаданных изображения для поста id={} (fileName={}, size={}, url={})", postId, fileName, size, url);
-        int updatedRows = jdbcTemplate.update(UPDATE_POST_IMAGE, fileName, size, url, postId);
+        int updatedRows = jdbcTemplate.update(
+                """
+                        UPDATE post
+                        SET image_name = ?, image_size = ?, image_url = ?
+                        WHERE id = ?
+                        """,
+                fileName,
+                size,
+                url,
+                postId
+        );
 
         if (updatedRows == 0) {
             log.warn("Пост с id={} не найден при обновлении изображения", postId);
@@ -65,7 +81,15 @@ public class ImageRepositoryImpl implements ImageRepository {
     @Override
     public boolean existsPostById(Long postId) {
         log.debug("Проверка существования поста id={}", postId);
-        Integer count = jdbcTemplate.queryForObject(CHECK_POST_EXISTS, Integer.class, postId);
+        Integer count = jdbcTemplate.queryForObject(
+                """
+                        SELECT COUNT(1)
+                        FROM post
+                        WHERE id = ?
+                        """,
+                Integer.class,
+                postId
+        );
 
         return count != null && count > 0;
     }
