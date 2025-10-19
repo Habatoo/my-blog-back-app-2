@@ -7,6 +7,7 @@ import io.github.habatoo.repositories.impl.PostRepositoryImpl;
 import org.springframework.data.repository.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Интерфейс репозитория для работы с постами блога.
@@ -21,11 +22,34 @@ import java.util.List;
 public interface PostRepository {
 
     /**
-     * Получить список всех постов.
+     * Получает список постов, удовлетворяющих строке поиска и/или фильтру по тегам,
+     * с применением пагинации (ограничение по размеру страницы и смещению).
      *
-     * @return список объектов PostResponseDto с информацией по всем постам
+     * @param searchPart строка поиска, фильтрует по заголовку или тексту поста (ILIKE)
+     * @param tags       список тегов; если не пустой — искать только посты, содержащие указанные теги
+     * @param pageNumber номер страницы (начиная с 1)
+     * @param pageSize   количество постов на странице
+     * @return список объектов PostResponseDto для отображения постов на заданной странице и с учётом поиска/тегов
      */
-    List<PostResponseDto> findAllPosts();
+    List<PostResponseDto> findPosts(String searchPart, List<String> tags, int pageNumber, int pageSize);
+
+    /**
+     * Вычисляет количество всех постов в базе данных,
+     * соответствующих фильтру поиска и указанным тегам (для расчёта количества страниц).
+     *
+     * @param searchPart строка поиска, фильтрует по заголовку или тексту поста (ILIKE)
+     * @param tags       список тегов, которые должны быть у поста
+     * @return общее количество постов, подходящих под фильтр
+     */
+    int countPosts(String searchPart, List<String> tags);
+
+    /**
+     * Получает пост по его идентификатору (id).
+     *
+     * @param postId уникальный идентификатор поста
+     * @return объект PostResponseDto, если найдено; null или исключение, если не найдено
+     */
+    Optional<PostResponseDto> getPostById(Long postId);
 
     /**
      * Создать новый пост.

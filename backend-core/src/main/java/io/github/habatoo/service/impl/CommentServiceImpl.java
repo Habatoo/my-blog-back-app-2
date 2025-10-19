@@ -47,7 +47,6 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentResponseDto> getCommentsByPostId(Long postId) {
         log.debug("Получение комментариев для поста id={}", postId);
-        checkPostIsExist(postId);
 
         return commentsCache.computeIfAbsent(postId, id -> {
             List<CommentResponseDto> loaded = commentRepository.findByPostId(id);
@@ -79,7 +78,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentResponseDto createComment(CommentCreateRequestDto request) {
         log.info("Создание комментария для поста id={}", request.postId());
         Long postId = request.postId();
-        checkPostIsExist(postId);
+
         try {
             CommentResponseDto newComment = commentRepository.save(request);
             postService.incrementCommentsCount(request.postId());
@@ -109,13 +108,12 @@ public class CommentServiceImpl implements CommentService {
         String text = commentRequest.text();
         log.info("Обновление комментария id={} для поста id={}", commentId, postId);
 
-        checkPostIsExist(postId);
         CommentResponseDto updatedComment;
         try {
             updatedComment = commentRepository.update(postId, commentId, text);
         } catch (EmptyResultDataAccessException e) {
             log.warn("Комментарий id={} не найден для обновления", commentId);
-            throw e;
+            throw new EmptyResultDataAccessException("Комментарий не найден", 1);
         }
 
         commentsCache.computeIfPresent(postId, (pid, comments) -> {
@@ -134,7 +132,7 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public void deleteComment(Long postId, Long commentId) {
         log.info("Удаление комментария id={} у поста id={}", commentId, postId);
-        checkPostIsExist(postId);
+
         int deleted = commentRepository.deleteById(commentId);
         if (deleted > 0) {
             postService.decrementCommentsCount(postId);
@@ -146,13 +144,6 @@ public class CommentServiceImpl implements CommentService {
         } else {
             log.warn("Комментарий не найден для удаления: id={}, postId={}", commentId, postId);
             throw new EmptyResultDataAccessException("Комментарий не найден", 1);
-        }
-    }
-
-    private void checkPostIsExist(Long postId) {
-        if (!postService.postExists(postId)) {
-            log.warn("Пост postId={} не найден", postId);
-            throw new IllegalStateException("Post not found with id " + postId);
         }
     }
 }

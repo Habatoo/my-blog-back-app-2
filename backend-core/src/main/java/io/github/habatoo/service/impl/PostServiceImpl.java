@@ -10,9 +10,9 @@ import io.github.habatoo.service.PostService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -30,24 +30,12 @@ public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final FileStorageService fileStorageService;
 
-    private final Map<Long, PostResponseDto> postCache = new ConcurrentHashMap<>();
-
     public PostServiceImpl(
             PostRepository postRepository,
             FileStorageService fileStorageService
     ) {
         this.postRepository = postRepository;
         this.fileStorageService = fileStorageService;
-        initCache();
-    }
-
-    @PostConstruct
-    public void initCache() {
-        log.info("Инициализация кеша постов из репозитория");
-        List<PostResponseDto> allPosts = postRepository.findAllPosts();
-        postCache.clear();
-        allPosts.forEach(post -> postCache.put(post.id(), post));
-        log.info("Кеш загружен, постов: {}", allPosts.size());
     }
 
     /**
@@ -69,25 +57,16 @@ public class PostServiceImpl implements PostService {
                 .filter(w -> !w.startsWith("#"))
                 .collect(Collectors.joining(" "));
 
-        List<PostResponseDto> filtered = postCache.values().stream()
-                .filter(post -> searchPart.isEmpty()
-                        || post.title().contains(searchPart)
-                        || post.text().contains(searchPart))
-                .filter(post -> tags.isEmpty()
-                        || tags.stream().allMatch(tag ->
-                        post.tags().stream().anyMatch(t -> t.equals(tag))
-                ))
-                .sorted(Comparator.comparing(PostResponseDto::id))
-                .toList();
+        List<PostResponseDto> page = postRepository.findPosts(searchPart, tags, pageNumber, pageSize);
 
-        int totalCount = filtered.size();
-        int fromIndex = Math.min((pageNumber - 1) * pageSize, totalCount);
-        int toIndex = Math.min(fromIndex + pageSize, totalCount);
-        List<PostResponseDto> page = filtered.subList(fromIndex, toIndex);
+        int totalCount = postRepository.countPosts(searchPart, tags);
+        int lastPage = (int) Math.ceil((double) totalCount / pageSize);
+        boolean hasPrev = pageNumber > 1;
+        boolean hasNext = pageNumber < lastPage;
 
-        log.debug("Фильтровано {} постов, от {} до {}", totalCount, fromIndex, toIndex);
+        log.debug("Всего найдено {} постов, lastPage: {}", totalCount, lastPage);
 
-        return new PostListResponseDto(page, fromIndex > 0, toIndex < totalCount, totalCount);
+        return new PostListResponseDto(page, hasPrev, hasNext, lastPage);
     }
 
     /**
@@ -96,8 +75,7 @@ public class PostServiceImpl implements PostService {
     @Override
     public Optional<PostResponseDto> getPostById(Long id) {
         log.debug("Получение поста по id={}", id);
-
-        return Optional.ofNullable(postCache.get(id));
+        return postRepository.getPostById(id);
     }
 
     /**
@@ -108,10 +86,7 @@ public class PostServiceImpl implements PostService {
         log.info("Создание нового поста: title='{}'", postCreateRequest.title());
 
         try {
-            PostResponseDto createdPost = postRepository.createPost(postCreateRequest);
-            postCache.put(createdPost.id(), createdPost);
-
-            return createdPost;
+            return postRepository.createPost(postCreateRequest);
         } catch (Exception e) {
             log.error("Не удалось создать пост: {}", e.getMessage(), e);
             throw new IllegalStateException("Не удалось создать пост", e);
@@ -127,8 +102,8 @@ public class PostServiceImpl implements PostService {
 
         try {
             PostResponseDto updatedPost = postRepository.updatePost(postRequest);
-            postCache.put(updatedPost.id(), updatedPost);
             log.info("Пост обновлён: id={}", updatedPost.id());
+
             return updatedPost;
         } catch (Exception e) {
             log.error("Ошибка при обновлении поста id={}: {}", postRequest.id(), e.getMessage(), e);
@@ -143,7 +118,7 @@ public class PostServiceImpl implements PostService {
     public void deletePost(Long id) {
         log.info("Удаление поста id={}", id);
         postRepository.deletePost(id);
-        postCache.remove(id);
+
         fileStorageService.deletePostDirectory(id);
         log.info("Пост и директория файлов удалены: id={}", id);
     }
@@ -154,24 +129,19 @@ public class PostServiceImpl implements PostService {
     @Override
     public int incrementLikes(Long id) {
         log.debug("Инкремент лайков для поста id={}", id);
-        postRepository.incrementLikes(id);
-        PostResponseDto post = postCache.get(id);
-        if (post != null) {
-            int updatedLikes = post.likesCount() + 1;
-            PostResponseDto updatedPost = new PostResponseDto(
-                    post.id(),
-                    post.title(),
-                    post.text(),
-                    post.tags(),
-                    updatedLikes,
-                    post.commentsCount()
-            );
-            postCache.put(id, updatedPost);
-            log.info("Лайки увеличены для поста id={}, всего лайков={}", id, updatedLikes);
-            return updatedLikes;
-        } else {
-            log.warn("Пост не найден при увеличении лайков: id={}", id);
-            throw new IllegalStateException("Пост не найден with id " + id);
+        try {
+            postRepository.incrementLikes(id);
+            Optional<PostResponseDto> post = postRepository.getPostById(id);
+
+            if (post.isEmpty()) {
+                log.warn("Пост после инкремента лайков не найден: id={}", id);
+                throw new IllegalStateException("Пост не найден после увеличения лайков, id=" + id);
+            }
+
+            return post.get().likesCount();
+        } catch (Exception e) {
+            log.error("Ошибка при увеличении лайков для id={}: {}", id, e.getMessage(), e);
+            throw new IllegalStateException("Ошибка при увеличении лайков для поста id " + id, e);
         }
     }
 
@@ -183,22 +153,6 @@ public class PostServiceImpl implements PostService {
         log.debug("Инкремент комментариев для поста id={}", id);
         try {
             postRepository.incrementCommentsCount(id);
-            PostResponseDto post = postCache.get(id);
-            if (post != null) {
-                int updatedCount = post.commentsCount() + 1;
-                PostResponseDto updatedPost = new PostResponseDto(
-                        post.id(),
-                        post.title(),
-                        post.text(),
-                        post.tags(),
-                        post.likesCount(),
-                        updatedCount
-                );
-                postCache.put(id, updatedPost);
-                log.info("Комментарии увеличены для поста id={}, всего комментариев={}", id, updatedCount);
-            } else {
-                log.warn("Пост не найден при увеличении комментариев: id={}", id);
-            }
         } catch (Exception e) {
             log.error("Ошибка при увеличении комментариев для id={}: {}", id, e.getMessage(), e);
             throw new IllegalStateException("Ошибка при увеличении комментариев для поста id " + id, e);
@@ -213,33 +167,9 @@ public class PostServiceImpl implements PostService {
         log.debug("Декремент комментариев для поста id={}", id);
         try {
             postRepository.decrementCommentsCount(id);
-            PostResponseDto post = postCache.get(id);
-            if (post != null) {
-                int updatedCount = Math.max(0, post.commentsCount() - 1);
-                PostResponseDto updatedPost = new PostResponseDto(
-                        post.id(),
-                        post.title(),
-                        post.text(),
-                        post.tags(),
-                        post.likesCount(),
-                        updatedCount
-                );
-                postCache.put(id, updatedPost);
-                log.info("Комментарии уменьшены для поста id={}, теперь={}", id, updatedCount);
-            } else {
-                log.warn("Пост не найден при уменьшении комментариев: id={}", id);
-            }
         } catch (Exception e) {
             log.error("Ошибка при уменьшении комментариев для id={}: {}", id, e.getMessage(), e);
             throw new IllegalStateException("Ошибка при уменьшении комментариев для поста id " + id, e);
         }
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean postExists(Long postId) {
-        return postCache.containsKey(postId);
     }
 }

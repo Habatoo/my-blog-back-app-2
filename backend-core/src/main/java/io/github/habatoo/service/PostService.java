@@ -4,6 +4,7 @@ import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.dto.request.PostRequestDto;
 import io.github.habatoo.dto.response.PostListResponseDto;
 import io.github.habatoo.dto.response.PostResponseDto;
+import io.github.habatoo.repositories.PostRepository;
 
 import java.util.Optional;
 
@@ -12,19 +13,17 @@ import java.util.Optional;
  * Предоставляет бизнес-логику для операций с постами.
  *
  * @see PostRepository
- * @see PostResponse
- */
-/**
- * Сервис для работы с постами.
+ * @see PostListResponseDto
+ * @see PostResponseDto
  */
 public interface PostService {
 
     /**
      * Получить список постов с возможностью поиска и постраничной навигации.
      *
-     * @param search строка для поиска по содержимому постов
+     * @param search     строка для поиска по содержимому постов
      * @param pageNumber номер страницы для пагинации (начиная с 0)
-     * @param pageSize количество постов на странице
+     * @param pageSize   количество постов на странице
      * @return объект PostListResponseDto, содержащий список постов и информацию о пагинации
      */
     PostListResponseDto getPosts(String search, int pageNumber, int pageSize);
@@ -85,12 +84,4 @@ public interface PostService {
      * @param id идентификатор поста
      */
     void decrementCommentsCount(Long id);
-
-    /**
-     * Проверить существование поста с указанным ID.
-     *
-     * @param postId идентификатор поста
-     * @return true если пост существует, иначе false
-     */
-    boolean postExists(Long postId);
 }

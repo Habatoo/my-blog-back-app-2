@@ -6,12 +6,13 @@ import io.github.habatoo.dto.response.PostResponseDto;
 import io.github.habatoo.repositories.PostRepository;
 import io.github.habatoo.repositories.mapper.PostListRowMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 
 /**
  * Реализация репозитория для работы с постами блога.
@@ -38,19 +39,65 @@ public class PostRepositoryImpl implements PostRepository {
      * {@inheritDoc}
      */
     @Override
-    public List<PostResponseDto> findAllPosts() {
+    public List<PostResponseDto> findPosts(String searchPart, List<String> tags, int pageNumber, int pageSize) {
+        Map<String, List<String>> sbResult = buildWhereClause(searchPart, tags);
+        String where = sbResult.keySet().iterator().next();
+        List<Object> params = new ArrayList<>(sbResult.get(where));
+
+        String sql = """
+                SELECT p.id, p.title, p.text, p.likes_count, p.comments_count
+                FROM post p
+                """ + where + " ORDER BY p.created_at DESC LIMIT ? OFFSET ?";
+        params.add(pageSize);
+        params.add((pageNumber - 1) * pageSize);
+
         List<PostResponseDto> posts = jdbcTemplate.query(
-                """
-                        SELECT p.id, p.title, p.text, p.likes_count, p.comments_count
-                        FROM post p
-                        ORDER BY p.created_at DESC
-                        """,
+                sql,
+                params.toArray(),
                 postListRowMapper
         );
-
         return posts.stream()
                 .map(this::enrichWithTags)
                 .toList();
+    }
+
+    @Override
+    public int countPosts(String searchPart, List<String> tags) {
+        Map<String, List<String>> sbResult = buildWhereClause(searchPart, tags);
+        String where = sbResult.keySet().iterator().next();
+        List<String> params = sbResult.get(where);
+
+        String sql = "SELECT COUNT(*) FROM post p" + where;
+        Integer count = jdbcTemplate.queryForObject(
+                sql,
+                params.toArray(),
+                Integer.class
+        );
+        return count == null ? 0 : count;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Optional<PostResponseDto> getPostById(Long postId) {
+        try {
+            PostResponseDto post = jdbcTemplate.queryForObject(
+                    """
+                                SELECT id, title, text, likes_count, comments_count
+                                FROM post
+                                WHERE id = ?
+                            """,
+                    postListRowMapper,
+                    postId
+            );
+
+            return Optional.ofNullable(post)
+                    .map(this::enrichWithTags);
+        } catch (EmptyResultDataAccessException e) {
+            log.warn("Пост с id={} не найден", postId);
+            return Optional.empty();
+        }
     }
 
     /**
@@ -188,6 +235,37 @@ public class PostRepositoryImpl implements PostRepository {
             log.warn(msg, e);
             return List.of();
         }
+    }
+
+    /**
+     * Постороение условий поиска.
+     */
+    private Map<String, List<String>> buildWhereClause(String searchPart, List<String> tags) {
+        List<String> params = new ArrayList<>();
+        List<String> conditions = new ArrayList<>();
+        if (!searchPart.isBlank()) {
+            conditions.add("(p.title LIKE ? OR p.text LIKE ?)");
+            params.add("%" + searchPart + "%");
+            params.add("%" + searchPart + "%");
+        }
+        if (tags != null && !tags.isEmpty()) {
+            for (String tag : tags) {
+                conditions.add("""
+                            EXISTS (
+                                SELECT 1
+                                FROM post_tag pt
+                                JOIN tag t ON t.id = pt.tag_id
+                                WHERE pt.post_id = p.id AND t.name = ?
+                            )
+                        """);
+                params.add(tag);
+            }
+        }
+        String whereClause = conditions.isEmpty() ? "" : " WHERE " + String.join(" AND ", conditions);
+        Map<String, List<String>> result = new HashMap<>();
+        result.put(whereClause, params);
+
+        return result;
     }
 
     /**
