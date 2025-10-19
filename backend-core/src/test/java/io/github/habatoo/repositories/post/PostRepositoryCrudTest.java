@@ -72,6 +72,24 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     }
 
     /**
+     * Параметризованный тест для проверки работы findPosts с tags == null и tags.isEmpty().
+     * <p>
+     * Убеждается, что метод возвращает корректный результат для обоих вариантов отсутствующих тегов.
+     */
+    @ParameterizedTest
+    @MethodSource("provideNullOrEmptyTags")
+    void testFindPostsWithNullOrEmptyTags(List<String> tags, int expectedSize) {
+        List<PostResponseDto> postsFromDb = List.of(createPostDto(POST_ID, List.of()));
+        when(jdbcTemplate.query(anyString(), any(Object[].class), any(PostListRowMapper.class)))
+                .thenReturn(postsFromDb);
+
+        List<PostResponseDto> result = postRepository.findPosts("test", tags, 1, 10);
+        assertNotNull(result);
+        assertEquals(expectedSize, result.size());
+        assertTrue(result.get(0).tags().isEmpty());
+    }
+
+    /**
      * Проверяет, что метод updatePost обновляет существующий пост,
      * возвращает обновлённый объект и корректно маппирует теги.
      */

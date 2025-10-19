@@ -34,7 +34,8 @@ public class ImageServiceImpl implements ImageService {
 
     /**
      * Получить URL для изображения поста.
-     * @param postId идентификатор поста
+     *
+     * @param postId      идентификатор поста
      * @param newFileName имя нового файла изображения
      * @return строка вида "postId{separator}newFileName"
      */
@@ -77,7 +78,8 @@ public class ImageServiceImpl implements ImageService {
             deleteOldFileIfExists(postId, oldFileName);
             cacheImage(postId, newFileName);
         } catch (IOException e) {
-            handleProcessingError(postId, e);
+            log.error("Ошибка при обработке изображения для поста id={}: {}", postId, e.getMessage(), e);
+            throw new IllegalStateException("Failed to process image file", e);
         }
     }
 
@@ -138,11 +140,6 @@ public class ImageServiceImpl implements ImageService {
         MediaType mediaType = contentTypeDetector.detect(imageData);
         imageCache.put(postId, new ImageResponseDto(imageData, mediaType));
         log.info("Кэшировано новое изображение для поста id={}", postId);
-    }
-
-    private void handleProcessingError(Long postId, IOException e) {
-        log.error("Ошибка при обработке изображения для поста id={}: {}", postId, e.getMessage(), e);
-        throw new IllegalStateException("Failed to process image file", e);
     }
 
     private ImageResponseDto loadAndCacheImage(Long postId) {

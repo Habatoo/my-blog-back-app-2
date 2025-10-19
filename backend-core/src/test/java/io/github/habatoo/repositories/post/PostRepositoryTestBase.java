@@ -90,4 +90,11 @@ abstract class PostRepositoryTestBase {
                 Arguments.of(99L, false)
         );
     }
+
+    protected static Stream<Arguments> provideNullOrEmptyTags() {
+        return Stream.of(
+                Arguments.of(null, 1),      // tags == null
+                Arguments.of(List.of(), 1)  // tags.isEmpty()
+        );
+    }
 }
