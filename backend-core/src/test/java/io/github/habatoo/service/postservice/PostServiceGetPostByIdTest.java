@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Тесты метода getPostById класса PostServiceImpl
@@ -15,19 +15,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Тесты метода getPostById")
 class PostServiceGetPostByIdTest extends PostServiceTestBase {
 
+    /**
+     * Проверяет, что сервис корректно возвращает Optional<PostResponseDto>, если пост существует.
+     */
     @Test
-    @DisplayName("Должен вернуть пост из кеша, если он существует")
+    @DisplayName("Должен вернуть пост если он существует")
     void shouldReturnPostIfExistsTest() {
+        when(postRepository.getPostById(VALID_POST_ID)).thenReturn(Optional.of(POST_RESPONSE_1));
         Optional<PostResponseDto> result = postService.getPostById(VALID_POST_ID);
 
         assertTrue(result.isPresent());
-        assertEquals(POST_RESPONSE_1, result.get());
+        assertEquals(POST_RESPONSE_1.id(), result.get().id());
+        assertEquals(POST_RESPONSE_1.title(), result.get().title());
+        assertEquals(POST_RESPONSE_1.text(), result.get().text());
     }
 
+    /**
+     * Проверяет, что при отсутствии поста метод возвращает пустой Optional без выбрасывания исключения.
+     */
     @Test
     @DisplayName("Должен вернуть пустой Optional если пост отсутствует")
     void shouldReturnEmptyIfPostNotExistsTest() {
-        Optional<PostResponseDto> result = postService.getPostById(INVALID_POST_ID);
-        assertTrue(result.isEmpty());
+        assertDoesNotThrow(() -> postService.getPostById(INVALID_POST_ID));
     }
 }

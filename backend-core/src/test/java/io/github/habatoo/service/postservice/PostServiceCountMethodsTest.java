@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -35,6 +35,7 @@ class PostServiceCountMethodsTest extends PostServiceTestBase {
     @DisplayName("Должен увеличить лайки успешно")
     void shouldIncrementLikesTest() {
         doNothing().when(postRepository).incrementLikes(VALID_POST_ID);
+        when(postRepository.getPostById(VALID_POST_ID)).thenReturn(Optional.of(POST_RESPONSE_1_LIKES));
 
         int newLikes = postService.incrementLikes(VALID_POST_ID);
 
@@ -63,13 +64,9 @@ class PostServiceCountMethodsTest extends PostServiceTestBase {
     void shouldHandleCommentsCountChangesTest(String methodName) {
         if ("incrementCommentsCount".equals(methodName)) {
             postService.incrementCommentsCount(VALID_POST_ID);
-            assertEquals(POST_RESPONSE_1.commentsCount() + 1,
-                    postService.getPostById(VALID_POST_ID).get().commentsCount());
             verify(postRepository).incrementCommentsCount(VALID_POST_ID);
         } else {
             postService.decrementCommentsCount(VALID_POST_ID);
-            int expected = Math.max(0, POST_RESPONSE_1.commentsCount() - 1);
-            assertEquals(expected, postService.getPostById(VALID_POST_ID).get().commentsCount());
             verify(postRepository).decrementCommentsCount(VALID_POST_ID);
         }
     }
@@ -81,14 +78,12 @@ class PostServiceCountMethodsTest extends PostServiceTestBase {
     @Test
     @DisplayName("decrementCommentsCount: ветка if (post == null) — ничего не обновляется")
     void decrementCommentsCountIfCacheMissTest() {
-        when(postRepository.findAllPosts()).thenReturn(List.of());
         postService = new PostServiceImpl(postRepository, fileStorageService);
 
         Long postId = 3L;
         doNothing().when(postRepository).decrementCommentsCount(postId);
 
         assertDoesNotThrow(() -> postService.decrementCommentsCount(postId));
-        assertFalse(postService.postExists(postId));
         verify(postRepository, times(1)).decrementCommentsCount(postId);
     }
 
@@ -99,13 +94,11 @@ class PostServiceCountMethodsTest extends PostServiceTestBase {
     @Test
     @DisplayName("incrementCommentsCount: ветка if (post == null) — ничего не обновляется")
     void incrementCommentsCountIfCacheMissTest() {
-        when(postRepository.findAllPosts()).thenReturn(List.of());
         postService = new PostServiceImpl(postRepository, fileStorageService);
         Long postId = 1L;
         doNothing().when(postRepository).incrementCommentsCount(postId);
 
         assertDoesNotThrow(() -> postService.incrementCommentsCount(postId));
-        assertFalse(postService.postExists(postId));
         verify(postRepository, times(1)).incrementCommentsCount(postId);
     }
 

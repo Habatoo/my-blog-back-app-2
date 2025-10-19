@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
  *   <li> Корректная генерация исключений при недопустимых значениях полей (null/empty) </li>
  * </ul>
  */
-@DisplayName("Юнит-тесты для PostListRowMapper")
+@DisplayName("Тесты для PostListRowMapper")
 class PostListRowMapperTest {
 
     /**

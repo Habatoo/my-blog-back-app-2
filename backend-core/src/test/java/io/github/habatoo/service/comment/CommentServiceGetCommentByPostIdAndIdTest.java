@@ -26,7 +26,6 @@ class CommentServiceGetCommentByPostIdAndIdTest extends CommentServiceTestBase {
     @DisplayName("Должен возвращать комментарий из кеша при наличии")
     void shouldReturnCommentFromCacheIfPresentTest() {
         List<CommentResponseDto> repoComments = List.of(createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT));
-        when(postService.postExists(VALID_POST_ID)).thenReturn(true);
         when(commentRepository.findByPostId(VALID_POST_ID)).thenReturn(repoComments);
         commentService.getCommentsByPostId(VALID_POST_ID);
 

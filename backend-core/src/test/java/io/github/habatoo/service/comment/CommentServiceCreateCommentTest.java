@@ -35,8 +35,6 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
     @Test
     @DisplayName("Должен создать комментарий и обновить кеш и счетчик комментариев поста")
     void shouldCreateCommentAndUpdateCacheAndPostTest() {
-        when(postService.postExists(VALID_POST_ID)).thenReturn(true);
-
         CommentCreateRequestDto request = createCommentCreateRequest(COMMENT_TEXT, VALID_POST_ID);
         CommentResponseDto savedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
 
@@ -45,7 +43,6 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
         CommentResponseDto result = commentService.createComment(request);
 
         assertEquals(savedComment, result);
-        verify(postService).postExists(VALID_POST_ID);
         verify(commentRepository).save(request);
         verify(postService).incrementCommentsCount(VALID_POST_ID);
 
@@ -61,8 +58,6 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
     @Test
     @DisplayName("Должен добавить новый комментарий в существующий список комментариев в кеше")
     void shouldAddCommentToExistingCacheList() {
-        when(postService.postExists(VALID_POST_ID)).thenReturn(true);
-
         CommentCreateRequestDto request = createCommentCreateRequest(COMMENT_TEXT, VALID_POST_ID);
         CommentResponseDto savedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
 
@@ -76,32 +71,11 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
         CommentResponseDto result = commentService.createComment(newRequest);
 
         assertEquals(newSavedComment, result);
-        verify(postService, times(2)).postExists(VALID_POST_ID);
         verify(commentRepository).save(newRequest);
         verify(postService, times(2)).incrementCommentsCount(VALID_POST_ID);
 
         List<CommentResponseDto> cachedComments = commentService.getCommentsByPostId(VALID_POST_ID);
         assertTrue(cachedComments.contains(newSavedComment));
-    }
-
-    /**
-     * Проверяет выброс IllegalStateException в случае попытки создать комментарий к несуществующему посту:
-     * - Верифицирует отсутствие взаимодействия с репозиторием комментариев
-     * - Исключение должно содержать информативное сообщение
-     */
-    @Test
-    @DisplayName("Должен выбрасывать исключение, если пост не существует")
-    void shouldThrowIfPostDoesNotExistTest() {
-        when(postService.postExists(INVALID_POST_ID)).thenReturn(false);
-
-        CommentCreateRequestDto request = createCommentCreateRequest(COMMENT_TEXT, INVALID_POST_ID);
-
-        IllegalStateException ex = assertThrows(IllegalStateException.class,
-                () -> commentService.createComment(request));
-
-        assertTrue(ex.getMessage().contains("Post not found"));
-        verify(postService).postExists(INVALID_POST_ID);
-        verifyNoInteractions(commentRepository);
     }
 
     /**
@@ -118,7 +92,6 @@ class CommentServiceCreateCommentTest extends CommentServiceTestBase {
     void testCreateCommentThrowsOnRepositoryErrorTest() {
         CommentCreateRequestDto request = new CommentCreateRequestDto(VALID_POST_ID, "text");
 
-        when(postService.postExists(VALID_POST_ID)).thenReturn(true);
         when(commentRepository.save(any())).thenThrow(new RuntimeException("fail save"));
 
         IllegalStateException ex = assertThrows(

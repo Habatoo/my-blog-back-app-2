@@ -12,9 +12,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import static org.mockito.Mockito.when;
 
 /**
  * Базовый класс для тестирования PostServiceImpl
@@ -34,12 +33,10 @@ abstract class PostServiceTestBase {
     protected static final Long INVALID_POST_ID = 999L;
 
     protected static final PostResponseDto POST_RESPONSE_1 = new PostResponseDto(1L, "Первый", "Текст 1", List.of("tag1", "tag2"), 5, 10);
-    protected static final PostResponseDto POST_RESPONSE_2 = new PostResponseDto(2L, "Второй", "Текст 2", List.of("tag2", "tag3"), 3, 5);
-    protected static final PostResponseDto POST_RESPONSE_3 = new PostResponseDto(3L, "Третий", "Текст 3", List.of(), 0, 0);
+    protected static final PostResponseDto POST_RESPONSE_1_LIKES = new PostResponseDto(1L, "Первый", "Текст 1", List.of("tag1", "tag2"), 6, 10);
 
     @BeforeEach
     void setUp() {
-        when(postRepository.findAllPosts()).thenReturn(List.of(POST_RESPONSE_1, POST_RESPONSE_2, POST_RESPONSE_3));
         postService = new PostServiceImpl(postRepository, fileStorageService);
     }
 
@@ -50,5 +47,44 @@ abstract class PostServiceTestBase {
         );
     }
 
+    protected static Stream<Arguments> provideSearchFilters() {
+        List<PostResponseDto> allPosts = List.of(
+                new PostResponseDto(1L, "Spring Framework", "Spring — это каркас...", List.of("java", "backend"), 5, 2),
+                new PostResponseDto(2L, "PostgreSQL Integration", "Настроим postgres...", List.of("db", "backend"), 3, 1),
+                new PostResponseDto(3L, "Советы по Markdown", "Учимся оформлять post", List.of("markdown"), 1, 0),
+                new PostResponseDto(4L, "Framework Tips", "Framework rocks!", List.of("framework"), 2, 5),
+                new PostResponseDto(5L, "Java Collections", "about HashMap и List", List.of("java"), 4, 3)
+        );
+        return Stream.of(
+                Arguments.of("", 5, allPosts),
+                Arguments.of("Spring", 1, allPosts),
+                Arguments.of("Framework", 2, allPosts),
+                Arguments.of("#java", 2, allPosts),
+                Arguments.of("Spring #java", 1, allPosts),
+                Arguments.of("#backend", 2, allPosts),
+                Arguments.of("#unknowntag", 0, allPosts),
+                Arguments.of("Hash", 1, allPosts),
+                Arguments.of("Java", 1, allPosts),
+                Arguments.of("Markdown", 1, allPosts)
+        );
+    }
 
+    protected static Stream<Arguments> providePagination() {
+        List<PostResponseDto> posts = IntStream.rangeClosed(1, 53)
+                .mapToObj(i -> new PostResponseDto(
+                        (long) i,
+                        "Title " + i,
+                        "Text " + i,
+                        List.of("tag" + (i % 5)),
+                        i, i
+                ))
+                .toList();
+        return Stream.of(
+                Arguments.of(1, 1, 1, posts),
+                Arguments.of(5, 1, 5, posts),
+                Arguments.of(10, 2, 10, posts),
+                Arguments.of(20, 3, 13, posts),
+                Arguments.of(50, 2, 3, posts)
+        );
+    }
 }

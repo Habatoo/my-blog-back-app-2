@@ -59,4 +59,35 @@ abstract class PostRepositoryTestBase {
                 )
         );
     }
+
+    protected static Stream<Arguments> provideParameters() {
+        return Stream.of(
+                Arguments.of("", List.of(), 1, 1),      // пустой searchPart, пустые теги, pageSize=1
+                Arguments.of("java", List.of(), 1, 5),  // не пустой searchPart, пустые теги, pageSize=5
+                Arguments.of("", List.of("spring"), 1, 10), // пустой поиск, один тег, pageSize=10
+                Arguments.of("blog", List.of("java", "spring"), 2, 20), // всё заполнено, списочные теги, pageSize=20
+                Arguments.of("", List.of("spring", "boot", "java"), 3, 50), // пустой поиск, много тегов, pageSize=50
+                Arguments.of("запуск", List.of(), 1, 1),   // разные поисковые строки
+                Arguments.of("отчет", List.of("boot"), 2, 5)
+        );
+    }
+
+    static Stream<Arguments> countPostsParameters() {
+        return Stream.of(
+                Arguments.of("", List.of(), 15, 15),                 // пусто, пусто, в базе 15
+                Arguments.of("Java", List.of(), 5, 5),               // поиск, пусто
+                Arguments.of("", List.of("spring"), 3, 3),           // только тег
+                Arguments.of("blog", List.of("java", "spring"), 2, 2), // поиск + мульти тег
+                Arguments.of("none", List.of("none"), null, 0)       // нет результатов
+        );
+    }
+
+    protected static Stream<Arguments> getPostByIdParameters() {
+        return Stream.of(
+                Arguments.of(1L, true),    // существует
+                Arguments.of(42L, false),  // не существует
+                Arguments.of(7L, true),
+                Arguments.of(99L, false)
+        );
+    }
 }

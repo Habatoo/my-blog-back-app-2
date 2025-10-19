@@ -26,7 +26,6 @@ class CommentServiceDeleteCommentTest extends CommentServiceTestBase {
     @Test
     @DisplayName("Должен удалить комментарий и обновить кеш")
     void shouldDeleteCommentAndUpdateCacheAndPostTest() {
-        when(postService.postExists(VALID_POST_ID)).thenReturn(true);
         when(commentRepository.deleteById(VALID_COMMENT_ID)).thenReturn(1);
 
         CommentResponseDto comment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
@@ -35,7 +34,6 @@ class CommentServiceDeleteCommentTest extends CommentServiceTestBase {
         commentService.getCommentsByPostId(VALID_POST_ID);
         commentService.deleteComment(VALID_POST_ID, VALID_COMMENT_ID);
 
-        verify(postService, times(2)).postExists(VALID_POST_ID); // 2 раза т.к. создавали и удаляли
         verify(commentRepository).deleteById(VALID_COMMENT_ID);
         verify(postService).decrementCommentsCount(VALID_POST_ID);
 
@@ -50,30 +48,12 @@ class CommentServiceDeleteCommentTest extends CommentServiceTestBase {
     @Test
     @DisplayName("Должен выбрасывать исключение при удалении несуществующего комментария")
     void shouldThrowWhenCommentNotFoundForDeleteTest() {
-        when(postService.postExists(VALID_POST_ID)).thenReturn(true);
         when(commentRepository.deleteById(NON_EXISTENT_COMMENT_ID)).thenReturn(0);
 
         assertThrows(EmptyResultDataAccessException.class,
                 () -> commentService.deleteComment(VALID_POST_ID, NON_EXISTENT_COMMENT_ID));
 
-        verify(postService).postExists(VALID_POST_ID);
         verify(commentRepository).deleteById(NON_EXISTENT_COMMENT_ID);
         verify(postService, never()).decrementCommentsCount(anyLong());
-    }
-
-    /**
-     * Проверяет, что попытка удалить комментарий у несуществующего post приводит к IllegalStateException,
-     * и репозиторий комментариев не вызывается.
-     */
-    @Test
-    @DisplayName("Должен выбрасывать исключение, если пост не существует")
-    void shouldThrowIfPostDoesNotExistTest() {
-        when(postService.postExists(INVALID_POST_ID)).thenReturn(false);
-
-        assertThrows(IllegalStateException.class,
-                () -> commentService.deleteComment(INVALID_POST_ID, VALID_COMMENT_ID));
-
-        verify(postService).postExists(INVALID_POST_ID);
-        verifyNoInteractions(commentRepository);
     }
 }
