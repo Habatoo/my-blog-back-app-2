@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Интеграционные тесты CommentServiceImpl.
  * <p>
  * Покрывают основные бизнес-сценарии работы с комментариями:
- * создание, получение, обновление, удаление и корректное управление кэшем и счетчиками.
+ * создание, получение, обновление, удаление и корректное управление счетчиками.
  */
 @SpringJUnitConfig(classes = {
         TestDataSourceConfiguration.class,

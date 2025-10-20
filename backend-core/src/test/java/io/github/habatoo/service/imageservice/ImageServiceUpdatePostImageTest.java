@@ -45,8 +45,6 @@ class ImageServiceUpdatePostImageTest extends ImageServiceTestBase {
         when(fileStorageService.saveImageFile(VALID_POST_ID, imageFile)).thenReturn(IMAGE_FILENAME);
         doNothing().when(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, IMAGE_SIZE, URL);
         doNothing().when(fileStorageService).deleteImageFile(IMAGE_FILENAME);
-        when(fileStorageService.loadImageFile(URL)).thenReturn(IMAGE_DATA);
-        when(contentTypeDetector.detect(IMAGE_DATA)).thenReturn(MEDIA_TYPE);
 
         imageService.updatePostImage(VALID_POST_ID, imageFile);
 
@@ -57,8 +55,6 @@ class ImageServiceUpdatePostImageTest extends ImageServiceTestBase {
         verify(fileStorageService).saveImageFile(VALID_POST_ID, imageFile);
         verify(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, IMAGE_SIZE, URL);
         verify(fileStorageService).deleteImageFile(IMAGE_FILENAME);
-        verify(fileStorageService).loadImageFile(URL);
-        verify(contentTypeDetector).detect(IMAGE_DATA);
     }
 
     /**

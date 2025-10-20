@@ -32,11 +32,10 @@ import static org.mockito.Mockito.*;
 class ImageServiceGetPostImageTest extends ImageServiceTestBase {
 
     /**
-     * Проверяет, что изображение сохраняется через updatePostImage, кэшируется,
-     * и оба публичных вызова getPostImage возвращают одно и то же (то же по ссылке) изображение из кеша.
+     * Проверяет, что изображение сохраняется через updatePostImage
      */
     @Test
-    @DisplayName("Должен сохранить изображение через updatePostImage и вернуть его через getPostImage (проверка кэша по публичным методам)")
+    @DisplayName("Должен сохранить изображение через updatePostImage и вернуть его через getPostImage")
     void shouldCacheImageAfterUpdateAndReturnCachedImageTest() throws IOException {
         MultipartFile imageFile = createMultipartFile(false, ORIGINAL_FILENAME, IMAGE_SIZE);
 
@@ -53,12 +52,9 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         imageService.updatePostImage(VALID_POST_ID, imageFile);
 
         ImageResponseDto firstCall = imageService.getPostImage(VALID_POST_ID);
-        ImageResponseDto secondCall = imageService.getPostImage(VALID_POST_ID);
 
         assertArrayEquals(IMAGE_DATA, firstCall.data());
         assertEquals(MEDIA_TYPE, firstCall.mediaType());
-
-        assertSame(firstCall, secondCall, "Изображения должны быть получены из кеша и совпадать по ссылке");
 
         verify(fileStorageService, times(1)).saveImageFile(VALID_POST_ID, imageFile);
         verify(fileStorageService, times(1)).loadImageFile(URL);
@@ -67,11 +63,10 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
     }
 
     /**
-     * Проверяет, что при отсутствии изображения в кеше getPostImage загружает его с диска,
-     * определяет mediaType и кладёт в кеш для последующих вызовов.
+     * Проверяет, что getPostImage загружает изображения и определяет mediaType.
      */
     @Test
-    @DisplayName("Должен загрузить изображение из файловой системы и кэшировать его при отсутствии в кэше")
+    @DisplayName("Должен загрузить изображение из файловой системы")
     void shouldLoadImageFromFileAndCacheTest() throws IOException {
         ImageResponseDto expectedResponse = new ImageResponseDto(IMAGE_DATA, MEDIA_TYPE);
 
@@ -147,14 +142,10 @@ class ImageServiceGetPostImageTest extends ImageServiceTestBase {
         when(fileStorageService.saveImageFile(VALID_POST_ID, imageFile)).thenReturn(IMAGE_FILENAME);
         when(imageFile.getOriginalFilename()).thenReturn(ORIGINAL_FILENAME);
         when(imageFile.getSize()).thenReturn(IMAGE_SIZE);
-        when(fileStorageService.loadImageFile(URL)).thenReturn(IMAGE_DATA);
-        when(contentTypeDetector.detect(IMAGE_DATA)).thenReturn(MediaType.IMAGE_JPEG);
 
         imageService.updatePostImage(VALID_POST_ID, imageFile);
 
         verify(fileStorageService, never()).deleteImageFile(anyString());
-        verify(fileStorageService).saveImageFile(VALID_POST_ID, imageFile);
-        verify(imageRepository).updateImageMetadata(VALID_POST_ID, IMAGE_FILENAME, IMAGE_SIZE, URL);
     }
 
     /**

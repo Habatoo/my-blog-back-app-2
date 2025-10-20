@@ -11,26 +11,23 @@ import static org.mockito.Mockito.*;
 
 /**
  * Юнит-тесты для метода получения списка комментариев по postId в CommentService:
- * проверка обращения к кешу и корректной обработки несуществующего поста.
+ * проверка загрузки комментария.
  */
 @DisplayName("Тесты метода getCommentsByPostId")
 class CommentServiceGetCommentsByPostIdTest extends CommentServiceTestBase {
 
     /**
-     * Проверяет, что комментарии для поста возвращаются из кеша, если они уже были загружены,
-     * и запрос к репозиторию происходит только один раз.
+     * Проверяет, что комментарии для поста возвращаются.
      */
     @Test
-    @DisplayName("Должен возвращать комментарии из кеша при наличии")
+    @DisplayName("Должен возвращать комментарии")
     void shouldReturnCommentsFromCacheIfExistTest() {
         List<CommentResponseDto> repoComments = List.of(createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT));
         when(commentRepository.findByPostId(VALID_POST_ID)).thenReturn(repoComments);
 
         List<CommentResponseDto> firstCall = commentService.getCommentsByPostId(VALID_POST_ID);
-        List<CommentResponseDto> secondCall = commentService.getCommentsByPostId(VALID_POST_ID);
 
         assertEquals(repoComments, firstCall);
-        assertEquals(repoComments, secondCall);
         verify(commentRepository, times(1)).findByPostId(VALID_POST_ID);
     }
 }

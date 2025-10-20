@@ -6,9 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.dao.EmptyResultDataAccessException;
 
 import java.util.List;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -20,11 +20,11 @@ import static org.mockito.Mockito.when;
 class CommentServiceUpdateCommentTest extends CommentServiceTestBase {
 
     /**
-     * Проверяет, что обновление комментария изменяет текст, обновляет кеш,
+     * Проверяет, что обновление комментария изменяет текст
      * и комментарий с новым текстом доступен по postId и commentId.
      */
     @Test
-    @DisplayName("Должен обновить комментарий и обновить кеш")
+    @DisplayName("Должен обновить комментарий")
     void shouldUpdateCommentAndRefreshCacheTest() {
         CommentResponseDto original = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT);
         CommentResponseDto updatedComment = createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, UPDATED_COMMENT_TEXT);
@@ -38,10 +38,6 @@ class CommentServiceUpdateCommentTest extends CommentServiceTestBase {
 
         assertEquals(UPDATED_COMMENT_TEXT, result.text());
         verify(commentRepository).update(VALID_POST_ID, VALID_COMMENT_ID, UPDATED_COMMENT_TEXT);
-
-        Optional<CommentResponseDto> cachedUpdated = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
-        assertTrue(cachedUpdated.isPresent());
-        assertEquals(UPDATED_COMMENT_TEXT, cachedUpdated.get().text());
     }
 
     /**

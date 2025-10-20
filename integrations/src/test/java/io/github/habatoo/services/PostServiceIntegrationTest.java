@@ -38,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
  * Интеграционные тесты PostServiceImpl.
  * <p>
  * Покрывают бизнес-логику получения постов с фильтрацией и пагинацией,
- * создание, обновление, удаление постов, работу кэша,
+ * создание, обновление, удаление постов
  * а также инкремент и декремент счетчиков лайков и комментариев.
  */
 @SpringJUnitConfig(classes = {
@@ -113,7 +113,7 @@ class PostServiceIntegrationTest extends TestDataProvider {
     public PostListRowMapper postListRowMapper;
 
     /**
-     * Проверяет корректное получение поста по ID из кэша.
+     * Проверяет корректное получение поста по ID.
      */
     @Test
     @DisplayName("Получение поста по ID из кеша")
@@ -138,10 +138,10 @@ class PostServiceIntegrationTest extends TestDataProvider {
     }
 
     /**
-     * Проверяет создание нового поста и обновление кэша.
+     * Проверяет создание нового поста.
      */
     @Test
-    @DisplayName("Создание нового поста с обновлением кэша")
+    @DisplayName("Создание нового поста")
     void testCreatePostTest() {
         PostCreateRequestDto createRequest = new PostCreateRequestDto("New Title", "New text", List.of("newtag"));
         PostResponseDto createdPost = postService.createPost(createRequest);
@@ -155,10 +155,10 @@ class PostServiceIntegrationTest extends TestDataProvider {
     }
 
     /**
-     * Проверяет обновление существующего поста и обновление записи в кэше.
+     * Проверяет обновление существующего поста.
      */
     @Test
-    @DisplayName("Обновление поста с обновлением кэша")
+    @DisplayName("Обновление поста")
     void testUpdatePostTest() {
         PostRequestDto updateRequest = new PostRequestDto(1L, "Updated Title", "Updated Text", List.of("tag0"));
         PostResponseDto updated = postService.updatePost(updateRequest);
@@ -173,10 +173,10 @@ class PostServiceIntegrationTest extends TestDataProvider {
     }
 
     /**
-     * Проверяет удаление поста и очистку кэша, а также удаление директории файла.
+     * Проверяет удаление поста, а также удаление директории файла.
      */
     @Test
-    @DisplayName("Удаление поста, очистка кэша и удаление директории")
+    @DisplayName("Удаление поста и удаление директории")
     void testDeletePostTest() throws IOException {
         long deleteId = 2L;
 
@@ -196,10 +196,10 @@ class PostServiceIntegrationTest extends TestDataProvider {
     }
 
     /**
-     * Проверяет корректное инкрементирование лайков и обновление кэша.
+     * Проверяет корректное инкрементирование лайков.
      */
     @Test
-    @DisplayName("Инкремент лайков с обновлением кэша")
+    @DisplayName("Инкремент лайков")
     void testIncrementLikesTest() {
         int oldLikes = postService.getPostById(1L).map(PostResponseDto::likesCount).orElse(0);
         int newLikes = postService.incrementLikes(1L);
@@ -212,10 +212,10 @@ class PostServiceIntegrationTest extends TestDataProvider {
     }
 
     /**
-     * Проверяет инкремент счётчика комментариев и обновление кэша.
+     * Проверяет инкремент счётчика комментариев.
      */
     @Test
-    @DisplayName("Инкремент комментариев с обновлением кэша")
+    @DisplayName("Инкремент комментариев")
     void testIncrementCommentsCountTest() {
         int before = postService.getPostById(1L).map(PostResponseDto::commentsCount).orElse(0);
         postService.incrementCommentsCount(1L);
@@ -225,10 +225,10 @@ class PostServiceIntegrationTest extends TestDataProvider {
     }
 
     /**
-     * Проверяет декремент счётчика комментариев (не опускается ниже 0) и обновление кэша.
+     * Проверяет декремент счётчика комментариев (не опускается ниже 0).
      */
     @Test
-    @DisplayName("Декремент комментариев с обновлением кэша, не ниже 0")
+    @DisplayName("Декремент комментариев не ниже 0")
     void testDecrementCommentsCountTest() {
         postService.incrementCommentsCount(1L);
 

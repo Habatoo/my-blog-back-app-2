@@ -4,7 +4,6 @@ import io.github.habatoo.dto.response.CommentResponseDto;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,22 +17,6 @@ import static org.mockito.Mockito.when;
  */
 @DisplayName("Тесты метода getCommentByPostIdAndId")
 class CommentServiceGetCommentByPostIdAndIdTest extends CommentServiceTestBase {
-
-    /**
-     * Проверяет, что если нужный комментарий уже есть в кеше, он возвращается без обращения к репозиторию.
-     */
-    @Test
-    @DisplayName("Должен возвращать комментарий из кеша при наличии")
-    void shouldReturnCommentFromCacheIfPresentTest() {
-        List<CommentResponseDto> repoComments = List.of(createCommentResponse(VALID_COMMENT_ID, VALID_POST_ID, COMMENT_TEXT));
-        when(commentRepository.findByPostId(VALID_POST_ID)).thenReturn(repoComments);
-        commentService.getCommentsByPostId(VALID_POST_ID);
-
-        Optional<CommentResponseDto> result = commentService.getCommentByPostIdAndId(VALID_POST_ID, VALID_COMMENT_ID);
-
-        assertTrue(result.isPresent());
-        assertEquals(VALID_COMMENT_ID, result.get().id());
-    }
 
     /**
      * Проверяет, что если в кеше нет комментария, сервис запрашивает его из репозитория.
