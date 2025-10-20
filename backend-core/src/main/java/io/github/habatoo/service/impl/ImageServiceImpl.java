@@ -14,9 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Сервис для обработки изображений поста.
@@ -48,8 +46,6 @@ public class ImageServiceImpl implements ImageService {
     private final ImageValidator imageValidator;
     private final ImageContentTypeDetector contentTypeDetector;
 
-    private final Map<Long, ImageResponseDto> imageCache = new ConcurrentHashMap<>();
-
     public ImageServiceImpl(
             ImageRepository imageRepository,
             FileStorageService fileStorageService,
@@ -76,7 +72,7 @@ public class ImageServiceImpl implements ImageService {
             String newFileName = storeImageFile(postId, image);
             updateImageMetadata(postId, newFileName, image.getSize());
             deleteOldFileIfExists(postId, oldFileName);
-            cacheImage(postId, newFileName);
+
         } catch (IOException e) {
             log.error("Ошибка при обработке изображения для поста id={}: {}", postId, e.getMessage(), e);
             throw new IllegalStateException("Failed to process image file", e);
@@ -91,11 +87,6 @@ public class ImageServiceImpl implements ImageService {
         log.debug("Запрос на получение изображения для поста id={}", postId);
         validateGet(postId);
 
-        ImageResponseDto cached = imageCache.get(postId);
-        if (cached != null) {
-            log.debug("Изображение для поста id={} получено из кэша", postId);
-            return cached;
-        }
         return loadAndCacheImage(postId);
     }
 
@@ -134,14 +125,6 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
-    private void cacheImage(Long postId, String fileName) throws IOException {
-        String url = buildImageUrl(postId, fileName);
-        byte[] imageData = fileStorageService.loadImageFile(url);
-        MediaType mediaType = contentTypeDetector.detect(imageData);
-        imageCache.put(postId, new ImageResponseDto(imageData, mediaType));
-        log.info("Кэшировано новое изображение для поста id={}", postId);
-    }
-
     private ImageResponseDto loadAndCacheImage(Long postId) {
         Optional<String> fileName = imageRepository.findImageFileNameByPostId(postId);
         byte[] imageData;
@@ -156,8 +139,8 @@ public class ImageServiceImpl implements ImageService {
                 mediaType = contentTypeDetector.detect(imageData);
             }
             ImageResponseDto imageResponse = new ImageResponseDto(imageData, mediaType);
-            imageCache.put(postId, imageResponse);
-            log.info("Изображение для поста id={} загружено и кэшировано", postId);
+            log.info("Изображение для поста id={} загружено", postId);
+
             return imageResponse;
         } catch (IOException e) {
             log.error("Ошибка при загрузке изображения '{}' для поста id={}: {}", fileName, postId, e.getMessage(), e);
