@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+    <mirrors>
+        <mirror>
+            <id>mvn-mirror</id>
+            <name>GitVerse Maven Mirror</name>
+            <url>https://mvn-mirror.gitverse.ru</url>
+            <mirrorOf>*</mirrorOf>
+        </mirror>
+    </mirrors>
+    <profiles>
+        <profile>
+            <id>gitverse</id>
+            <repositories>
+                <repository>
+                    <id>mvn-mirror</id>
+                    <url>https://mvn-mirror.gitverse.ru</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                </repository>
+            </repositories>
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>mvn-mirror</id>
+                    <url>https://mvn-mirror.gitverse.ru</url>
+                    <releases><enabled>true</enabled></releases>
+                    <snapshots><enabled>true</enabled></snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
+    </profiles>
+    <activeProfiles>
+        <activeProfile>gitverse</activeProfile>
+    </activeProfiles>
+</settings>

@@ -1,0 +1,45 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: blog_db_con
+    restart: always
+    env_file: ./env/.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - blog_db:/var/lib/postgresql/data
+
+  flyway:
+    container_name: flyway
+    image: flyway/flyway:latest
+    depends_on: [ db ]
+    env_file: ./env/.env
+    command: migrate -connectRetries=10
+    volumes:
+      - ./api/src/main/resources/db/migrations:/flyway/sql:ro
+
+  my-blog-backend:
+    container_name: my-blog-back-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on: [ db, flyway ]
+    env_file: ./env/.env
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    volumes:
+      - uploads_data:/app/uploads/posts
+
+  my-blog-front-app:
+    container_name: my-blog-front-app
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    restart: unless-stopped
+
+volumes:
+  blog_db:
+  uploads_data:
