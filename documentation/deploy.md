@@ -19,22 +19,10 @@ FLYWAY_PASSWORD=blog_password
    <br> Соберите клиентское приложение обычным способом; положите production-билд в папку `./frontend`.
 
 2. **Собрать backend**
-   <br> Проект поставляется с wrapperю Установка Maven не требуется. В root проекта выполните:
-```
-mvnw.cmd clean install
-```
-или
-```
-mvnw clean install
-```
 
-После сборки гарантируется появление файлов <br>
-    - `./api/target/api-1.0-SNAPSHOT.war` <br>
-    - `./backend-core/target/backend-core-1.0-SNAPSHOT.jar`
-   <br> Файл `api-1.0-SNAPSHOT.war` содержит все нужные зависимости из модуля `backend-core`.
 
 3. **Подготовить миграции Flyway и настроить переменные БД**
-   <br> Миграции должны лежать в `./api/src/main/resources/db/migrations/`
+
 
 4. **Собрать и запустить Docker-кластер**
 
