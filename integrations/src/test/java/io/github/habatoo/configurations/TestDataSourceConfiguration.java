@@ -103,7 +103,7 @@ public class TestDataSourceConfiguration {
             @Value("${spring.flyway.validate-on-migrate}") boolean validate,
             @Value("${spring.flyway.clean-disabled}") boolean clean
     ) {
-        log.info("Настраиваем Flyway миграции");
+        //log.info("Настраиваем Flyway миграции");
         return Flyway.configure()
                 .dataSource(dataSource)
                 .locations(locations)
