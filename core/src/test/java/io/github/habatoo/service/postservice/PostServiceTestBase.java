@@ -40,13 +40,6 @@ abstract class PostServiceTestBase {
         postService = new PostServiceImpl(postRepository, fileStorageService);
     }
 
-    static Stream<Arguments> postIdProvider() {
-        return Stream.of(
-                Arguments.of(VALID_POST_ID, true),
-                Arguments.of(INVALID_POST_ID, false)
-        );
-    }
-
     protected static Stream<Arguments> provideSearchFilters() {
         List<PostResponseDto> allPosts = List.of(
                 new PostResponseDto(1L, "Spring Framework", "Spring — это каркас...", List.of("java", "backend"), 5, 2),

@@ -63,8 +63,8 @@ dependencies {
         api 'com.jayway.jsonpath:json-path:2.9.0'
 
         // Testcontainers
-        api 'org.testcontainers:testcontainers:1.20.2'
-        api 'org.testcontainers:junit-jupiter:1.20.2'
-        api 'org.testcontainers:postgresql:1.20.2'
+        api 'org.testcontainers:testcontainers:1.20.3'
+        api 'org.testcontainers:junit-jupiter:1.20.3'
+        api 'org.testcontainers:postgresql:1.20.3'
     }
 }

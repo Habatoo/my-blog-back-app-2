@@ -2,7 +2,6 @@ package io.github.habatoo.repositories.comment;
 
 import io.github.habatoo.dto.request.CommentCreateRequestDto;
 import io.github.habatoo.dto.response.CommentResponseDto;
-import io.github.habatoo.repositories.CommentRepository;
 import io.github.habatoo.repositories.impl.CommentRepositoryImpl;
 import io.github.habatoo.repositories.mapper.CommentRowMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,8 +10,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.jdbc.core.JdbcTemplate;
-
-import java.time.LocalDateTime;
 
 /**
  * Базовый класс для тестирования CommentRepositoryImpl.
