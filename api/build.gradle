@@ -1,10 +1,17 @@
 plugins {
     id 'java'
     id 'jacoco'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 jacoco {
     toolVersion = '0.8.11'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:3.5.6'
+    }
 }
 
 repositories {
@@ -21,6 +28,9 @@ dependencies {
 
     implementation 'org.springframework:spring-webmvc'
     implementation 'org.springframework.data:spring-data-jdbc'
+//
+//    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
 
     testImplementation 'jakarta.servlet:jakarta.servlet-api'
 

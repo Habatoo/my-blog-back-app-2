@@ -22,12 +22,16 @@ dependencyManagement {
 
 dependencies {
     implementation platform(project(':bom'))
+    implementation project(':core')
+    implementation project(':api')
+
     implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
 
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
-
-    implementation 'org.springframework:spring-webmvc'
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.mockito:mockito-junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 springBoot {

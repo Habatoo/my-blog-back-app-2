@@ -53,8 +53,8 @@ public class PostRepositoryImpl implements PostRepository {
 
         List<PostResponseDto> posts = jdbcTemplate.query(
                 sql,
-                params.toArray(),
-                postListRowMapper
+                postListRowMapper,
+                params.toArray(new Object[0])
         );
         return posts.stream()
                 .map(this::enrichWithTags)
@@ -70,8 +70,8 @@ public class PostRepositoryImpl implements PostRepository {
         String sql = "SELECT COUNT(*) FROM post p" + where;
         Integer count = jdbcTemplate.queryForObject(
                 sql,
-                params.toArray(),
-                Integer.class
+                Integer.class,
+                params.toArray(new Object[0])
         );
         return count == null ? 0 : count;
     }
