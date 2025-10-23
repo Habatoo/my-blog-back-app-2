@@ -14,7 +14,6 @@
 ```declarative;
 my-blog-back-app/           # ROOT проекта 
 ├── api/                    # Контроллеры и конфигурация приложения - jar
-│ └── db/migrations/        # Миграции Flyway (V1__init_schema.sql)
 ├── bom/                    # BOM с версиями для всего проекта.
 ├── core/                   # Core блок с основной бизнес логикой - jar 
 ├── documentation/          # Документация, инструкции, примеры миграций и тестирования
@@ -27,6 +26,7 @@ my-blog-back-app/           # ROOT проекта
 ├── integrationtests /      # Интеграционные тесты по проекту
 ├── report /                # JacocoReport для генерации отчетеа jacoco в многомодульном проекте
 ├── service /               # Application - @SpringBootApplication
+│ └── db/migrations/        # Миграции Flyway (V1__init_schema.sql)
 ├── Dockerfilel
 ├── docker-compose.yml      # Главный файл оркестрации Docker сервисов
 ├── .env                    # Переменные среды (НЕ храните в репозитории)
