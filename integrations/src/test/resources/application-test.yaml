@@ -1,0 +1,20 @@
+app:
+  upload:
+    dir: uploads/posts/
+    auto-create-dir: true
+  image:
+    default-extension: jpg
+
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:17-alpine://localhost:5432/blog_test
+    username: test
+    password: test
+  flyway:
+    enabled: true
+    locations: classpath:db/migrations
+    encoding: UTF-8
+    baseline-version: 0
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: false

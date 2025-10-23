@@ -1,7 +1,6 @@
 package io.github.habatoo.controllers;
 
-import io.github.habatoo.configurations.TestDataSourceConfiguration;
-import io.github.habatoo.configurations.controllers.PostControllerConfiguration;
+import io.github.habatoo.Application;
 import io.github.habatoo.handlers.GlobalExceptionHandler;
 import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
@@ -10,17 +9,12 @@ import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.testcontainers.junit.jupiter.Testcontainers;
-
-import javax.sql.DataSource;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -32,9 +26,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * В каждом тесте база инициализируется одними и теми же постами,
  * чтобы результаты запросов можно было проверять однозначно.
  */
-@ExtendWith(SpringExtension.class)
-@Testcontainers
-@ContextConfiguration(classes = {PostControllerConfiguration.class, TestDataSourceConfiguration.class})
+@ActiveProfiles("test")
+@SpringBootTest(classes = Application.class)
 @DisplayName("Интеграционные тесты PostController")
 class PostControllerIntegrationTest extends TestDataProvider {
 
@@ -46,12 +39,6 @@ class PostControllerIntegrationTest extends TestDataProvider {
 
     @Autowired
     CommentService commentService;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    DataSource dataSource;
 
     @Autowired
     private Flyway flyway;

@@ -6,8 +6,6 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.boot.SpringApplication;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
 /**
  * Класс теста для основного класса приложения {@link Application}.
  * Проверяет корректный запуск метода main и вызов SpringApplication.run.
@@ -28,10 +26,5 @@ class ApplicationTest {
 
             mockedSpring.verify(() -> SpringApplication.run(Application.class, args));
         }
-    }
-
-    @Test
-    void mainRunsWithoutError() {
-        assertDoesNotThrow(() -> Application.main(new String[] {}));
     }
 }

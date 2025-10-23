@@ -1,9 +1,6 @@
 package io.github.habatoo.services;
 
-import io.github.habatoo.configurations.TestDataSourceConfiguration;
-import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
-import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
-import io.github.habatoo.configurations.services.ServiceTestConfiguration;
+import io.github.habatoo.Application;
 import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.dto.request.PostRequestDto;
 import io.github.habatoo.dto.response.PostListResponseDto;
@@ -22,8 +19,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
@@ -41,12 +39,9 @@ import static org.assertj.core.api.Assertions.assertThat;
  * создание, обновление, удаление постов
  * а также инкремент и декремент счетчиков лайков и комментариев.
  */
-@SpringJUnitConfig(classes = {
-        TestDataSourceConfiguration.class,
-        CommentRepositoryConfiguration.class,
-        PostRepositoryConfiguration.class,
-        ServiceTestConfiguration.class})
 @Transactional
+@ActiveProfiles("test")
+@SpringBootTest(classes = Application.class)
 @DisplayName("Интеграционные тесты PostServiceImpl")
 class PostServiceIntegrationTest extends TestDataProvider {
 
@@ -67,6 +62,9 @@ class PostServiceIntegrationTest extends TestDataProvider {
 
     @Autowired
     private Flyway flyway;
+
+    @Autowired
+    public PostListRowMapper postListRowMapper;
 
     @Value("${app.upload.dir:uploads/posts/}")
     private String uploadDir;
@@ -108,9 +106,6 @@ class PostServiceIntegrationTest extends TestDataProvider {
             assertThat(response.hasNext()).isFalse();
         }
     }
-
-    @Autowired
-    public PostListRowMapper postListRowMapper;
 
     /**
      * Проверяет корректное получение поста по ID.

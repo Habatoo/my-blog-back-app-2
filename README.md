@@ -17,13 +17,16 @@ my-blog-back-app/           # ROOT проекта
 │ └── db/migrations/        # Миграции Flyway (V1__init_schema.sql)
 ├── bom/                    # BOM с версиями для всего проекта.
 ├── core/                   # Core блок с основной бизнес логикой - jar 
-├── frontend/               # Исходный код frontend, конечное приложение - сюда копируется build фронта
-├── integrationtests /      # Интеграционные тесты по проекту
-├── report /                # JacocoReport для генерации отчетеа jacoco в многомодульном проекте
 ├── documentation/          # Документация, инструкции, примеры миграций и тестирования
 │ ├── database.md
 │ ├── deploy.md
 │ └── jacoco.md
+├── env/                    # Папка для секретов и настроек
+├── frontend/               # Исходный код frontend, конечное приложение - сюда копируется build фронта
+├── gradle/                 # Wrapper
+├── integrationtests /      # Интеграционные тесты по проекту
+├── report /                # JacocoReport для генерации отчетеа jacoco в многомодульном проекте
+├── service /               # Application - @SpringBootApplication
 ├── Dockerfilel
 ├── docker-compose.yml      # Главный файл оркестрации Docker сервисов
 ├── .env                    # Переменные среды (НЕ храните в репозитории)

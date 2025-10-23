@@ -13,6 +13,7 @@ dependencies {
 
     implementation project(':core')
     implementation project(':api')
+    implementation project(':service')
 
     implementation 'org.springframework:spring-context'
 
