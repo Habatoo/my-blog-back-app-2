@@ -9,17 +9,16 @@ repositories {
 
 dependencies {
     implementation platform(project(':bom'))
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.6')
 
     implementation project(':core')
     implementation project(':api')
-    implementation project(':service')
 
     implementation 'org.springframework:spring-context'
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok:1.18.34'
 
-    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.6')
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'com.jayway.jsonpath:json-path'
     testImplementation 'org.skyscreamer:jsonassert'

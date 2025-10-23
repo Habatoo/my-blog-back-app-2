@@ -73,4 +73,3 @@ tasks.withType(JavaCompile).configureEach {
 test {
     useJUnitPlatform()
 }
-

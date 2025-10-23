@@ -1,5 +1,6 @@
 package io.github.habatoo.controllers.comment;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.habatoo.controllers.CommentController;
 import io.github.habatoo.dto.request.CommentCreateRequestDto;
@@ -98,7 +99,7 @@ class CommentControllerCachedTest {
         assertTrue(responseContent.startsWith("["));
         assertTrue(responseContent.endsWith("]"));
 
-        List<Map<String, Object>> responseList = objectMapper.readValue(responseContent, List.class);
+        List<Map<String, Object>> responseList = objectMapper.readValue(responseContent, new TypeReference<>() {});
         assertEquals(2, responseList.size());
 
         Map<String, Object> firstComment = responseList.get(0);

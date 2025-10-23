@@ -32,10 +32,12 @@ allprojects {
         }
     }
 
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-        sourceCompatibility = '21'
-        targetCompatibility = '21'
-        options.compilerArgs.add("-parameters")
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            options.encoding = 'UTF-8'
+            sourceCompatibility = '21'
+            targetCompatibility = '21'
+            options.compilerArgs.add("-parameters")
+        }
     }
 }

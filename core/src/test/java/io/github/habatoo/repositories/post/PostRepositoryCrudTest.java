@@ -80,7 +80,7 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     @MethodSource("provideNullOrEmptyTags")
     void testFindPostsWithNullOrEmptyTags(List<String> tags, int expectedSize) {
         List<PostResponseDto> postsFromDb = List.of(createPostDto(POST_ID, List.of()));
-        when(jdbcTemplate.query(anyString(), any(Object[].class), any(PostListRowMapper.class)))
+        when(jdbcTemplate.query(anyString(), any(PostListRowMapper.class), any(Object[].class)))
                 .thenReturn(postsFromDb);
 
         List<PostResponseDto> result = postRepository.findPosts("test", tags, 1, 10);
@@ -234,8 +234,8 @@ class PostRepositoryCrudTest extends PostRepositoryTestBase {
     void testCountPostsParam(String searchPart, List<String> tags, Integer mockResult, int expectedCount) {
         when(jdbcTemplate.queryForObject(
                 anyString(),
-                any(Object[].class),
-                eq(Integer.class)
+                eq(Integer.class),
+                any(Object[].class)
         )).thenReturn(mockResult);
 
         int count = postRepository.countPosts(searchPart, tags);

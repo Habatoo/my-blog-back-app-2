@@ -6,11 +6,13 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.springframework.boot.SpringApplication;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+
 /**
  * Класс теста для основного класса приложения {@link Application}.
  * Проверяет корректный запуск метода main и вызов SpringApplication.run.
  */
-@DisplayName("[translate:Тесты для класса Application]")
+@DisplayName("Тесты для класса Application")
 class ApplicationTest {
 
     /**
@@ -18,7 +20,7 @@ class ApplicationTest {
      * вызывается метод SpringApplication.run с правильными параметрами.
      */
     @Test
-    @DisplayName("[translate:Проверка вызова SpringApplication.run при запуске main]")
+    @DisplayName("Проверка вызова SpringApplication.run при запуске main")
     void main_invokesSpringApplicationRun() {
         try (MockedStatic<SpringApplication> mockedSpring = Mockito.mockStatic(SpringApplication.class)) {
             String[] args = {};
@@ -26,5 +28,10 @@ class ApplicationTest {
 
             mockedSpring.verify(() -> SpringApplication.run(Application.class, args));
         }
+    }
+
+    @Test
+    void mainRunsWithoutError() {
+        assertDoesNotThrow(() -> Application.main(new String[] {}));
     }
 }

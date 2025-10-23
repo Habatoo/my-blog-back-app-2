@@ -27,7 +27,6 @@ dependencies {
 
 jacoco {
     toolVersion = '0.8.11'
-    //reportsDirectory.set(layout.buildDirectory.dir("my-custom-dir"))
 }
 
 jar {
