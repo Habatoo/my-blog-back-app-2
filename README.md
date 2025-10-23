@@ -11,7 +11,24 @@
 ---
 
 ## Структура проекта
-
+```declarative;
+my-blog-back-app/           # ROOT проекта 
+├── api/                    # Контроллеры и конфигурация приложения - jar
+│ └── db/migrations/        # Миграции Flyway (V1__init_schema.sql)
+├── bom/                    # BOM с версиями для всего проекта.
+├── core/                   # Core блок с основной бизнес логикой - jar 
+├── frontend/               # Исходный код frontend, конечное приложение - сюда копируется build фронта
+├── integrationtests /      # Интеграционные тесты по проекту
+├── report /                # JacocoReport для генерации отчетеа jacoco в многомодульном проекте
+├── documentation/          # Документация, инструкции, примеры миграций и тестирования
+│ ├── database.md
+│ ├── deploy.md
+│ └── jacoco.md
+├── Dockerfilel
+├── docker-compose.yml      # Главный файл оркестрации Docker сервисов
+├── .env                    # Переменные среды (НЕ храните в репозитории)
+├── README.md
+```
 ---
 ## Применяемые технологии
 
@@ -27,13 +44,26 @@
 ## Быстрый старт
 
 1. **Подготовка**
-
+```bash
+git clone -b feature/module_one_sprint_four_branch https://github.com/Habatoo/my-blog-back-app-2.git
+cd my-blog-back-app
+```
 
 2. **Настройка базы Postgres**
+- Параметры по умолчанию:  
+  `DB_NAME=blog_db`  
+  `USER=blog_admin`  
+  `PASSWORD=blog_password`  
+  (см. `.env` в папке env)
 
+- Миграции хранятся здесь:  
+  `api/src/main/resources/db/migrations/V1__init_schema.sql`
 
 3. **Запуск через Docker Compose**
-
+```bash
+docker compose up --build
+```
+- Контейнеры: backend, frontend (NGINX), база, Flyway миграции.
 
 4. **Сборка и деплой бэкенда вручную**
 
@@ -47,8 +77,15 @@
 
 
 ## Доступы и взаимодействие сервисов
-
-
+- **Frontend:**  
+  http://localhost/  
+  (отправляет запросы на API по http://localhost:8080/)
+- **Backend:**  
+  http://localhost:8080/  
+  (автоматически подключается к сервису db и применяет миграции при первом запуске через Flyway)
+- **База данных:**  
+  `blog_db_con` (Postgres)  
+  — видна внутри клстера по имени, снаружи доступен порт 5432
 
 ## Более расширенные инструкции
 

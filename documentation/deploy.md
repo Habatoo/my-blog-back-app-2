@@ -22,7 +22,7 @@ FLYWAY_PASSWORD=blog_password
 
 
 3. **Подготовить миграции Flyway и настроить переменные БД**
-
+   <br> Миграции должны лежать в `./api/src/main/resources/db/migrations/`
 
 4. **Собрать и запустить Docker-кластер**
 
