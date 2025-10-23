@@ -19,7 +19,16 @@ FLYWAY_PASSWORD=blog_password
    <br> Соберите клиентское приложение обычным способом; положите production-билд в папку `./frontend`.
 
 2. **Собрать backend**
+- Через root:
+```bash
+./gradlew :service:bootJar
+```
 
+JAR-файл будет в ./service/build/libs
+— запускайте стандартно
+```bash
+java -jar service/build/libs/service-1.0-SNAPSHOT.jar
+```
 
 3. **Подготовить миграции Flyway и настроить переменные БД**
    <br> Миграции должны лежать в `./api/src/main/resources/db/migrations/`

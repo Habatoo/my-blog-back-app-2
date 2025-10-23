@@ -69,13 +69,30 @@ docker compose up --build
 - Контейнеры: backend, frontend (NGINX), база, Flyway миграции.
 
 4. **Сборка и деплой бэкенда вручную**
-
+- В модуле service: 
+```bash
+./gradlew bootJar 
+```
+- Через root: 
+```bash
+./gradlew :service:bootJar
+```
 
 5. **Запуск/тесты**
-
+- Юнит-тесты
+```bash
+./gradlew test
+```
+- Интеграционные тесты
+```bash
+./gradlew :integrationtests:test
+```
 
 6. **Отчёты Jacoco**
-
+Запуск
+```bash
+./gradlew clean test jacocoTestReport
+```
 ---
 
 
