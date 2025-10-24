@@ -24,7 +24,8 @@ public class CorsPropertiesTest {
             .withUserConfiguration(CorsPropertiesTest.TestConfig.class)
             .withPropertyValues(
                     "spring.web.cors.path-pattern=/api/**",
-                    "spring.web.cors.allowed-origin-patterns=http://localhost",
+                    "spring.web.cors.allowed-origin-patterns[0]=http://localhost",
+                    "spring.web.cors.allowed-origin-patterns[1]=http://127.0.0.1",
                     "spring.web.cors.allowed-methods[0]=GET",
                     "spring.web.cors.allowed-methods[1]=POST",
                     "spring.web.cors.allowed-methods[2]=PUT",

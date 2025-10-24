@@ -15,7 +15,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "spring.web.cors")
 public record CorsProperties(
         String pathPattern,
-        String allowedOriginPatterns,
+        List<String> allowedOriginPatterns,
         List<String> allowedMethods,
         String allowedHeaders,
         boolean allowCredentials,
