@@ -19,7 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class WebConfigurationTest {
 
     @Mock
-    private Properties properties;
+    private CorsProperties corsProperties;
 
     @InjectMocks
     private WebConfiguration webConfiguration;

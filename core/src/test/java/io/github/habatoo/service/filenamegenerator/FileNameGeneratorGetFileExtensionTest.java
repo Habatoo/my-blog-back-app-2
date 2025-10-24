@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
 
 /**
  * Тесты для приватного метода getFileExtension
@@ -76,7 +77,8 @@ class FileNameGeneratorGetFileExtensionTest extends FileNameGeneratorTestBase {
     @ParameterizedTest
     @MethodSource("defaultExtensionProvider")
     void shouldWorkWithDifferentDefaultExtensionsTest(String defaultExt) {
-        FileNameGenerator generator = new FileNameGeneratorImpl(defaultExt);
+        when(imageProperties.defaultExtension()).thenReturn(defaultExt);
+        FileNameGenerator generator = new FileNameGeneratorImpl(imageProperties);
 
         String result = ReflectionTestUtils.invokeMethod(generator, "getFileExtension", "file");
 

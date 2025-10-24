@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 /**
  * <h2>Параметризованный тест для {@link CommentRowMapper}, покрывающий все валидные и невалидные случаи.</h2>
@@ -36,9 +37,9 @@ class CommentRowMapperTest {
     @DisplayName("Тест успешного маппинга валидных данных ResultSet в CommentResponseDto")
     void mapRowBasicFieldsTest() throws Exception {
         ResultSet rs = Mockito.mock(ResultSet.class);
-        Mockito.when(rs.getLong("id")).thenReturn(100L);
-        Mockito.when(rs.getString("text")).thenReturn("Комментарий");
-        Mockito.when(rs.getLong("post_id")).thenReturn(7L);
+        when(rs.getLong("id")).thenReturn(100L);
+        when(rs.getString("text")).thenReturn("Комментарий");
+        when(rs.getLong("post_id")).thenReturn(7L);
 
         CommentRowMapper mapper = new CommentRowMapper();
         CommentResponseDto resp = mapper.mapRow(rs, 0);
@@ -71,11 +72,11 @@ class CommentRowMapperTest {
                     Long id, String text, Long postId,
                     boolean shouldThrow, String expectedMsgPrefix) throws Exception {
         ResultSet rs = Mockito.mock(ResultSet.class);
-        Mockito.when(rs.getLong("id")).thenReturn(id != null ? id : 0L);
-        Mockito.when(rs.wasNull()).thenReturn(id == null);
-        Mockito.when(rs.getString("text")).thenReturn(text);
-        Mockito.when(rs.getLong("post_id")).thenReturn(postId != null ? postId : 0L);
-        Mockito.when(rs.wasNull()).thenReturn(postId == null);
+        when(rs.getLong("id")).thenReturn(id != null ? id : 0L);
+        when(rs.wasNull()).thenReturn(id == null);
+        when(rs.getString("text")).thenReturn(text);
+        when(rs.getLong("post_id")).thenReturn(postId != null ? postId : 0L);
+        when(rs.wasNull()).thenReturn(postId == null);
 
         CommentRowMapper mapper = new CommentRowMapper();
 

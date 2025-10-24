@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Тесты для метода generateFileName
@@ -104,7 +105,8 @@ class FileNameGeneratorGenerateFileNameTest extends FileNameGeneratorTestBase {
     @ParameterizedTest
     @MethodSource("defaultExtensionProvider")
     void shouldGenerateNamesWithDifferentDefaultExtensionsTest(String defaultExt) {
-        FileNameGenerator generator = new FileNameGeneratorImpl(defaultExt);
+        when(imageProperties.defaultExtension()).thenReturn(defaultExt);
+        FileNameGenerator generator = new FileNameGeneratorImpl(imageProperties);
 
         String result = generator.generateFileName("file");
 

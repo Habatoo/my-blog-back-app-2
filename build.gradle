@@ -8,13 +8,13 @@ tasks.named('clean') {
     dependsOn 'cleanRootBuild'
 }
 
-tasks.register('cleanRootBuild') {
+tasks.register('cleanRootBuild', Delete) {
     group = 'build'
-    description = 'Clean root build directory'
-
-    doLast {
-        delete rootProject.buildDir
-    }
+    description = 'Clean build directory in root project'
+    delete rootProject.layout.buildDirectory
+    delete rootProject.layout.projectDirectory.dir('uploads')
+    delete rootProject.layout.projectDirectory.dir('service/uploads')
+    delete rootProject.layout.projectDirectory.dir('integrations/uploads')
 }
 
 allprojects {

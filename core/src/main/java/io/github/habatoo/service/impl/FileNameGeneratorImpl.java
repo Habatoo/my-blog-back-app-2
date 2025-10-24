@@ -1,8 +1,8 @@
 package io.github.habatoo.service.impl;
 
+import io.github.habatoo.properties.ImageProperties;
 import io.github.habatoo.service.FileNameGenerator;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ThreadLocalRandom;
@@ -18,12 +18,13 @@ public class FileNameGeneratorImpl implements FileNameGenerator {
     private static final int START_NAME_BOUND = 1000;
     private static final int END_NAME_BOUND = 9999;
 
-    private final String defaultExtension;
+    private final ImageProperties imageProperties;
 
-    public FileNameGeneratorImpl(
-            @Value("${app.image.default-extension}") String defaultExtension) {
-        this.defaultExtension = defaultExtension;
-        log.info("FileNameGenerator инициализирован с расширением по умолчанию: '{}'", defaultExtension);
+    public FileNameGeneratorImpl(ImageProperties imageProperties) {
+        this.imageProperties = imageProperties;
+        log.info(
+                "FileNameGenerator инициализирован с расширением по умолчанию '{}'",
+                imageProperties.defaultExtension());
     }
 
     /**
@@ -42,13 +43,18 @@ public class FileNameGeneratorImpl implements FileNameGenerator {
 
     private String getFileExtension(String filename) {
         if (filename == null || filename.lastIndexOf('.') == -1) {
-            log.debug("Исходный файл без расширения, используется расширение по умолчанию '{}'", defaultExtension);
-            return defaultExtension;
+            log.debug(
+                    "Исходный файл без расширения, используется расширение по умолчанию '{}'",
+                    imageProperties.defaultExtension());
+            return imageProperties.defaultExtension();
         }
         String ext = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
         if (ext.isEmpty()) {
-            log.debug("Исходный файл '{}' без расширения после точки, используется по умолчанию '{}'", filename, defaultExtension);
-            return defaultExtension;
+            log.debug(
+                    "Исходный файл '{}' без расширения после точки, используется по умолчанию '{}'",
+                    filename,
+                    imageProperties.defaultExtension());
+            return imageProperties.defaultExtension();
         }
 
         return ext;

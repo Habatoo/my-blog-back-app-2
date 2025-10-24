@@ -5,13 +5,7 @@ import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
 import org.junit.jupiter.params.provider.Arguments;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
@@ -22,21 +16,7 @@ import java.util.stream.Stream;
  * Все записи создаются с использованием циклов на основе коллекций.
  */
 @Testcontainers
-//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public abstract class TestDataProvider {
-
-//    @Container
-//    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17-alpine")
-//            .withDatabaseName("blog_test")
-//            .withUsername("test")
-//            .withPassword("test");
-//
-//    @DynamicPropertySource
-//    static void postgresProperties(DynamicPropertyRegistry registry) {
-//        registry.add("spring.datasource.url", postgres::getJdbcUrl);
-//        registry.add("spring.datasource.username", postgres::getUsername);
-//        registry.add("spring.datasource.password", postgres::getPassword);
-//    }
 
     public static final List<PostCreateRequestDto> TEST_POSTS = List.of(
             new PostCreateRequestDto(

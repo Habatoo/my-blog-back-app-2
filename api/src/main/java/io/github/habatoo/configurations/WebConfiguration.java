@@ -12,19 +12,19 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 
-    private final Properties properties;
+    private final CorsProperties corsProperties;
 
-    public WebConfiguration(Properties properties) {
-        this.properties = properties;
+    public WebConfiguration(CorsProperties corsProperties) {
+        this.corsProperties = corsProperties;
     }
 
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping(properties.pathPattern())
-                .allowedOriginPatterns(properties.allowedOriginPatterns())
-                .allowedMethods(properties.allowedMethods().toArray(new String[0]))
-                .allowedHeaders(properties.allowedHeaders())
-                .allowCredentials(properties.allowCredentials())
-                .maxAge(properties.maxAge());
+        registry.addMapping(corsProperties.pathPattern())
+                .allowedOriginPatterns(corsProperties.allowedOriginPatterns())
+                .allowedMethods(corsProperties.allowedMethods().toArray(new String[0]))
+                .allowedHeaders(corsProperties.allowedHeaders())
+                .allowCredentials(corsProperties.allowCredentials())
+                .maxAge(corsProperties.maxAge());
     }
 }

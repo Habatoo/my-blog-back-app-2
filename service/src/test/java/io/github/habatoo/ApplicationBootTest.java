@@ -9,7 +9,12 @@ import org.springframework.test.context.ActiveProfiles;
  * Smoke-тест, проверяющий, что контекст Spring Boot приложения поднимается без ошибок.
  */
 @ActiveProfiles("test")
-@SpringBootTest(classes = io.github.habatoo.Application.class)
+@SpringBootTest(
+        classes = io.github.habatoo.Application.class,
+        properties = {
+                "spring.config.location=classpath:application-test.yaml"
+        }
+)
 @DisplayName("Проверка загрузки контекста приложения")
 class ApplicationBootTest {
 

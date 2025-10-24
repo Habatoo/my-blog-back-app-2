@@ -1,13 +1,17 @@
 package io.github.habatoo.service.filenamegenerator;
 
+import io.github.habatoo.properties.ImageProperties;
 import io.github.habatoo.service.FileNameGenerator;
 import io.github.habatoo.service.impl.FileNameGeneratorImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.provider.Arguments;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.stream.Stream;
+
+import static org.mockito.Mockito.when;
 
 /**
  * Базовый класс для тестирования FileNameGeneratorImpl
@@ -15,12 +19,16 @@ import java.util.stream.Stream;
 @ExtendWith(MockitoExtension.class)
 public abstract class FileNameGeneratorTestBase {
 
+
     protected FileNameGenerator fileNameGenerator;
     protected static final String DEFAULT_EXTENSION = "jpg";
+    @Mock
+    protected ImageProperties imageProperties;
 
     @BeforeEach
     void setUp() {
-        fileNameGenerator = new FileNameGeneratorImpl(DEFAULT_EXTENSION);
+        when(imageProperties.defaultExtension()).thenReturn(DEFAULT_EXTENSION);
+        fileNameGenerator = new FileNameGeneratorImpl(imageProperties);
     }
 
     protected String extractTimestamp(String filename) {

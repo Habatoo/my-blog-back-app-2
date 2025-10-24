@@ -31,7 +31,7 @@ java -jar service/build/libs/service-1.0-SNAPSHOT.jar
 ```
 
 3. **Подготовить миграции Flyway и настроить переменные БД**
-   <br> Миграции должны лежать в `./core/src/main/resources/db/migrations/`
+   <br> Миграции должны лежать в `./service/src/main/resources/db/migrations/`
 
 4. **Собрать и запустить Docker-кластер**
 

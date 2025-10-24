@@ -1,10 +1,18 @@
 plugins {
     id 'java'
     id 'jacoco'
+    id 'java-library'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 jacoco {
     toolVersion = '0.8.11'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:3.5.6'
+    }
 }
 
 repositories {
@@ -15,37 +23,27 @@ repositories {
 dependencies {
     implementation platform(project(':bom'))
 
+    api 'org.springframework.boot:spring-boot-autoconfigure'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
+
     compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+    annotationProcessor 'org.projectlombok:lombok'
 
     implementation 'org.springframework:spring-webmvc'
     implementation 'org.springframework.data:spring-data-jdbc'
-
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
-
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
     implementation 'org.flywaydb:flyway-core'
-    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
-
     implementation 'com.zaxxer:HikariCP'
     implementation 'org.postgresql:postgresql'
 
-    implementation 'commons-fileupload:commons-fileupload'
-    implementation 'commons-io:commons-io'
+    runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 
-    implementation 'org.slf4j:slf4j-api'
-    runtimeOnly 'ch.qos.logback:logback-classic'
-
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.hamcrest:hamcrest'
     testImplementation 'org.mockito:mockito-junit-jupiter'
-    testImplementation 'org.mockito:mockito-inline'
     testImplementation 'org.assertj:assertj-core'
     testImplementation 'org.springframework:spring-test'
-    testImplementation 'org.slf4j:slf4j-simple'
-    testImplementation 'com.h2database:h2'
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

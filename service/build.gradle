@@ -21,19 +21,19 @@ dependencyManagement {
 }
 
 dependencies {
+    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.6')
     implementation platform(project(':bom'))
     implementation project(':core')
     implementation project(':api')
 
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
 
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.mockito:mockito-junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-    implementation platform('org.springframework.boot:spring-boot-dependencies:3.5.6')
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

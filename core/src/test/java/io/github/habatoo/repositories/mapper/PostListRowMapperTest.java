@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 /**
  * Юнит-тесты для {@link PostListRowMapper}.
@@ -35,11 +36,11 @@ class PostListRowMapperTest {
     @DisplayName("Корректный маппинг валидного поста из ResultSet")
     void mapsSimplePostCorrectlyTest() throws Exception {
         ResultSet rs = Mockito.mock(ResultSet.class);
-        Mockito.when(rs.getLong("id")).thenReturn(42L);
-        Mockito.when(rs.getString("title")).thenReturn("Заголовок");
-        Mockito.when(rs.getString("text")).thenReturn("Темы Spring и посты");
-        Mockito.when(rs.getInt("likes_count")).thenReturn(13);
-        Mockito.when(rs.getInt("comments_count")).thenReturn(2);
+        when(rs.getLong("id")).thenReturn(42L);
+        when(rs.getString("title")).thenReturn("Заголовок");
+        when(rs.getString("text")).thenReturn("Темы Spring и посты");
+        when(rs.getInt("likes_count")).thenReturn(13);
+        when(rs.getInt("comments_count")).thenReturn(2);
 
         PostListRowMapper mapper = new PostListRowMapper();
         PostResponseDto response = mapper.mapRow(rs, 0);
@@ -61,11 +62,11 @@ class PostListRowMapperTest {
     void mapsTruncatedTextCorrectlyTest() throws Exception {
         String longText = "a".repeat(200);
         ResultSet rs = Mockito.mock(ResultSet.class);
-        Mockito.when(rs.getLong("id")).thenReturn(1L);
-        Mockito.when(rs.getString("title")).thenReturn("Title");
-        Mockito.when(rs.getString("text")).thenReturn(longText);
-        Mockito.when(rs.getInt("likes_count")).thenReturn(3);
-        Mockito.when(rs.getInt("comments_count")).thenReturn(5);
+        when(rs.getLong("id")).thenReturn(1L);
+        when(rs.getString("title")).thenReturn("Title");
+        when(rs.getString("text")).thenReturn(longText);
+        when(rs.getInt("likes_count")).thenReturn(3);
+        when(rs.getInt("comments_count")).thenReturn(5);
 
         PostListRowMapper mapper = new PostListRowMapper();
         PostResponseDto response = mapper.mapRow(rs, 0);
@@ -98,12 +99,12 @@ class PostListRowMapperTest {
                                        Integer likesCount, Integer commentsCount,
                                        String expectedMsg) throws Exception {
         ResultSet rs = Mockito.mock(ResultSet.class);
-        Mockito.when(rs.getLong("id")).thenReturn(id != null ? id : 0L);
-        Mockito.when(rs.wasNull()).thenReturn(id == null);
-        Mockito.when(rs.getString("title")).thenReturn(title);
-        Mockito.when(rs.getString("text")).thenReturn(text);
-        Mockito.when(rs.getInt("likes_count")).thenReturn(likesCount != null ? likesCount : 0);
-        Mockito.when(rs.getInt("comments_count")).thenReturn(commentsCount != null ? commentsCount : 0);
+        when(rs.getLong("id")).thenReturn(id != null ? id : 0L);
+        when(rs.wasNull()).thenReturn(id == null);
+        when(rs.getString("title")).thenReturn(title);
+        when(rs.getString("text")).thenReturn(text);
+        when(rs.getInt("likes_count")).thenReturn(likesCount != null ? likesCount : 0);
+        when(rs.getInt("comments_count")).thenReturn(commentsCount != null ? commentsCount : 0);
 
         PostListRowMapper mapper = new PostListRowMapper();
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
