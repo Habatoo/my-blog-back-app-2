@@ -60,7 +60,7 @@ cd my-blog-back-app
   (см. `.env` в папке env)
 
 - Миграции хранятся здесь:  
-  `api/src/main/resources/db/migrations/V1__init_schema.sql`
+  `core/src/main/resources/db/migrations/V1__init_schema.sql`
 
 3. **Запуск через Docker Compose**
 ```bash
