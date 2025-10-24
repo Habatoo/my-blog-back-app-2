@@ -42,6 +42,7 @@ my-blog-back-app/           # ROOT проекта
 - **Nginx** — для фронтенда, проксирования статических файлов
 - **Jacoco** — для сбора unit/integration coverage ([как смотреть отчёты](./documentation/jacoco.md))
 - **Gradle** — сборка проекта, выполнение тестов
+- **Swagger** — автоматическая генерация документации REST API
 
 
 ## Быстрый старт
@@ -93,6 +94,9 @@ docker compose up --build
 ```bash
 ./gradlew clean test jacocoTestReport
 ```
+
+7**Swagger доступен по ссылке:**
+`http://localhost:8080/swagger-ui/index.html`
 ---
 
 

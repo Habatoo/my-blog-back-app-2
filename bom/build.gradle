@@ -31,6 +31,8 @@ dependencies {
         api 'com.fasterxml.jackson.core:jackson-databind:2.17.2'
         api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.17.2'
 
+        api 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.13'
+
         api 'org.flywaydb:flyway-core:10.17.3'
         api 'org.flywaydb:flyway-database-postgresql:10.17.3'
         api 'com.zaxxer:HikariCP:5.1.0'

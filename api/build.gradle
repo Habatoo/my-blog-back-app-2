@@ -29,6 +29,7 @@ dependencies {
     implementation 'org.springframework:spring-webmvc'
     implementation 'org.springframework.data:spring-data-jdbc'
     implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui'
 
     testImplementation 'jakarta.servlet:jakarta.servlet-api'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
