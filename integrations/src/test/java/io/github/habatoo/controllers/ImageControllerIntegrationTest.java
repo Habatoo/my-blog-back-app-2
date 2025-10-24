@@ -5,6 +5,7 @@ import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.handlers.GlobalExceptionHandler;
 import io.github.habatoo.repositories.ImageRepository;
 import io.github.habatoo.service.*;
+import io.github.habatoo.utils.TestDataProvider;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,7 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @SpringBootTest(classes = Application.class)
 @DisplayName("Интеграционные тесты ImageController")
-class ImageControllerIntegrationTest {
+class ImageControllerIntegrationTest extends TestDataProvider {
 
     @Autowired
     private ImageController imageController;

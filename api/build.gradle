@@ -28,8 +28,8 @@ dependencies {
 
     implementation 'org.springframework:spring-webmvc'
     implementation 'org.springframework.data:spring-data-jdbc'
-//
-//    implementation 'org.springframework.boot:spring-boot-autoconfigure'
+
+//    implementation 'org.springframework.boot:spring-boot-starter-security'
     annotationProcessor 'org.springframework.boot:spring-boot-autoconfigure-processor'
 
     testImplementation 'jakarta.servlet:jakarta.servlet-api'
@@ -49,6 +49,7 @@ dependencies {
     implementation 'org.slf4j:slf4j-api'
     runtimeOnly 'ch.qos.logback:logback-classic'
 
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testImplementation 'org.hamcrest:hamcrest'
     testImplementation 'org.mockito:mockito-junit-jupiter'

@@ -16,7 +16,7 @@ services:
     env_file: ./env/.env
     command: migrate -connectRetries=10
     volumes:
-      - ./api/src/main/resources/db/migrations:/flyway/sql:ro
+      - ./core/src/main/resources/db/migrations:/flyway/sql:ro
 
   my-blog-backend:
     container_name: my-blog-back-app
