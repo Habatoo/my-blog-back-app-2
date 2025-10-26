@@ -33,10 +33,6 @@ dependencies {
 
     testImplementation 'jakarta.servlet:jakarta.servlet-api'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.mockito:mockito-junit-jupiter'
-    testImplementation 'org.assertj:assertj-core'
-    testImplementation 'org.springframework:spring-test'
 
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

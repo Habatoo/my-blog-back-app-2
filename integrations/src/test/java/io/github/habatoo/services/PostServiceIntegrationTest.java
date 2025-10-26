@@ -235,16 +235,6 @@ class PostServiceIntegrationTest extends TestDataProvider {
     }
 
     /**
-     * Проверяет корректную работу метода проверки существования поста.
-     */
-//    @Test
-//    @DisplayName("Проверка существования поста")
-//    void testPostExistsTest() {
-//        assertThat(postService.postExists(1L)).isTrue();
-//        assertThat(postService.postExists(999L)).isFalse();
-//    }
-
-    /**
      * Удаление тестовых директорий.
      *
      * @throws IOException при невозможности удалить
