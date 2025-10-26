@@ -43,6 +43,7 @@ my-blog-back-app/           # ROOT проекта
 - **Jacoco** — для сбора unit/integration coverage ([как смотреть отчёты](./documentation/jacoco.md))
 - **Gradle** — сборка проекта, выполнение тестов
 - **Swagger** — автоматическая генерация документации REST API
+- **Actuator** — доступ к метрикам, нагрузка, состояние зависимостей, информация о сборке
 
 
 ## Быстрый старт
@@ -89,14 +90,24 @@ docker compose up --build
 ./gradlew :integrationtests:test
 ```
 
-6. **Отчёты Jacoco**
-Запуск
+6. **Отчёты Jacoco**<br>
+Запуск:
 ```bash
 ./gradlew clean test jacocoTestReport
 ```
 
-7**Swagger доступен по ссылке:**
-`http://localhost:8080/swagger-ui/index.html`
+7. **Swagger доступен по ссылке:**<br>
+`http://localhost:8080/swagger-ui/index.html`<br><br>
+
+8. **Actuator**<br>
+Доствупные эндпоинты:
+`http://127.0.0.1:8080/actuator`<br>
+Информация о сборке:
+`http://127.0.0.1:8080/actuator/info`<br>
+Состояние сервиса:
+`http://127.0.0.1:8080/actuator/health`<br>
+Метрики:
+`http://127.0.0.1:8080/actuator/metrics`
 ---
 
 
