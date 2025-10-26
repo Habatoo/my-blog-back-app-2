@@ -10,7 +10,4 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * <p>
  */
 @ConfigurationProperties(prefix = "app.image")
-public record ImageProperties(
-        String defaultExtension
-) {
-}
+public record ImageProperties(String defaultExtension) {}

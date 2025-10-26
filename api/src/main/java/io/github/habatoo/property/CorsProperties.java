@@ -1,4 +1,4 @@
-package io.github.habatoo.configurations;
+package io.github.habatoo.property;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

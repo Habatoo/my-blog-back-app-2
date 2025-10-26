@@ -1,5 +1,6 @@
 package io.github.habatoo.configurations;
 
+import io.github.habatoo.property.CorsProperties;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
