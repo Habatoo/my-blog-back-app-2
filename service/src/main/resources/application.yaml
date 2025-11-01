@@ -1,0 +1,29 @@
+app:
+  upload:
+    dir: ${user.dir}/uploads/posts/
+    auto-create-dir: true
+  image:
+    default-extension: jpg
+
+spring:
+  profiles:
+    active: dev
+  web:
+    cors:
+      path-pattern: "/api/**"
+      allowed-origin-patterns:
+        - "http://localhost"
+        - "http://127.0.0.1"
+      allowed-methods: [GET, POST, PUT, DELETE, OPTIONS]
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [health, info, metrics]
+  endpoint:
+    env:
+      show-values: always

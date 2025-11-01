@@ -1,26 +1,22 @@
 package io.github.habatoo.controllers;
 
-import io.github.habatoo.configurations.TestDataSourceConfiguration;
-import io.github.habatoo.configurations.controllers.ImageControllerConfiguration;
+import io.github.habatoo.Application;
 import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.handlers.GlobalExceptionHandler;
 import io.github.habatoo.repositories.ImageRepository;
 import io.github.habatoo.service.*;
+import io.github.habatoo.utils.TestDataProvider;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
-import javax.sql.DataSource;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -31,11 +27,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Интеграционные тесты контроллера изображений ImageController.
  * Проверяет работу API для загрузки и получения изображений постов через MockMvc.
  */
-@ExtendWith(SpringExtension.class)
-@Testcontainers
-@ContextConfiguration(classes = {ImageControllerConfiguration.class, TestDataSourceConfiguration.class})
+@ActiveProfiles("test")
+@SpringBootTest(classes = Application.class)
 @DisplayName("Интеграционные тесты ImageController")
-class ImageControllerIntegrationTest {
+class ImageControllerIntegrationTest extends TestDataProvider {
 
     @Autowired
     private ImageController imageController;
@@ -57,12 +52,6 @@ class ImageControllerIntegrationTest {
 
     @Autowired
     private PostService postService;
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private DataSource dataSource;
 
     @Autowired
     private Flyway flyway;

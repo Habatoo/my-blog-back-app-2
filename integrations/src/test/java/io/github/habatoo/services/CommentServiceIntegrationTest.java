@@ -1,9 +1,6 @@
 package io.github.habatoo.services;
 
-import io.github.habatoo.configurations.TestDataSourceConfiguration;
-import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
-import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
-import io.github.habatoo.configurations.services.ServiceTestConfiguration;
+import io.github.habatoo.Application;
 import io.github.habatoo.dto.request.CommentCreateRequestDto;
 import io.github.habatoo.dto.request.CommentRequestDto;
 import io.github.habatoo.dto.response.CommentResponseDto;
@@ -15,9 +12,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -33,12 +31,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Покрывают основные бизнес-сценарии работы с комментариями:
  * создание, получение, обновление, удаление и корректное управление счетчиками.
  */
-@SpringJUnitConfig(classes = {
-        TestDataSourceConfiguration.class,
-        ServiceTestConfiguration.class,
-        PostRepositoryConfiguration.class,
-        CommentRepositoryConfiguration.class})
 @Transactional
+@ActiveProfiles("test")
+@SpringBootTest(classes = Application.class)
 @DisplayName("Интеграционные тесты CommentServiceImpl")
 class CommentServiceIntegrationTest extends TestDataProvider {
 

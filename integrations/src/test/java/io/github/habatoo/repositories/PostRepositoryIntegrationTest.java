@@ -1,9 +1,6 @@
 package io.github.habatoo.repositories;
 
-import io.github.habatoo.configurations.TestDataSourceConfiguration;
-import io.github.habatoo.configurations.repositories.CommentRepositoryConfiguration;
-import io.github.habatoo.configurations.repositories.PostRepositoryConfiguration;
-import io.github.habatoo.configurations.services.ServiceTestConfiguration;
+import io.github.habatoo.Application;
 import io.github.habatoo.dto.request.PostCreateRequestDto;
 import io.github.habatoo.dto.request.PostRequestDto;
 import io.github.habatoo.dto.response.PostResponseDto;
@@ -16,8 +13,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
@@ -32,11 +30,8 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
  * и работу с тегами. Также проверяются граничные случаи и ошибки.
  * </p>
  */
-@SpringJUnitConfig(classes = {
-        TestDataSourceConfiguration.class,
-        CommentRepositoryConfiguration.class,
-        PostRepositoryConfiguration.class,
-        ServiceTestConfiguration.class})
+@ActiveProfiles("test")
+@SpringBootTest(classes = Application.class)
 @DisplayName("Интеграционные тесты PostRepository")
 public class PostRepositoryIntegrationTest extends TestDataProvider {
 

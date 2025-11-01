@@ -1,29 +1,43 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.6'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'base'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco-report-aggregation'
 }
 
-group = 'io.github.habatoo'
-version = '0.0.1-SNAPSHOT'
-description = 'Gradle Blog Back Webapp'
-
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+tasks.named('clean') {
+    dependsOn 'cleanRootBuild'
 }
 
-repositories {
-	mavenCentral()
+tasks.register('cleanRootBuild', Delete) {
+    group = 'build'
+    description = 'Clean build directory in root project'
+    delete rootProject.layout.buildDirectory
+    delete rootProject.layout.projectDirectory.dir('uploads')
+    delete rootProject.layout.projectDirectory.dir('service/uploads')
+    delete rootProject.layout.projectDirectory.dir('integrations/uploads')
 }
 
-dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
+allprojects {
+    group = 'io.github.habatoo'
+    version = '1.0-SNAPSHOT'
 
-tasks.named('test') {
-	useJUnitPlatform()
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom 'io.github.habatoo:bom:1.0-SNAPSHOT'
+        }
+    }
+
+    tasks.withType(JavaCompile).tap {
+        configureEach {
+            options.encoding = 'UTF-8'
+            sourceCompatibility = '21'
+            targetCompatibility = '21'
+            options.compilerArgs.add("-parameters")
+        }
+    }
 }

@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:17-alpine://localhost:5432/blog_test
+    username: test
+    password: test
+  flyway:
+    enabled: true
+    locations: classpath:db/migrations
+    encoding: UTF-8
+    baseline-version: 0
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: false
+  web:
+    cors:
+      path-pattern: "/api/**"
+      allowed-origin-patterns:
+        - "http://localhost"
+        - "http://127.0.0.1"
+      allowed-methods: [GET, POST, PUT, DELETE, OPTIONS]
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600

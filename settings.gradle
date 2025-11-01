@@ -1,1 +1,17 @@
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        mavenLocal()
+    }
+}
+
 rootProject.name = 'my-blog-back-app'
+
+include 'api'
+include 'core'
+include 'service'
+include 'bom'
+include 'integrations'
+include 'report'
+include 'service'

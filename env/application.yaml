@@ -1,0 +1,46 @@
+app:
+  upload:
+    dir: ${user.dir}/uploads/posts/
+    auto-create-dir: true
+  image:
+    default-extension: jpg
+
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/blog_db}
+    username: ${SPRING_DATASOURCE_USERNAME:blog_admin}
+    password: ${SPRING_DATASOURCE_PASSWORD:blog_password}
+    hikari:
+      maximum-pool-size: 10
+      connection-timeout: 30000
+
+  flyway:
+    url: ${FLYWAY_URL:jdbc:postgresql://localhost:5432/blog_db}
+    user: ${FLYWAY_USER:blog_admin}
+    password: ${FLYWAY_PASSWORD:blog_password}
+    enabled: true
+    encoding: UTF-8
+    locations: classpath:db/migrations
+    baseline-version: 0
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  web:
+    cors:
+      path-pattern: "/api/**"
+      allowed-origin-patterns:
+        - "http://localhost"
+        - "http://127.0.0.1"
+      allowed-methods: [GET, POST, PUT, DELETE, OPTIONS]
+      allowed-headers: "*"
+      allow-credentials: true
+      max-age: 3600
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [health, info, metrics]
+  endpoint:
+    env:
+      show-values: always

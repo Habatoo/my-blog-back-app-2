@@ -6,6 +6,7 @@ import io.github.habatoo.service.CommentService;
 import io.github.habatoo.service.PostService;
 import org.junit.jupiter.params.provider.Arguments;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -14,6 +15,7 @@ import java.util.stream.Stream;
  * Утилита для подготовки тестовых данных — постов и комментариев — для интеграционных тестов.
  * Все записи создаются с использованием циклов на основе коллекций.
  */
+@Testcontainers
 public abstract class TestDataProvider {
 
     public static final List<PostCreateRequestDto> TEST_POSTS = List.of(

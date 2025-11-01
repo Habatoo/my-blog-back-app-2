@@ -1,19 +1,16 @@
 ## Работа с Jacoco — покрытие и отчёты
 
 - **Покрытие считается для модулей:**
-  - api
-  - backend-core
+
 
 - **Для построения финального отчёта выполните команду:** <br>
-`mvn clean test jacoco:report`
+- 
 
-- **Финальный HTML-отчёт** будет доступен по пути: 
-  <br> [./report/target/site/jacoco-aggregate/index.html](./report/target/site/jacoco-aggregate/index.html)
-  <>br Откройте этот файл в браузере для просмотра уровня покрытия тестами.
+
+- **Финальный HTML-отчёт** будет доступен по пути:
+  ./report/build/reports/jacoco/testCodeCoverageReport/html/index.html
 
 - **Что исключено**:  
-  Покрытие НЕ считается для всех файлов, имена которых заканчиваются на `DTO`, `Dto`, или `Data` (например, `UserDTO.java`, `OrderDto.java`).  
-  Это исключение прописано в настройках Jacoco — эти классы игнорируются при расчёте покрытия.
-  Кроме классов *Dto.java в которых реализована логика проверки входных данных.
+
 
 ---

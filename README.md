@@ -6,25 +6,27 @@
 ## О проекте
 
 **my-blog-back-app** <br>
-Бэкенд многомодульного блог-приложения на Java/Spring (Maven, Tomcat, Postgres, Flyway, Jacoco).
+Бэкенд многомодульного блог-приложения на Java/Spring Boot (Gradle, Postgres, Flyway, Jacoco).
 Поддержка миграций, автотестов, интеграции, docker-compose для легкой разработки и деплоя.
 ---
 
 ## Структура проекта
 ```declarative;
 my-blog-back-app/           # ROOT проекта 
-├── api/                    # Контроллеры и конфигурация приложения
-│ ├── target/backend.war    # Сборка backend для деплоя в Tomcat/Jetty
-│ └── db/migrations/        # Миграции Flyway (V1__init_schema.sql)
-├── backend-core/           # Core блок с основной бизнес логикой.
-├── frontend/               # Исходный код frontend, конечное приложение - сюда копируется build фронта
-├── integrationtests /      # Интеграционные тесты по проекту
-├── report /                # Pom для генерации отчетеа jacoco в многомодульном проекте
+├── api/                    # Контроллеры и конфигурация приложения - jar
+├── bom/                    # BOM с версиями для всего проекта.
+├── core/                   # Core блок с основной бизнес логикой - jar 
 ├── documentation/          # Документация, инструкции, примеры миграций и тестирования
 │ ├── database.md
 │ ├── deploy.md
-│ ├── jacoco.md
-│ └── faq.md
+│ └── jacoco.md
+├── env/                    # Папка для секретов и настроек
+├── frontend/               # Исходный код frontend, конечное приложение - сюда копируется build фронта
+├── gradle/                 # Wrapper
+├── integrationtests /      # Интеграционные тесты по проекту
+├── report /                # JacocoReport для генерации отчетеа jacoco в многомодульном проекте
+├── service /               # Application - @SpringBootApplication
+│ └── db/migrations/        # Миграции Flyway (V1__init_schema.sql)
 ├── Dockerfilel
 ├── docker-compose.yml      # Главный файл оркестрации Docker сервисов
 ├── .env                    # Переменные среды (НЕ храните в репозитории)
@@ -33,26 +35,26 @@ my-blog-back-app/           # ROOT проекта
 ---
 ## Применяемые технологии
 
-- **Java 17** (Spring MVC, Spring Data JPA)
+- **Java 17** (Spring Boot, Spring Data JPA)
 - **PostgreSQL 17** (alpine образ)
 - **Flyway** — миграции БД
 - **Docker/Docker Compose** — весь стек развертывается одной командой
-- **Tomcat 9** — контейнер для деплоя .war backend
 - **Nginx** — для фронтенда, проксирования статических файлов
 - **Jacoco** — для сбора unit/integration coverage ([как смотреть отчёты](./documentation/jacoco.md))
-- **Maven** — сборка проекта, выполнение тестов
+- **Gradle** — сборка проекта, выполнение тестов
+- **Swagger** — автоматическая генерация документации REST API
+- **Actuator** — доступ к метрикам, нагрузка, состояние зависимостей, информация о сборке
 
 
 ## Быстрый старт
 
 1. **Подготовка**
 ```bash
-git clone -b feature/module_one_sprint_three_branch https://github.com/Habatoo/my-blog-back-app.git
+git clone -b feature/module_one_sprint_four_branch https://github.com/Habatoo/my-blog-back-app-2.git
 cd my-blog-back-app
 ```
 
 2. **Настройка базы Postgres**
-
 - Параметры по умолчанию:  
   `DB_NAME=blog_db`  
   `USER=blog_admin`  
@@ -60,43 +62,56 @@ cd my-blog-back-app
   (см. `.env` в папке env)
 
 - Миграции хранятся здесь:  
-  `api/src/main/resources/db/migrations/V1__init_schema.sql`
+  `service/src/main/resources/db/migrations/V1__init_schema.sql`
 
 3. **Запуск через Docker Compose**
 ```bash
 docker compose up --build
 ```
-- Контейнеры: backend (Tomcat + WAR), frontend (NGINX), база, Flyway миграции.
+- Контейнеры: backend, frontend (NGINX), база, Flyway миграции.
 
 4. **Сборка и деплой бэкенда вручную**
-- Сборка WAR:
+- В модуле service: 
+```bash
+./gradlew bootJar 
 ```
-./mvnw clean package -DskipTests=true -Dmaven.test.skip=true
- ```
-- Деплой:
-  - Скопируйте файл `api/target/api-1.0-SNAPSHOT.war` в `webapps/ROOT.war` вашего Tomcat.
+- Через root: 
+```bash
+./gradlew :service:bootJar
+```
 
 5. **Запуск/тесты**
-  - Юнит и интеграционные тесты:
+- Юнит-тесты
 ```bash
-./mvnw test           # только тесты
-./mvnw verify         # тесты + проверка через Jacoco
- ```
-
-6. **Отчёты Jacoco**
-  - Генерация:
+./gradlew test
+```
+- Интеграционные тесты
 ```bash
-./mvnw jacoco:report
- ```
-  - Смотрите HTML-отчёты в  
-  `report/target/site/jacoco/index.html`  
-  (может отличаться по модулю – см. doc/jacoco.md)
+./gradlew :integrationtests:test
+```
 
+6. **Отчёты Jacoco**<br>
+Запуск:
+```bash
+./gradlew clean test jacocoTestReport
+```
+
+7. **Swagger доступен по ссылке:**<br>
+`http://localhost:8080/swagger-ui/index.html`<br><br>
+
+8. **Actuator**<br>
+Доствупные эндпоинты:
+`http://127.0.0.1:8080/actuator`<br>
+Информация о сборке:
+`http://127.0.0.1:8080/actuator/info`<br>
+Состояние сервиса:
+`http://127.0.0.1:8080/actuator/health`<br>
+Метрики:
+`http://127.0.0.1:8080/actuator/metrics`
 ---
 
 
 ## Доступы и взаимодействие сервисов
-
 - **Frontend:**  
   http://localhost/  
   (отправляет запросы на API по http://localhost:8080/)
@@ -106,7 +121,6 @@ docker compose up --build
 - **База данных:**  
   `blog_db_con` (Postgres)  
   — видна внутри клстера по имени, снаружи доступен порт 5432
----
 
 ## Более расширенные инструкции
 
